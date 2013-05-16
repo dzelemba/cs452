@@ -5,4 +5,6 @@ void pass();
 
 void create(int priority, void (*code));
 
+void Exit();
+
 #endif

@@ -4,7 +4,7 @@
 XCC = /u/wbcowan/gnuarm-4.0.2/arm-elf/bin/gcc
 AS = /u/wbcowan/gnuarm-4.0.2/arm-elf/bin/as
 LD = /u/wbcowan/gnuarm-4.0.2/arm-elf/bin/ld
-CFLAGS  = -g -c -fPIC -Wall -I. -I../include -mcpu=arm920t -msoft-float
+CFLAGS  = -c -fPIC -Wall -I. -I../include -mcpu=arm920t -msoft-float
 
 # -g: include hooks for gdb
 # -c: only compile
@@ -19,6 +19,9 @@ LDFLAGS = -init main -Map main.map -N  -T orex.ld -L/u/wbcowan/gnuarm-4.0.2/lib/
 
 all: main.elf 
 
+exception_handler.o: exception_handler.s
+	$(AS) $(ASFLAGS) -o exception_handler.o exception_handler.s
+
 main.s: main.c
 	$(XCC) -S $(CFLAGS) main.c
 
@@ -31,8 +34,8 @@ syscall.s: syscall.c
 syscall.o: syscall.s
 	$(AS) $(ASFLAGS) -o syscall.o syscall.s
 
-main.elf: main.o syscall.o 
-	$(LD) $(LDFLAGS) -o $@ main.o syscall.o -lbwio -lgcc
+main.elf: main.o syscall.o exception_handler.o
+	$(LD) $(LDFLAGS) -o $@ main.o syscall.o exception_handler.o -lbwio -lgcc
 
 install: main.elf
 	cp main.elf /u/cs452/tftp/ARM/dzelemba/
