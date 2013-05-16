@@ -1,0 +1,9 @@
+# Vim
+*.swp
+
+# Build Files
+*.o
+*.s
+*.elf
+*.map
+*.out
