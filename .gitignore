@@ -1,9 +1,11 @@
 # Vim
 *.swp
+*.swo
 
 # Build Files
 *.o
-*.s
 *.elf
 *.map
 *.out
+syscall.s
+main.s

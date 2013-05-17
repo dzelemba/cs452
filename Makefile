@@ -19,14 +19,8 @@ LDFLAGS = -init main -Map main.map -N  -T orex.ld -L/u/wbcowan/gnuarm-4.0.2/lib/
 
 all: main.elf 
 
-exception_handler.o: exception_handler.s
-	$(AS) $(ASFLAGS) -o exception_handler.o exception_handler.s
-
-main.s: main.c
-	$(XCC) -S $(CFLAGS) main.c
-
-main.o: main.s
-	$(AS) $(ASFLAGS) -o main.o main.s
+context_switch.o: context_switch.s
+	$(AS) $(ASFLAGS) -o context_switch.o context_switch.s
 
 syscall.s: syscall.c
 	$(XCC) -S $(CFLAGS) syscall.c
@@ -34,8 +28,14 @@ syscall.s: syscall.c
 syscall.o: syscall.s
 	$(AS) $(ASFLAGS) -o syscall.o syscall.s
 
-main.elf: main.o syscall.o exception_handler.o
-	$(LD) $(LDFLAGS) -o $@ main.o syscall.o exception_handler.o -lbwio -lgcc
+main.s: main.c
+	$(XCC) -S $(CFLAGS) main.c
+
+main.o: main.s
+	$(AS) $(ASFLAGS) -o main.o main.s
+
+main.elf: main.o syscall.o context_switch.o
+	$(LD) $(LDFLAGS) -o $@ main.o syscall.o context_switch.o -lbwio -lgcc
 
 install: main.elf
 	cp main.elf /u/cs452/tftp/ARM/dzelemba/
@@ -53,4 +53,4 @@ install: main.elf
 #	$(GCC) $(TESTFLAGS) all_tests.c test_helpers.c strings.c ring_buffer.c -o test.out 
 
 clean:
-	-rm -f *.elf *.s *.o *.out main.map
+	-rm -f *.elf *.o *.out main.map syscall.s main.s
