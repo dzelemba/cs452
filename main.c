@@ -19,10 +19,9 @@ int main(int argc, char** argv) {
   *(int *)(0x28) = (int)&k_enter; 
 
   struct task first_task; 
-  first_task.tid = 1;
-  first_task.code = &user_task;
+  task_create(&first_task, 1, &user_task);
   
-  k_exit(first_task.stack + STACK_SIZE, first_task.code);
+  k_exit(task_get_stack(&first_task));
 
   bwprintf(COM2, "Main Exiting... \n");
  

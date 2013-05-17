@@ -3,6 +3,6 @@
 
 void k_enter();
 
-void k_exit(char* user_stack, void (*user_spsr));
+void k_exit(int* user_stack);
 
 #endif 

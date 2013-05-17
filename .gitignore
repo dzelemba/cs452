@@ -9,3 +9,4 @@
 *.out
 syscall.s
 main.s
+task.s

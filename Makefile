@@ -22,6 +22,12 @@ all: main.elf
 context_switch.o: context_switch.s
 	$(AS) $(ASFLAGS) -o context_switch.o context_switch.s
 
+task.s: task.c
+	$(XCC) -S $(CFLAGS) task.c
+
+task.o: task.s
+	$(AS) $(ASFLAGS) -o task.o task.s
+
 syscall.s: syscall.c
 	$(XCC) -S $(CFLAGS) syscall.c
 
@@ -34,8 +40,8 @@ main.s: main.c
 main.o: main.s
 	$(AS) $(ASFLAGS) -o main.o main.s
 
-main.elf: main.o syscall.o context_switch.o
-	$(LD) $(LDFLAGS) -o $@ main.o syscall.o context_switch.o -lbwio -lgcc
+main.elf: main.o syscall.o context_switch.o task.o
+	$(LD) $(LDFLAGS) -o $@ main.o syscall.o context_switch.o task.o -lbwio -lgcc
 
 install: main.elf
 	cp main.elf /u/cs452/tftp/ARM/dzelemba/
@@ -53,4 +59,4 @@ install: main.elf
 #	$(GCC) $(TESTFLAGS) all_tests.c test_helpers.c strings.c ring_buffer.c -o test.out 
 
 clean:
-	-rm -f *.elf *.o *.out main.map syscall.s main.s
+	-rm -f *.elf *.o *.out main.map syscall.s main.s task.s
