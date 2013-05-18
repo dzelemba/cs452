@@ -17,7 +17,7 @@ ASFLAGS	= -mcpu=arm920t -mapcs-32
 
 LDFLAGS = -init main -Map main.map -N  -T orex.ld -L/u/wbcowan/gnuarm-4.0.2/lib/gcc/arm-elf/4.0.2 -L../lib
 
-all: main.elf 
+all: main.elf
 
 context_switch.o: context_switch.s
 	$(AS) $(ASFLAGS) -o context_switch.o context_switch.s
@@ -34,14 +34,20 @@ syscall.s: syscall.c syscall.h
 syscall.o: syscall.s
 	$(AS) $(ASFLAGS) -o syscall.o syscall.s
 
+queue.s: queue.c queue.h
+	$(XCC) -S $(CFLAGS) queue.c
+
+queue.o: queue.s
+	$(AS) $(ASFLAGS) -o queue.o queue.s
+
 main.s: main.c
 	$(XCC) -S $(CFLAGS) main.c
 
 main.o: main.s
 	$(AS) $(ASFLAGS) -o main.o main.s
 
-main.elf: main.o syscall.o context_switch.o task.o
-	$(LD) $(LDFLAGS) -o $@ main.o syscall.o context_switch.o task.o -lbwio -lgcc
+main.elf: main.o syscall.o context_switch.o task.o queue.o
+	$(LD) $(LDFLAGS) -o $@ main.o syscall.o context_switch.o task.o queue.o -lbwio -lgcc
 
 install: main.elf
 	cp main.elf /u/cs452/tftp/ARM/dzelemba/
@@ -56,7 +62,7 @@ install: main.elf
 # test: test.out
 
 #test.out: all_tests.c strings_test.c ring_buffer_test.c test_helpers.* strings.* ring_buffer.*
-#	$(GCC) $(TESTFLAGS) all_tests.c test_helpers.c strings.c ring_buffer.c -o test.out 
+#	$(GCC) $(TESTFLAGS) all_tests.c test_helpers.c strings.c ring_buffer.c -o test.out
 
 clean:
 	-rm -f *.elf *.o *.out main.map syscall.s main.s task.s
