@@ -3,17 +3,21 @@
 
 #define STACK_SIZE (1024)
 
-struct task {
+typedef struct Task {
   // Public
   int tid;
+  int parent_tid;
+
+  int status;
+
+  int* stack_position;
 
   // Private
   int stack[STACK_SIZE];
-};
+} Task;
 
-void task_create(struct task* task, int tid, void (*code));
+void init_tasks();
 
-// Just returns bottom of stack array.
-int* task_get_stack(struct task* task);
+Task* task_create(int parent_tid, void (*code));
 
 #endif

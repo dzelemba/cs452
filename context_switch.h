@@ -3,7 +3,6 @@
 
 void k_enter();
 
-Request* k_exit(int* user_stack);
-//void k_exit(int* user_stack);
+Request* k_exit(int** user_stack);
 
 #endif 

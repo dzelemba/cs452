@@ -6,9 +6,13 @@ typedef struct Request {
   int args[5];
 } Request;
 
-void pass();
+int Create(int priority, void (*code));
 
-void create(int priority, void (*code));
+int MyTid();
+
+int MyParentTid();
+
+void Pass();
 
 void Exit();
 
