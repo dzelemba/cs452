@@ -6,7 +6,7 @@
 typedef struct _queue {
   int start;
   int end;
-  int buf[1024];
+  int buf[QUEUE_BUFFER_SIZE];
 } queue;
 
 void push(queue *q, int val);
@@ -14,5 +14,7 @@ void push(queue *q, int val);
 int pop(queue *q);
 
 int is_queue_empty(queue *q);
+
+int is_queue_full(queue *q);
 
 #endif
