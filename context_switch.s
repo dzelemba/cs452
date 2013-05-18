@@ -7,9 +7,34 @@ k_enter:
 	@ args = 0, pretend = 0, frame = 0
 	@ frame_needed = 1, uses_anonymous_args = 0
 
-  # Restore kernel registers.
-  ldmfd sp, {r4, r5, r6, r7, r8, sb, sl, fp, ip, pc}
+# System MOde
+  # TODO: Save user's registers.
+# End SYstem Mode
 
+  # Get status into r1
+  # ldr r1, [R14, #-4]
+  #bic r1, r1, #0xFF000000
+
+  # Restore kernel registers. Put pc into r2
+  ldmfd sp!, {r4, r5, r6, r7, r8, sb, sl, fp, ip, pc}
+
+/*
+  # Pass args[] into r0
+  lbm r1, [r0, #16]
+  str r1, [sp]
+
+  ldm r1, [r0, #4]
+  ldm r2, [r0, #8]
+  ldm r3, [r0, #12]
+  ldm r0, [r0]
+
+  # Call appropriate method
+
+  # bl Create..
+
+  # ldmia sp!, {pc}
+  mov pc, r2
+*/
 	.size	k_enter, .-k_enter
 	.align	2
 	.global	k_exit

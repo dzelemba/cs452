@@ -22,13 +22,13 @@ all: main.elf
 context_switch.o: context_switch.s
 	$(AS) $(ASFLAGS) -o context_switch.o context_switch.s
 
-task.s: task.c
+task.s: task.c task.h
 	$(XCC) -S $(CFLAGS) task.c
 
 task.o: task.s
 	$(AS) $(ASFLAGS) -o task.o task.s
 
-syscall.s: syscall.c
+syscall.s: syscall.c syscall.h
 	$(XCC) -S $(CFLAGS) syscall.c
 
 syscall.o: syscall.s

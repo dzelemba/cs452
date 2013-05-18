@@ -10,8 +10,7 @@ void get_status(int status) {
 
 void user_task() {
   bwprintf(COM2, "User task!\n");
-
-  Exit();
+  create(23, &user_task);
 }
 
 int main(int argc, char** argv) {
@@ -21,9 +20,11 @@ int main(int argc, char** argv) {
   struct task first_task; 
   task_create(&first_task, 1, &user_task);
   
-  k_exit(task_get_stack(&first_task));
+  Request* request = k_exit(task_get_stack(&first_task));
+
+  bwprintf(COM2, "Syscall: %d, Priority: %d, Code: %x\n", request->syscall, request->args[0], *(int*)(request->args[1]));
 
   bwprintf(COM2, "Main Exiting... \n");
- 
+
   return 0;
 }
