@@ -47,12 +47,14 @@ k_enter:
 k_exit:
 	@ args = 0, pretend = 0, frame = 8
 	@ frame_needed = 1, uses_anonymous_args = 0
+  # Don't touch r0! It holds the user's return value.
+
   # Derefernce pointer to stack pointer.
-  ldr r1, [r0]
+  ldr r3, [r1]
 
   # Save kernel's registers.
-  # r0 holds kernel's pointer to user's stack ptr, so we can update it later.
-	stmfd	sp!, {r0, r4, r5, r6, r7, r8, sb, sl, fp, ip, lr}
+  # r1 holds kernel's pointer to user's stack ptr, so we can update it later.
+	stmfd	sp!, {r1, r4, r5, r6, r7, r8, sb, sl, fp, ip, lr}
 
   # Switch to system mode.
   mrs r2, cpsr
@@ -61,11 +63,11 @@ k_exit:
   msr cpsr_c, r2
 
   # Restore user's stack ptr
-  mov sp, r1 
+  mov sp, r3
 
   # Restore task's registers.
-  # r0 holds task's pc, r1 holds tasks spsr.
-  ldmfd sp!, {r0, r1, r4, r5, r6, r7, r8, sb, sl, fp, ip, lr}
+  # r1 holds task's pc, r3 holds tasks spsr.
+  ldmfd sp!, {r1, r3, r4, r5, r6, r7, r8, sb, sl, fp, ip, lr}
 
   # Back to supervisor mode.
   mrs r2, cpsr
@@ -74,10 +76,10 @@ k_exit:
   msr cpsr_c, r2
 
   # Restore user SPSR 
-  msr spsr, r1
+  msr spsr, r3
 
   # Jump to user task (this will also move the svc SPSR into users CPSR).
-  movs pc, r0
+  movs pc, r1
 
 	.size	k_exit, .-k_exit
 	.ident	"GCC: (GNU) 4.0.2"

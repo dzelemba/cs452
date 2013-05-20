@@ -14,8 +14,8 @@ int Create(int priority, void (*code)) {
   get_request(); // Put request into r0
   asm("swi");
 
-  // register int retval asm("r0")
-  // return retval
+  register int retval asm("r0");
+  return retval;
 }
 
 int MyTid() {
@@ -23,6 +23,9 @@ int MyTid() {
 
   get_request(); // Put request into r0
   asm("swi");
+
+  register int retval asm("r0");
+  return retval;
 }
 
 int MyParentTid() {
@@ -30,6 +33,9 @@ int MyParentTid() {
 
   get_request(); // Put request into r0
   asm("swi");
+
+  register int retval asm("r0");
+  return retval;
 }
 
 void Pass() {

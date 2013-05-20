@@ -11,7 +11,7 @@ Task* get_next_available_task() {
 }
 
 void init_tasks() {
-  next_task = 0;
+  next_task = 1;
 }
 
 // TODO: Return null if no more tids.

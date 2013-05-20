@@ -15,12 +15,11 @@ void user_task() {
 
   bwprintf(COM2, "User task! 2\n");
 
-  Pass();
+  int tid = MyTid();
+  bwprintf(COM2, "User task tid: %d\n", tid);
 
-  bwprintf(COM2, "User task! 3\n");
-
-  Pass();
-  bwprintf(COM2, "User task! 4\n");
+  int p_tid = MyParentTid();
+  bwprintf(COM2, "User task parent tid: %d\n", p_tid);
 
   Pass();
   bwprintf(COM2, "User task! 5\n");
@@ -28,36 +27,32 @@ void user_task() {
   Exit();
 }
 
-void process_request(Task* task, Request* request) {
-  int retval = 0;
-
+int process_request(Task* task, Request* request) {
   Task* new_task;
   switch (request->syscall) {
     case 0:
       new_task = task_create(task->tid, (void *)request->args[1]);
       if (new_task) {  
-        // scheduler_add_task(request->args[0], new_task) 
+        // scheduler_add_task(request->args[0] /* Priority */, new_task) 
       } else {
-        retval = -2; // Kernel out of task descriptors
+        return -2; // Kernel out of task descriptors
       }
       break;
     case 1:
-      retval = task->tid;
-      break;
+      return task->tid;
     case 2:
-      retval = task->parent_tid;
-      break;
+      return task->parent_tid;
     case 3:
-      // scheduler_move_to_back(task); 
+      // scheduler_move_to_back(priority);
       break;
     case 4:
-      // scheduler_remove_task(task)
+      // scheduler_remove_task(priority) Just pop the first.
       break;
     default:
       bwprintf(COM2, "Illegal syscall number: %d\n", request->syscall);
   }
 
-  // TODO: Insert retval into user stack.
+  return 0;
 }
 
 int main(int argc, char** argv) {
@@ -68,12 +63,13 @@ int main(int argc, char** argv) {
   Task* first_task = task_create(-1 /* Parent tid */, &user_task);
   
   Task* next_task;
+  int user_retval = 0;
   //while (1) {
   int i =0;
   for (; i < 5; i++) {
     next_task = first_task; //scheduler_get_next_task();
-    Request* request = k_exit(&next_task->stack_position);
-    process_request(next_task, request); 
+    Request* request = k_exit(user_retval, &next_task->stack_position);
+    user_retval = process_request(next_task, request); 
   }
 
   bwprintf(COM2, "Main Exiting... \n");
