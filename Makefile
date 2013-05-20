@@ -4,7 +4,7 @@
 XCC = /u/wbcowan/gnuarm-4.0.2/arm-elf/bin/gcc
 AS = /u/wbcowan/gnuarm-4.0.2/arm-elf/bin/as
 LD = /u/wbcowan/gnuarm-4.0.2/arm-elf/bin/ld
-CFLAGS  = -c -fPIC -Wall -I. -I../include -mcpu=arm920t -msoft-float
+CFLAGS  = -O2 -c -fPIC -Wall -I. -I../include -mcpu=arm920t -msoft-float
 
 # -g: include hooks for gdb
 # -c: only compile
@@ -95,4 +95,4 @@ install: main.elf
 #	$(GCC) $(TESTFLAGS) all_tests.c test_helpers.c strings.c ring_buffer.c -o test.out
 
 clean:
-	-rm -f *.elf *.o *.out main.map syscall.s main.s task.s kernel.s test_helper.s basic_test.s run_tests.s
+	-rm -f *.elf *.o *.out main.map syscall.s main.s task.s queue.s scheduler.s kernel.s test_helper.s basic_test.s run_tests.s

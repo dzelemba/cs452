@@ -54,7 +54,7 @@ k_exit:
 
   # Save kernel's registers.
   # r1 holds kernel's pointer to user's stack ptr, so we can update it later.
-	stmfd	sp!, {r1, r4, r5, r6, r7, r8, sb, sl, fp, ip, lr}
+  stmfd sp!, {r1, r4, r5, r6, r7, r8, sb, sl, fp, ip, lr}
 
   # Switch to system mode.
   mrs r2, cpsr
@@ -75,7 +75,7 @@ k_exit:
   orr r2, r2, #0x13
   msr cpsr_c, r2
 
-  # Restore user SPSR 
+  # Restore user SPSR
   msr spsr, r3
 
   # Jump to user task (this will also move the svc SPSR into users CPSR).

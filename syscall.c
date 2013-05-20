@@ -2,7 +2,8 @@
 
 static Request request;
 
-Request* get_request() {
+__attribute__ ((noinline)) static Request* get_request() {
+  asm("");
   return &request;
 }
 
