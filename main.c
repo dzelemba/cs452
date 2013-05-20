@@ -37,23 +37,26 @@ void user_task() {
 int process_request(Task* task, Request* request) {
   Task* new_task;
   switch (request->syscall) {
-    case 0:
+    case 0: /* Create */
       new_task = task_create(task->tid, (int)request->args[0], (void *)request->args[1]);
       if (new_task) {  
-        scheduler_add_task(request->args[0] /* Priority */, new_task);
+        if (scheduler_add_task(request->args[0] /* Priority */, new_task)) {
+          return -1; // Invalid priority.
+        }
         return new_task->tid;
       } else {
         return -2; // Kernel out of task descriptors
       }
-    case 1:
+    case 1: /* MyTid */
       return task->tid;
-    case 2:
+    case 2: /* ParentTid */
       return task->parent_tid;
-    case 3:
+    case 3: /* Pass */
       scheduler_move_to_back(task->priority);
       break;
-    case 4:
+    case 4: /* Exit */
       scheduler_remove_task(task->priority);
+      task_delete(task->tid);
       break;
     default:
       bwprintf(COM2, "Illegal syscall number: %d\n", request->syscall);
@@ -69,16 +72,12 @@ int main(int argc, char** argv) {
   scheduler_init();
 
   Task* first_task = task_create(-1 /* Parent tid */, 1 /* Priority */, &user_task);
-  bwprintf(COM2, "First Task: %x \n", first_task);
-
   scheduler_add_task(1 /* Priority */, first_task);
   
-  bwprintf(COM2, "First Task: %x \n", first_task);
   Task* next_task;
   int user_retval = 0;
   while (1) {
     next_task = scheduler_get_next_task();
-    bwprintf(COM2, "First Task: %x \n", next_task);
     if (next_task == 0) {
       break;
     }

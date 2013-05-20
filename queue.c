@@ -1,7 +1,12 @@
 #include "queue.h"
 
+void init_queue(queue *q) {
+  q->start = 0;
+  q->end = 0;
+}
+
 int _queue_increment(int i) {
-  return (i == QUEUE_BUFFER_SIZE - 1) ? 0 : i + 1;
+  return (i == QUEUE_BUFFER_SIZE) ? 0 : i + 1;
 }
 
 void push(queue *q, int val) {

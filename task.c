@@ -1,22 +1,35 @@
 #include "task.h"
+#include "queue.h"
 
 #define MAX_TASKS 1024
 
 static Task tasks[MAX_TASKS];
-static int next_task;
+static queue free_task_ids;
 
 Task* get_next_available_task() {
-  tasks[next_task].tid = next_task;
-  return &tasks[next_task++];
+  if (is_queue_empty(&free_task_ids)) {
+    return 0;
+  }
+  int task_id = pop(&free_task_ids);
+  Task* task = &tasks[task_id];
+
+  task->tid = task_id;
+  return task;
 }
 
 void init_tasks() {
-  next_task = 1;
+  init_queue(&free_task_ids);
+  int i;
+  for (i = 0; i < MAX_TASKS; i++) {
+    push(&free_task_ids, i);
+  }
 }
 
-// TODO: Return null if no more tids.
 Task* task_create(int parent_tid, int priority, void (*code)) {
   Task* task = get_next_available_task();
+  if (task == 0) {
+    return 0;
+  }
 
   task->parent_tid = parent_tid;
   task->priority = priority;
@@ -39,4 +52,8 @@ Task* task_create(int parent_tid, int priority, void (*code)) {
   task->stack_position = stack - 11;
 
   return task;
+}
+
+void task_delete(int tid) {
+  push(&free_task_ids, tid);
 }

@@ -8,7 +8,6 @@ typedef struct Task {
   int tid;
   int parent_tid;
 
-  int status;
   int priority;
 
   int* stack_position;
@@ -20,5 +19,7 @@ typedef struct Task {
 void init_tasks();
 
 Task* task_create(int parent_tid, int priority, void (*code));
+
+void task_delete(int tid);
 
 #endif

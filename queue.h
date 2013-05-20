@@ -6,8 +6,10 @@
 typedef struct _queue {
   int start;
   int end;
-  int buf[QUEUE_BUFFER_SIZE];
+  int buf[QUEUE_BUFFER_SIZE + 1];
 } queue;
+
+void init_queue(queue *q);
 
 void push(queue *q, int val);
 
