@@ -8,6 +8,14 @@ static queue task_queues[NUM_PRIORITY_TYPES];
 
 // Wow. These API decisions are terrible.
 
+void scheduler_init() {
+  int i;
+  for (i = 0; i < NUM_PRIORITY_TYPES; i++) {
+    task_queues[i].start = 0;
+    task_queues[i].end = 0;
+  }
+}
+
 int _is_valid_priority(int priority) {
   return priority >= 0 && priority < NUM_PRIORITY_TYPES;
 }
