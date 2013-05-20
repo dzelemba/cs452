@@ -40,14 +40,20 @@ queue.s: queue.c queue.h
 queue.o: queue.s
 	$(AS) $(ASFLAGS) -o queue.o queue.s
 
+scheduler.s: scheduler.c scheduler.h
+	$(XCC) -S $(CFLAGS) scheduler.c
+
+scheduler.o: scheduler.s
+	$(AS) $(ASFLAGS) -o scheduler.o scheduler.s
+
 main.s: main.c
 	$(XCC) -S $(CFLAGS) main.c
 
 main.o: main.s
 	$(AS) $(ASFLAGS) -o main.o main.s
 
-main.elf: main.o syscall.o context_switch.o task.o queue.o
-	$(LD) $(LDFLAGS) -o $@ main.o syscall.o context_switch.o task.o queue.o -lbwio -lgcc
+main.elf: main.o syscall.o context_switch.o task.o queue.o scheduler.o
+	$(LD) $(LDFLAGS) -o $@ main.o syscall.o context_switch.o task.o queue.o scheduler.o -lbwio -lgcc
 
 install: main.elf
 	cp main.elf /u/cs452/tftp/ARM/dzelemba/

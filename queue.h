@@ -13,6 +13,8 @@ void push(queue *q, int val);
 
 int pop(queue *q);
 
+int head(queue *q);
+
 int is_queue_empty(queue *q);
 
 int is_queue_full(queue *q);

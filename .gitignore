@@ -11,3 +11,4 @@ syscall.s
 main.s
 task.s
 queue.s
+scheduler.s
