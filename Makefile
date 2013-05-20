@@ -22,6 +22,30 @@ all: main.elf
 context_switch.o: context_switch.s
 	$(AS) $(ASFLAGS) -o context_switch.o context_switch.s
 
+test_helpers.s: test_helpers.c test_helpers.h
+	$(XCC) -S $(CFLAGS) test_helpers.c
+
+test_helpers.o: test_helpers.s
+	$(AS) $(ASFLAGS) -o test_helpers.o test_helpers.s
+
+basic_test.s: basic_test.c all_tests.h
+	$(XCC) -S $(CFLAGS) basic_test.c
+
+basic_test.o: basic_test.s
+	$(AS) $(ASFLAGS) -o basic_test.o basic_test.s
+
+run_tests.s: run_tests.c run_tests.h
+	$(XCC) -S $(CFLAGS) run_tests.c
+
+run_tests.o: run_tests.s
+	$(AS) $(ASFLAGS) -o run_tests.o run_tests.s
+
+kernel.s: kernel.c kernel.h
+	$(XCC) -S $(CFLAGS) kernel.c
+
+kernel.o: kernel.s
+	$(AS) $(ASFLAGS) -o kernel.o kernel.s
+
 task.s: task.c task.h
 	$(XCC) -S $(CFLAGS) task.c
 
@@ -52,8 +76,8 @@ main.s: main.c
 main.o: main.s
 	$(AS) $(ASFLAGS) -o main.o main.s
 
-main.elf: main.o syscall.o context_switch.o task.o queue.o scheduler.o
-	$(LD) $(LDFLAGS) -o $@ main.o syscall.o context_switch.o task.o queue.o scheduler.o -lbwio -lgcc
+main.elf: main.o run_tests.o basic_test.o kernel.o test_helpers.o syscall.o context_switch.o task.o queue.o scheduler.o
+	$(LD) $(LDFLAGS) -o $@ main.o run_tests.o basic_test.o kernel.o test_helpers.o syscall.o context_switch.o task.o queue.o scheduler.o -lbwio -lgcc
 
 install: main.elf
 	cp main.elf /u/cs452/tftp/ARM/dzelemba/
@@ -71,4 +95,4 @@ install: main.elf
 #	$(GCC) $(TESTFLAGS) all_tests.c test_helpers.c strings.c ring_buffer.c -o test.out
 
 clean:
-	-rm -f *.elf *.o *.out main.map syscall.s main.s task.s
+	-rm -f *.elf *.o *.out main.map syscall.s main.s task.s kernel.s test_helper.s basic_test.s run_tests.s
