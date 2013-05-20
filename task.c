@@ -15,10 +15,11 @@ void init_tasks() {
 }
 
 // TODO: Return null if no more tids.
-Task* task_create(int parent_tid, void (*code)) {
+Task* task_create(int parent_tid, int priority, void (*code)) {
   Task* task = get_next_available_task();
 
   task->parent_tid = parent_tid;
+  task->priority = priority;
   task->stack_position = task->stack + STACK_SIZE - 1;
 
   // Fill in stack with initial values.
