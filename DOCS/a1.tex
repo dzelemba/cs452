@@ -1,0 +1,83 @@
+\documentclass[letterpaper]{article}
+\usepackage{enumerate}
+
+\pagestyle{empty}
+
+\begin{document}
+
+\title{CS 452 Assignment 1}
+\author{Felix Fung (20351771) \\ Dusan Zelembaba ()}
+\maketitle
+
+\section{How To Run}
+\begin{verbatim}
+	> load -b 0x00218000 -h 10.15.167.4 "ARM/f2fung/main.elf"
+	> go
+\end{verbatim}
+
+\section{Submitted Files}
+Files listed here can be found under \verb!/u0/f2fung/cs452/a1!\\
+\\
+Listing Format:\\
+\\
+\verb!filename (md5hash)!\\
+description
+
+\subsection{Header Files}
+\verb!context_switch.h ()!\\
+Function definitions for compiler to use our assembly functions.\\
+\verb!queue.h ()!\\
+Header for our queue implementation.\\
+\verb!scheduler.h()!\\
+Function definitions for scheduler.\\
+\verb!syscall.h ()!\\
+Function definitions for syscalls.\\
+\verb!task.h ()!\\
+Contains Task structure and function definitions.\\
+
+\subsection{Source Files}
+\verb!context_switch.s ()!\\
+ARM assembly used to switch in and out of tasks and kernel mode.\\
+\verb!kernel.c ()!\\
+The infinite kernel loop. Interrupts are processed here and tasks and scheduled.\\
+\verb!main.c ()!\\
+Beginning of execution, described below.\\
+\verb!queue.c ()!\\
+A simple queue implementation.\\
+\verb!Makefile ()!\\
+Our makefile.\\
+\verb!scheduler.c ()!\\
+Our scheduler.\\
+\verb!syscall.c ()!\\
+System calls.\\
+\verb!task.c ()!\\
+Creating and managing tasks.\\
+
+\subsection{Test Files}
+\verb!basic_test.c ()!\\
+This is a basic test\\
+\verb!run_tests.h ()!\\
+Header for run\_tests.c.\\
+\verb!run_tests.c ()!\\
+Calls all our tests.\\
+\verb!test_helpers.h ()!\\
+Header for test\_helpers.c.\\
+\verb!test_helpers.c ()!\\
+Test helpers. Asserts and other things.
+
+\section{Program Description}
+
+\subsection{Main}
+
+This is where the kernel's execution begins. We first set a known address ($0x28$) to point to our interrupt handler.
+
+\subsection{Data Structures}
+
+\subsubsection{Task Id Provisioning}
+We use a queue which is initialized with the universe of available task ids (0-1023). These task ids point into an array
+of Task structures. We recycle task ids by pushing returned task ids into the back of our queue.
+
+\subsubsection{Scheduler}
+We use 4 queues, one for each priority we define. Queues are implemented by circular arrays.
+
+\end{document}

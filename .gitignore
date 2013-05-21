@@ -16,3 +16,8 @@ kernel.s
 test_helpers.s
 basic_test.s
 run_tests.s
+
+# Doc Build Files
+DOCS/*.aux
+DOCS/*.log
+DOCS/*.synctex.gz
