@@ -5,4 +5,6 @@
 
 void run_basic_test();
 
+void run_multiple_priorities_test();
+
 #endif

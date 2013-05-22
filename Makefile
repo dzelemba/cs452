@@ -19,20 +19,35 @@ LDFLAGS = -init main -Map main.map -N  -T orex.ld -L/u/wbcowan/gnuarm-4.0.2/lib/
 
 all: main.elf
 
+# Purely Assembly Files
+
 context_switch.o: context_switch.s
 	$(AS) $(ASFLAGS) -o context_switch.o context_switch.s
+
+# All the tests
+
+basic_test.s: all_tests.h basic_test.c 
+	$(XCC) -S $(CFLAGS) basic_test.c 
+
+basic_test.o: basic_test.s
+	$(AS) $(ASFLAGS) -o basic_test.o basic_test.s
+
+multiple_priorities_test.s: all_tests.h multiple_priorities_test.c
+	$(XCC) -S $(CFLAGS) multiple_priorities_test.c
+
+multiple_priorities_test.o: multiple_priorities_test.s 
+	$(AS) $(ASFLAGS) -o multiple_priorities_test.o multiple_priorities_test.s
+
+tests.o: basic_test.o multiple_priorities_test.o
+	$(LD) -r $(LDFLAGS) -o tests.o basic_test.o multiple_priorities_test.o
+
+# Normal C Files
 
 test_helpers.s: test_helpers.c test_helpers.h
 	$(XCC) -S $(CFLAGS) test_helpers.c
 
 test_helpers.o: test_helpers.s
 	$(AS) $(ASFLAGS) -o test_helpers.o test_helpers.s
-
-basic_test.s: basic_test.c all_tests.h
-	$(XCC) -S $(CFLAGS) basic_test.c
-
-basic_test.o: basic_test.s
-	$(AS) $(ASFLAGS) -o basic_test.o basic_test.s
 
 run_tests.s: run_tests.c run_tests.h
 	$(XCC) -S $(CFLAGS) run_tests.c
@@ -76,8 +91,8 @@ main.s: main.c
 main.o: main.s
 	$(AS) $(ASFLAGS) -o main.o main.s
 
-main.elf: main.o run_tests.o basic_test.o kernel.o test_helpers.o syscall.o context_switch.o task.o queue.o scheduler.o
-	$(LD) $(LDFLAGS) -o $@ main.o run_tests.o basic_test.o kernel.o test_helpers.o syscall.o context_switch.o task.o queue.o scheduler.o -lbwio -lgcc
+main.elf: main.o run_tests.o tests.o kernel.o test_helpers.o syscall.o context_switch.o task.o queue.o scheduler.o
+	$(LD) $(LDFLAGS) -o $@ main.o run_tests.o tests.o kernel.o test_helpers.o syscall.o context_switch.o task.o queue.o scheduler.o -lbwio -lgcc
 
 install: main.elf
 	cp main.elf /u/cs452/tftp/ARM/dzelemba/
@@ -95,4 +110,4 @@ install: main.elf
 #	$(GCC) $(TESTFLAGS) all_tests.c test_helpers.c strings.c ring_buffer.c -o test.out
 
 clean:
-	-rm -f *.elf *.o *.out main.map syscall.s main.s task.s queue.s scheduler.s kernel.s test_helper.s basic_test.s run_tests.s
+	-rm -f *.elf *.o *.out main.map `find ./*.s ! -name context_switch.s`

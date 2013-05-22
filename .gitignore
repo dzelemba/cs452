@@ -7,15 +7,8 @@
 *.elf
 *.map
 *.out
-syscall.s
-main.s
-task.s
-queue.s
-scheduler.s
-kernel.s
-test_helpers.s
-basic_test.s
-run_tests.s
+*.s
+!context_switch.s
 
 # Doc Build Files
 DOCS/*.aux

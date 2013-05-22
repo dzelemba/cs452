@@ -21,7 +21,7 @@ void user_task2() {
 
 void user_task() {
   int tid = MyTid();
-  assert_int_equals(1, tid, "Basic Test: Parent Check Tid");
+  assert_int_equals(0, tid, "Basic Test: Parent Check Tid");
 
   int child_tid = Create(1, &user_task2);
   assert_int_equals(1, child_tid, "Basic Test: Parent Check Child Tid");
@@ -45,8 +45,8 @@ void run_basic_test() {
   kernel_run();
 
   if (did_fail()) {
-    bwprintf(COM2, "Basic Test Failed!\n\n"); 
+    bwprintf(COM2, "Basic Test Failed!\n"); 
   } else {
-    bwprintf(COM2, "Basic Test Passed!\n\n"); 
+    bwprintf(COM2, "Basic Test Passed!\n"); 
   }
 }
