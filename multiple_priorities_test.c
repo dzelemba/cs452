@@ -41,12 +41,12 @@ static void user_task_hi() {
 
   assert_int_equals(1, execution_order, "Priorities Test: HI_PRI Task");
   execution_order++;
-  
+
   Create(LOW_PRI, &user_task_low);
 
   assert_int_equals(2, execution_order, "Priorities Test: HI_PRI Task");
   execution_order++;
- 
+
   Exit();
 }
 
@@ -56,12 +56,12 @@ void run_multiple_priorities_test() {
 
   Task* first_task = task_create(-1 /* Parent tid */, HI_PRI, &user_task_hi);
   scheduler_add_task(HI_PRI, first_task);
-  
+
   kernel_run();
 
   if (did_fail()) {
-    bwprintf(COM2, "Multiple Priorities Test Failed!\n"); 
+    bwprintf(COM2, "Multiple Priorities Test Failed!\n");
   } else {
-    bwprintf(COM2, "Multiple Priorities Test Passed!\n"); 
+    bwprintf(COM2, "Multiple Priorities Test Passed!\n");
   }
 }

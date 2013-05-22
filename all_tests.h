@@ -7,4 +7,6 @@ void run_basic_test();
 
 void run_multiple_priorities_test();
 
+void run_context_switch_speed_test();
+
 #endif

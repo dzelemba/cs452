@@ -26,8 +26,8 @@ context_switch.o: context_switch.s
 
 # All the tests
 
-basic_test.s: all_tests.h basic_test.c 
-	$(XCC) -S $(CFLAGS) basic_test.c 
+basic_test.s: all_tests.h basic_test.c
+	$(XCC) -S $(CFLAGS) basic_test.c
 
 basic_test.o: basic_test.s
 	$(AS) $(ASFLAGS) -o basic_test.o basic_test.s
@@ -35,11 +35,17 @@ basic_test.o: basic_test.s
 multiple_priorities_test.s: all_tests.h multiple_priorities_test.c
 	$(XCC) -S $(CFLAGS) multiple_priorities_test.c
 
-multiple_priorities_test.o: multiple_priorities_test.s 
+multiple_priorities_test.o: multiple_priorities_test.s
 	$(AS) $(ASFLAGS) -o multiple_priorities_test.o multiple_priorities_test.s
 
-tests.o: basic_test.o multiple_priorities_test.o
-	$(LD) -r $(LDFLAGS) -o tests.o basic_test.o multiple_priorities_test.o
+context_switch_speed_test.s: all_tests.h context_switch_speed_test.c
+	$(XCC) -S $(CFLAGS) context_switch_speed_test.c
+
+context_switch_speed_test.o: context_switch_speed_test.s
+	$(AS) $(ASFLAGS) -o context_switch_speed_test.o context_switch_speed_test.s
+
+tests.o: basic_test.o multiple_priorities_test.o context_switch_speed_test.o
+	$(LD) -r $(LDFLAGS) -o tests.o basic_test.o multiple_priorities_test.o context_switch_speed_test.o
 
 # Normal C Files
 
