@@ -9,15 +9,17 @@ int process_request(Task* task, Request* request) {
   Task* new_task;
   switch (request->syscall) {
     case 0: /* Create */
+      if (!is_valid_priority((int)request->args[0])) {
+        return -1; // Invalid priority.
+      }
+
       new_task = task_create(task->tid, (int)request->args[0], (void *)request->args[1]);
-      if (new_task) {  
-        if (scheduler_add_task(request->args[0] /* Priority */, new_task)) {
-          return -1; // Invalid priority.
-        }
-        return new_task->tid;
-      } else {
+      if (!new_task) {
         return -2; // Kernel out of task descriptors
       }
+
+      scheduler_add_task(request->args[0] /* Priority */, new_task);
+      return new_task->tid;
     case 1: /* MyTid */
       return task->tid;
     case 2: /* ParentTid */

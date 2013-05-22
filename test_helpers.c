@@ -33,7 +33,6 @@ void assert_equals(char a, char b, char* message) {
     print_message(message);
     bwprintf(COM2, "Expected (%c, %x) but got (%c, %x) \n", a, a, b, b);
     record_failure();
-    Exit();
   }
 }
 
@@ -42,7 +41,6 @@ void assert_int_equals(int a, int b, char* message) {
     print_message(message);
     bwprintf(COM2, "Expected %d but got %d \n", a, b);
     record_failure();
-    Exit();
   }
 }
 
@@ -51,7 +49,6 @@ void assert_no_error(char* error, char* message) {
     print_message(message);
     bwprintf(COM2, "Unexpected error: %s\n", error);
     record_failure();
-    Exit();
   }
 }
 
@@ -60,7 +57,6 @@ void assert_error(char* error, char* message) {
     print_message(message);
     bwprintf(COM2, "Expected error but got null\n");
     record_failure();
-    Exit();
   }
 }
 
@@ -69,7 +65,6 @@ void assert_true(int boolean, char* message) {
     print_message(message);
     bwprintf(COM2, "Expression not true\n");
     record_failure();
-    Exit();
   }
 }
 
@@ -78,6 +73,5 @@ void assert_false(int boolean, char* message) {
     print_message(message);
     bwprintf(COM2, "Expression not false\n");
     record_failure();
-    Exit();
   }
 }

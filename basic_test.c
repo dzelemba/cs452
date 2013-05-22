@@ -8,7 +8,7 @@
 static int flag;
 static int did_run;
 
-void user_task2() {
+static void user_task2() {
   int tid = MyTid();
   assert_int_equals(1, tid, "Basic Test: Child Check Tid");
 
@@ -20,13 +20,12 @@ void user_task2() {
   Exit();
 }
 
-void user_task() {
+static void user_task() {
   did_run = 1;
-
   int tid = MyTid();
   assert_int_equals(0, tid, "Basic Test: Parent Check Tid");
 
-  int child_tid = Create(1, &user_task2);
+  int child_tid = Create(HI_PRI, &user_task2);
   assert_int_equals(1, child_tid, "Basic Test: Parent Check Child Tid");
 
   int p_tid = MyParentTid();
@@ -43,8 +42,8 @@ void run_basic_test() {
   flag = 0;
   did_run = 0;
 
-  Task* first_task = task_create(-1 /* Parent tid */, 1 /* Priority */, &user_task);
-  scheduler_add_task(1 /* Priority */, first_task);
+  Task* first_task = task_create(-1 /* Parent tid */, HI_PRI, &user_task);
+  scheduler_add_task(HI_PRI, first_task);
   
   kernel_run();
 

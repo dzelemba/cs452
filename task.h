@@ -2,6 +2,7 @@
 #define __TASK_H__
 
 #define STACK_SIZE (1024)
+#define MAX_TASKS 1024
 
 typedef struct Task {
   // Public

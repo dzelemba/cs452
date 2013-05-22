@@ -1,8 +1,6 @@
 #include "task.h"
 #include "queue.h"
 
-#define MAX_TASKS 1024
-
 static Task tasks[MAX_TASKS];
 static queue free_task_ids;
 

@@ -16,12 +16,12 @@ void scheduler_init() {
   }
 }
 
-int _is_valid_priority(int priority) {
+int is_valid_priority(int priority) {
   return priority >= 0 && priority < NUM_PRIORITY_TYPES;
 }
 
 int scheduler_add_task(int priority, Task* task) {
-  if (!_is_valid_priority(priority)) {
+  if (!is_valid_priority(priority)) {
     return 1;
   }
   #ifdef DEBUG
@@ -34,7 +34,7 @@ int scheduler_add_task(int priority, Task* task) {
 }
 
 int scheduler_move_to_back(int priority) {
-  if (!_is_valid_priority(priority)) {
+  if (!is_valid_priority(priority)) {
     return 1;
   }
   queue* q = &(task_queues[priority]);
@@ -44,7 +44,7 @@ int scheduler_move_to_back(int priority) {
 }
 
 int scheduler_remove_task(int priority) {
-  if (!_is_valid_priority(priority)) {
+  if (!is_valid_priority(priority)) {
     return 1;
   }
   pop(&(task_queues[priority]));

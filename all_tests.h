@@ -9,4 +9,6 @@ void run_multiple_priorities_test();
 
 void run_context_switch_speed_test();
 
+void run_task_creation_errors_test();
+
 #endif
