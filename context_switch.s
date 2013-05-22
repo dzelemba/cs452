@@ -6,16 +6,14 @@
 k_enter:
 	@ args = 0, pretend = 0, frame = 0
 	@ frame_needed = 1, uses_anonymous_args = 0
+  # Do NOT touch r0! It holds the pointer to the request.
 
   # Grab pc & SPSR
   mov r1, lr
   mrs r2, spsr
 
   # Switch to system mode.
-  mrs r2, cpsr
-  bic r2, r2, #0x1f
-  orr r2, r2, #0x1f
-  msr cpsr_c, r2
+  msr cpsr_c, #31
 
   # Save user's registers.
   # r1 holds user's pc, r2 holds user's SPSR.
@@ -25,10 +23,7 @@ k_enter:
   mov r3, sp
 
   # Back to supervisor mode.
-  mrs r2, cpsr
-  bic r2, r2, #0x1f
-  orr r2, r2, #0x13
-  msr cpsr_c, r2
+  msr cpsr_c, #19
 
   # Restore kernel registers.
   # The kernel's pointer to the user's stack ptr is put into r1
@@ -57,10 +52,7 @@ k_exit:
   stmfd sp!, {r1, r4, r5, r6, r7, r8, sb, sl, fp, ip, lr}
 
   # Switch to system mode.
-  mrs r2, cpsr
-  bic r2, r2, #0x1f
-  orr r2, r2, #0x1f
-  msr cpsr_c, r2
+  msr cpsr_c, #31
 
   # Restore user's stack ptr
   mov sp, r3
@@ -70,10 +62,7 @@ k_exit:
   ldmfd sp!, {r1, r3, r4, r5, r6, r7, r8, sb, sl, fp, ip, lr}
 
   # Back to supervisor mode.
-  mrs r2, cpsr
-  bic r2, r2, #0x1f
-  orr r2, r2, #0x13
-  msr cpsr_c, r2
+  msr cpsr_c, #19
 
   # Restore user SPSR
   msr spsr, r3
