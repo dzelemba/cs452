@@ -4,4 +4,5 @@
 void run_tests() {
   run_basic_test();
   run_multiple_priorities_test();
+  run_context_switch_speed_test();
 }
