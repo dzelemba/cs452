@@ -11,6 +11,9 @@ typedef struct Task {
 
   int priority;
 
+  // Return value to pass to the user program after a syscall.
+  int retval;
+
   int* stack_position;
 
   // Private

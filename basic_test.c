@@ -8,6 +8,16 @@
 static int flag;
 static int did_run;
 
+static void user_task3() {
+  int tid = MyTid();
+  assert_int_equals(2, tid, "Basic Test: Child_2 Check Tid");
+
+  int p_tid = MyParentTid();
+  assert_int_equals(0, p_tid, "Basic Test: Child_2 Check Parent Tid");
+
+  Exit();
+}
+
 static void user_task2() {
   int tid = MyTid();
   assert_int_equals(1, tid, "Basic Test: Child Check Tid");
@@ -25,7 +35,7 @@ static void user_task() {
   int tid = MyTid();
   assert_int_equals(0, tid, "Basic Test: Parent Check Tid");
 
-  int child_tid = Create(HI_PRI, &user_task2);
+  int child_tid = Create(MED_PRI, &user_task2);
   assert_int_equals(1, child_tid, "Basic Test: Parent Check Child Tid");
 
   int p_tid = MyParentTid();
@@ -33,6 +43,10 @@ static void user_task() {
 
   Pass();
   assert_int_equals(1, flag, "Basic Test: Parent Check Pass");
+
+  // Let child run first to test that the right return value is returned.
+  int child_2_tid = Create(HI_PRI, &user_task3);
+  assert_int_equals(2, child_2_tid, "Basic Test: Parent Check Child_2 Tid");
 
   Exit();
 }
@@ -42,16 +56,16 @@ void run_basic_test() {
   flag = 0;
   did_run = 0;
 
-  Task* first_task = task_create(-1 /* Parent tid */, HI_PRI, &user_task);
-  scheduler_add_task(HI_PRI, first_task);
-  
+  Task* first_task = task_create(-1 /* Parent tid */, MED_PRI, &user_task);
+  scheduler_add_task(MED_PRI, first_task);
+
   kernel_run();
 
   assert_int_equals(1, did_run, "Basic Test: User Program Never Ran");
 
   if (did_fail()) {
-    bwprintf(COM2, "Basic Test Failed!\n"); 
+    bwprintf(COM2, "Basic Test Failed!\n");
   } else {
-    bwprintf(COM2, "Basic Test Passed!\n"); 
+    bwprintf(COM2, "Basic Test Passed!\n");
   }
 }

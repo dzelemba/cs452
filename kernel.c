@@ -39,21 +39,20 @@ int process_request(Task* task, Request* request) {
 }
 
 void init_kernel() {
-  *(int *)(0x28) = (int)&k_enter; 
+  *(int *)(0x28) = (int)&k_enter;
   init_tasks();
   scheduler_init();
 }
 
 void kernel_run() {
   Task* next_task;
-  int user_retval = 0;
   while (1) {
     next_task = scheduler_get_next_task();
     if (next_task == 0) {
       break;
     }
 
-    Request* request = k_exit(user_retval, &next_task->stack_position);
-    user_retval = process_request(next_task, request);
+    Request* request = k_exit(next_task->retval, &next_task->stack_position);
+    next_task->retval = process_request(next_task, request);
   }
 }
