@@ -9,6 +9,7 @@ int process_request(Task* task, Request* request) {
   Task* new_task;
   switch (request->syscall) {
     case 0: /* Create */
+      // TODO: Move this into user space.
       if (!is_valid_priority((int)request->args[0])) {
         return -1; // Invalid priority.
       }
@@ -29,7 +30,6 @@ int process_request(Task* task, Request* request) {
       break;
     case 4: /* Exit */
       scheduler_remove_task(task->priority);
-      task_delete(task->tid);
       break;
     default:
       bwprintf(COM2, "Illegal syscall number: %d\n", request->syscall);

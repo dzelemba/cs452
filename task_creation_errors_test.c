@@ -33,6 +33,7 @@ static void user_task() {
 }
 
 void run_task_creation_errors_test() {
+  init_kernel();
   reset_did_fail();
   tasks_run = 0;
 

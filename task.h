@@ -24,6 +24,9 @@ void init_tasks();
 
 Task* task_create(int parent_tid, int priority, void (*code));
 
+// NOTE: This isn't fully working. We need to add a generation field to Task
+// so that the same tid won't be given out to different tasks.
+// This is OK for now since we don't actually use this.
 void task_delete(int tid);
 
 #endif

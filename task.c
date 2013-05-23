@@ -1,7 +1,10 @@
 #include "task.h"
 #include "queue.h"
 
-static Task tasks[MAX_TASKS];
+// Task ids need to be positive.
+// Instead of dealing with adding/substracting 1 to go from task id
+// to array index we will just not use position 0 in the array.
+static Task tasks[MAX_TASKS + 1];
 static queue free_task_ids;
 
 Task* get_next_available_task() {
@@ -18,7 +21,7 @@ Task* get_next_available_task() {
 void init_tasks() {
   init_queue(&free_task_ids);
   int i;
-  for (i = 0; i < MAX_TASKS; i++) {
+  for (i = 1; i < MAX_TASKS + 1; i++) {
     push(&free_task_ids, i);
   }
 }
@@ -34,7 +37,7 @@ Task* task_create(int parent_tid, int priority, void (*code)) {
   task->stack_position = task->stack + STACK_SIZE - 1;
 
   // Fill in stack with initial values.
-  int* stack = task->stack_position; 
+  int* stack = task->stack_position;
 
   // Positions 0 - 9 in the stack hold r4 -> r14 (minus r13, the stack ptr)
   // which don't need to be initialized.

@@ -32,6 +32,7 @@ static void user_task_do_nothing() {
 }
 
 void run_context_switch_speed_test() {
+  init_kernel();
   reset_did_fail();
 
   Task* first_task = task_create(-1 /* Parent tid */, HI_PRI, &user_task_do_nothing);

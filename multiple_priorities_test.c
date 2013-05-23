@@ -51,6 +51,7 @@ static void user_task_hi() {
 }
 
 void run_multiple_priorities_test() {
+  init_kernel();
   reset_did_fail();
   execution_order = 0;
 
