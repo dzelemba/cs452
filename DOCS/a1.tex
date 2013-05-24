@@ -16,58 +16,68 @@
 \end{verbatim}
 
 \section{Submitted Files}
-Files listed here can be found under \verb!/u0/f2fung/cs452/a1!\\
-\\
-Listing Format:\\
-\\
-\verb!filename! - description
+Files listed here can be found under \verb!/u0/f2fung/cs452/a1!
+
+\subsection{md5sums}
+\begin{verbatim}
+2fd65abca13a814332e40d8b5fed938c  all_tests.h
+db8bae8ff95a9ccc357a4e26ad12dbab  assignment_1_test.c
+4b6eaafaafb3d99259a3faaa4ba640ab  basic_test.c
+b8f6809658948d4086826b1e3c0241c3  context_switch.h
+cef010d3ef08df27f78a2298e86e9a81  context_switch.s
+ee14573108ac7fb308e3924a48e96bba  context_switch_speed_test.c
+00c982f510dc973dc60313ebddb8a03d  kernel.c
+664366bb7fe0a090ebdfe1b3009a14ba  kernel.h
+f8775577c797a37a4d3f5e7874dff684  main.c
+282f4ca1b5d6c9e1168db6528490ea30  Makefile
+2769176d92c2eb972f29957500c870c8  multiple_priorities_test.c
+454ff6f490bbe05287f63c619a588427  queue.c
+987fb24e1e06f8fe08ecb13be58702a2  queue.h
+1f272b215198236dcc88619f44b20438  run_tests.c
+0e390e153530b05118c87063a5dd3120  run_tests.h
+bfb8b08941df42986674cab9835630a3  scheduler.c
+bc03c446589619c1249da7313e37f850  scheduler.h
+c3a1f01398fffc6868e1bad847f30dab  syscall.c
+9c20435c4901586afe2c7bc8a06dc15f  syscall.h
+d61d08108e30320e183c050624160bf6  task.c
+11018b286cf38a3535c017d62d3ceb4e  task_creation_errors_test.c
+17c617857a7f133ca6da9d62a52bdc7c  task.h
+75dec88a5d7b4ab2cb4805b1f196faf2  test_helpers.c
+c6eb413e3b7e544e8051e783175595c2  test_helpers.h
+\end{verbatim}
 
 \subsection{Header Files}
 \verb!context_switch.h! - Function definitions for compiler to use our assembly functions.\\
-\verb!queue.h ()!\\
-Header for our queue implementation.\\
-\verb!scheduler.h()!\\
-Function definitions for scheduler.\\
-\verb!syscall.h ()!\\
-Function definitions for syscalls.\\
-\verb!task.h ()!\\
-Contains Task structure and function definitions.\\
+\verb!queue.h! - Header for our queue implementation.\\
+\verb!scheduler.h! - Function definitions for scheduler.\\
+\verb!syscall.h! - Function definitions for syscalls.\\
+\verb!task.h! - Contains Task structure and function definitions.
 
 \subsection{Source Files}
-\verb!context_switch.s ()!\\
-ARM assembly used to switch in and out of tasks and kernel mode.\\
-\verb!kernel.c ()!\\
-The infinite kernel loop. Interrupts are processed here and tasks and scheduled.\\
-\verb!main.c ()!\\
-Beginning of execution, described below.\\
-\verb!queue.c ()!\\
-A simple queue implementation.\\
-\verb!Makefile ()!\\
-Our makefile.\\
-\verb!scheduler.c ()!\\
-Our scheduler.\\
-\verb!syscall.c ()!\\
-System calls.\\
-\verb!task.c ()!\\
-Creating and managing tasks.\\
+\verb!context_switch.s! - ARM assembly used to switch in and out of tasks and kernel mode.\\
+\verb!kernel.c! - The infinite kernel loop. Interrupts are processed here and tasks and scheduled.\\
+\verb!main.c! - Beginning of execution, described below.\\
+\verb!queue.c! - A simple queue implementation.\\
+\verb!Makefile! - Our makefile.\\
+\verb!scheduler.c! - Our scheduler.\\
+\verb!syscall.c! - System calls.\\
+\verb!task.c! - Creating and managing tasks.\\
 
 \subsection{Test Files}
-\verb!basic_test.c ()!\\
-This is a basic test\\
-\verb!run_tests.h ()!\\
-Header for run\_tests.c.\\
-\verb!run_tests.c ()!\\
-Calls all our tests.\\
-\verb!test_helpers.h ()!\\
-Header for test\_helpers.c.\\
-\verb!test_helpers.c ()!\\
-Test helpers. Asserts and other things.
+\verb!basic_test.c! - This is a basic test. (This is only run for debugging)\\
+\verb!context_switch_speed_test.c! - This tests the time it takes to Pass(), reschedule, and come back. (This is only run for debugging)\\
+\verb!multiple_priorities_test.c! - Tests the correct scheduling of multiple tasks with different priorities.\\
+\verb!run_tests.h! - Header for run\_tests.c.\\
+\verb!run_tests.c! - Calls all our tests.\\
+\verb!task_creation_errors_test.c! - Tests error return values for task creation.\\
+\verb!test_helpers.h! - Header for test\_helpers.c. Different types of asserts and such.\\
+\verb!test_helpers.c! - Test helpers. Asserts and other things.
 
 \section{Program Description}
 
 \subsection{Main}
 
-This is where the kernel's execution begins. We first set a known address ($0x28$) to point to our interrupt handler.
+This is where the kernel's execution begins. We first set a known address ($0x28$) to point to our interrupt handler. Because Create() can only be called in user-mode (causing a system interrupt), we manually call kernel methods to create the first user-task and stick it into the scheduler in main. For the purposes of the assignment, this is done in assignment\_1\_test.c.
 
 \subsection{Context Switch}
 
