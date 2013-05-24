@@ -20,12 +20,10 @@ Files listed here can be found under \verb!/u0/f2fung/cs452/a1!\\
 \\
 Listing Format:\\
 \\
-\verb!filename (md5hash)!\\
-description
+\verb!filename! - description
 
 \subsection{Header Files}
-\verb!context_switch.h ()!\\
-Function definitions for compiler to use our assembly functions.\\
+\verb!context_switch.h! - Function definitions for compiler to use our assembly functions.\\
 \verb!queue.h ()!\\
 Header for our queue implementation.\\
 \verb!scheduler.h()!\\
@@ -73,11 +71,17 @@ This is where the kernel's execution begins. We first set a known address ($0x28
 
 \subsection{Context Switch}
 
+We save all the registers on the top of the user's stack. During task create, we fill the user's stack with initial
+register values so that the first context switch into the user task behaves exactly like other context switches.
+
 \subsection{Data Structures}
 
 \subsubsection{Task Id Provisioning}
 We use a queue which is initialized with the universe of available task ids (0-1023). These task ids point into an array
 of Task structures. We recycle task ids by pushing returned task ids into the back of our queue.
+
+\subsubsection{Task Descriptors}
+Task descriptors are structs. They contain their tid, parent's tid, priority, return value for their last system call, stack pointer and a pointer to their stack space. This is suboptimal, but it is thus far unnecessary to optimize.
 
 \subsubsection{Scheduler}
 We use 4 queues, one for each priority we define. Queues are implemented by circular arrays.
