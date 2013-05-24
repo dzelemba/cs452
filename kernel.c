@@ -26,7 +26,6 @@ int process_request(Task* task, Request* request) {
     case 2: /* ParentTid */
       return task->parent_tid;
     case 3: /* Pass */
-      scheduler_move_to_back(task->priority);
       break;
     case 4: /* Exit */
       scheduler_remove_task(task->priority);
@@ -54,5 +53,8 @@ void kernel_run() {
 
     Request* request = k_exit(next_task->retval, &next_task->stack_position);
     next_task->retval = process_request(next_task, request);
+
+    // Must happen after process_request.
+    scheduler_move_to_back(next_task->priority);
   }
 }
