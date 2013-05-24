@@ -8,4 +8,6 @@ void run_tests() {
   run_multiple_priorities_test();
   run_context_switch_speed_test();
   run_task_creation_errors_test();
+
+  run_assignment_1_test();
 }
