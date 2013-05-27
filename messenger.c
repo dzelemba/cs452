@@ -46,8 +46,9 @@ void init_messenger() {
 
 // Post-condition: Sender is guaranteed to either be SEND_BLOCK or REPLY_BLOCK
 int messenger_send(int from, int to, char *msg, int msglen, char *reply, int replylen) {
-  /* if tid_get_state doesn't exist */
-  /*  return -2 */
+  if (task_get_state(to) == UNUSED) {
+    return -2;
+  }
 
   message* receiver = &(message_buffer[to]);
   if (task_get_state(to) == RECV_BLCK) {
@@ -56,8 +57,9 @@ int messenger_send(int from, int to, char *msg, int msglen, char *reply, int rep
 
     int mn = min(msglen, receiver->msglen);
     memcpy(receiver->msg, msg, mn);
+    task_get(to)->retval = msglen;
 
-    tid_set_state(to, REPLY_BLCK);
+    tid_set_state(from, REPLY_BLCK);
     return 0;
   }
 
@@ -85,11 +87,20 @@ int messenger_receive(int to, int* tid, char *msg, int msglen) {
 
     int mn = min(msglen, inbox->msglen);
     memcpy(msg, inbox->msg, mn);
-    get_task(to)->retval = inbox->msglen;
   }
 
   return 0;
 }
 
-int messenger_reply() {
+int messenger_reply(int tid, char *reply, int replylen) {
+  if (task_get_state(tid) != REPLY_BLCK) {
+    return -3;
+  }
+
+  message *replybox = &(message_buffer[tid]);
+  int mn = min(replylen, replybox->replylen);
+  memcpy(replybox->reply, reply, mn);
+  task_get(tid)->retval = replylen;
+
+  return 0;
 }
