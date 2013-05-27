@@ -61,6 +61,12 @@ tests.o: basic_test.o multiple_priorities_test.o task_creation_errors_test.o con
 
 # Normal C Files
 
+stdlib.s: stdlib.c stdlib.h
+	$(XCC) -S $(CFLAGS) stdlib.c
+
+stdlib.o: stdlib.s
+	$(AS) $(ASFLAGS) -o stdlib.o stdlib.s
+
 test_helpers.s: test_helpers.c test_helpers.h
 	$(XCC) -S $(CFLAGS) test_helpers.c
 
@@ -109,8 +115,8 @@ main.s: main.c
 main.o: main.s
 	$(AS) $(ASFLAGS) -o main.o main.s
 
-main.elf: main.o run_tests.o tests.o kernel.o test_helpers.o syscall.o context_switch.o task.o queue.o scheduler.o
-	$(LD) $(LDFLAGS) -o $@ main.o run_tests.o tests.o kernel.o test_helpers.o syscall.o context_switch.o task.o queue.o scheduler.o -lbwio -lgcc
+main.elf: main.o run_tests.o tests.o kernel.o test_helpers.o syscall.o context_switch.o task.o queue.o scheduler.o stdlib.o
+	$(LD) $(LDFLAGS) -o $@ main.o run_tests.o tests.o kernel.o test_helpers.o syscall.o context_switch.o task.o queue.o scheduler.o stdlib.o -lbwio -lgcc
 
 install: main.elf
 	cp main.elf /u/cs452/tftp/ARM/dzelemba/
