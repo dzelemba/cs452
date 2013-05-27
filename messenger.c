@@ -87,6 +87,7 @@ int messenger_receive(int to, int* tid, char *msg, int msglen) {
 
     int mn = min(msglen, inbox->msglen);
     memcpy(msg, inbox->msg, mn);
+    task_get(to)->retval = inbox->msglen;
   }
 
   return 0;

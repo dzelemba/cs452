@@ -42,8 +42,15 @@ int process_request(Task* task, Request* request) {
                      (int) request->args[4]);
       break;
     case CALLID_RECEIVE:
+      messenger_receive(task->tid,
+                        (int*) request->args[0],
+                        (char*) request->args[1],
+                        (int) request->args[2]);
       break;
     case CALLID_REPLY:
+      messenger_reply((int) request->args[0],
+                      (char*) request->args[1],
+                      (int) request->args[2]);
       break;
     default:
       bwprintf(COM2, "Illegal syscall number: %d\n", request->syscall);
