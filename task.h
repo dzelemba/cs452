@@ -4,13 +4,12 @@
 #define STACK_SIZE (1024)
 #define MAX_TASKS 127
 
-// TODO: WE NEED STATUS/STATES FOR OUR TASKS
-
 #define UNUSED -1
 #define READY 0
 #define SEND_BLCK 1
 #define RECV_BLCK 2
-#define ZOMBIE 3
+#define REPLY_BLCK 3
+#define ZOMBIE 4
 
 typedef struct Task {
   // Public

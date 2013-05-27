@@ -1,6 +1,7 @@
 #include "queue.h"
 #include "task.h"
 #include "messenger.h"
+#include "stdlib.h"
 
 typedef struct _message {
   char* msg;
@@ -49,7 +50,7 @@ int messenger_send(int from, int to, char *msg, int msglen, char *reply, int rep
   /*  return -2 */
 
   message* receiver = &(message_buffer[to]);
-  if (tid_get_state(to) == RECV_BLCK) {
+  if (task_get_state(to) == RECV_BLCK) {
     int* tid = receiver->tid;
     *tid = from;
 
@@ -84,7 +85,10 @@ int messenger_receive(int to, int* tid, char *msg, int msglen) {
 
     int mn = min(msglen, inbox->msglen);
     memcpy(msg, inbox->msg, mn);
+    get_task(to)->retval = inbox->msglen;
   }
+
+  return 0;
 }
 
 int messenger_reply() {
