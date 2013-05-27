@@ -78,6 +78,10 @@ void kernel_run() {
     next_task->retval = process_request(next_task, request);
 
     // Must happen after process_request.
-    scheduler_move_to_back(next_task->priority);
+    // TODO: This is pretty hacky. Some syscalls will remove the current task from the
+    // scheduler (i.e Exit, Send), so we should only move_to_back if that hasn't happened.
+    if (next_task == scheduler_get_next_task()) {
+      scheduler_move_to_back(next_task->priority);
+    }
   }
 }

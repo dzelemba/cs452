@@ -58,6 +58,11 @@ void Exit() {
 
 int Send(int tid, char *msg, int msglen, char *reply, int replylen) {
   request.syscall = CALLID_SEND;
+  request.args[0] = tid;
+  request.args[1] = (int)msg;
+  request.args[2] = msglen;
+  request.args[3] = (int)reply;
+  request.args[4] = replylen;
 
   get_request(); // Put request into r0
   asm("swi");
@@ -68,6 +73,9 @@ int Send(int tid, char *msg, int msglen, char *reply, int replylen) {
 
 int Receive(int *tid, char *msg, int msglen) {
   request.syscall = CALLID_RECEIVE;
+  request.args[0] = (int)tid;
+  request.args[1] = (int)msg;
+  request.args[2] = msglen;
 
   get_request(); // Put request into r0
   asm("swi");
@@ -78,6 +86,9 @@ int Receive(int *tid, char *msg, int msglen) {
 
 int Reply(int tid, char *reply, int replylen) {
   request.syscall = CALLID_REPLY;
+  request.args[0] = tid;
+  request.args[1] = (int)reply;
+  request.args[2] = replylen;
 
   get_request(); // Put request into r0
   asm("swi");

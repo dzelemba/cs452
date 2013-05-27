@@ -29,6 +29,12 @@ context_switch.o: context_switch.s
 
 # All the tests
 
+message_passing_test.s: all_tests.h message_passing_test.c
+	$(XCC) -S $(CFLAGS) message_passing_test.c
+
+message_passing_test.o: message_passing_test.s
+	$(AS) $(ASFLAGS) -o message_passing_test.o message_passing_test.s
+
 task_creation_errors_test.s: all_tests.h task_creation_errors_test.c
 	$(XCC) -S $(CFLAGS) task_creation_errors_test.c
 
@@ -59,8 +65,8 @@ assignment_1_test.s: all_tests.h assignment_1_test.c
 assignment_1_test.o: assignment_1_test.s
 	$(AS) $(ASFLAGS) -o assignment_1_test.o assignment_1_test.s
 
-tests.o: basic_test.o multiple_priorities_test.o task_creation_errors_test.o context_switch_speed_test.o assignment_1_test.o
-	$(LD) -r $(LDFLAGS) -o tests.o basic_test.o multiple_priorities_test.o task_creation_errors_test.o context_switch_speed_test.o assignment_1_test.o
+tests.o: basic_test.o multiple_priorities_test.o task_creation_errors_test.o context_switch_speed_test.o assignment_1_test.o message_passing_test.o
+	$(LD) -r $(LDFLAGS) -o tests.o basic_test.o multiple_priorities_test.o task_creation_errors_test.o context_switch_speed_test.o assignment_1_test.o message_passing_test.o
 
 # Normal C Files
 

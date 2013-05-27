@@ -28,7 +28,7 @@ int did_fail() {
   return failure;
 }
 
-void assert_equals(char a, char b, char* message) {
+void assert_char_equals(char a, char b, char* message) {
   if (a != b) {
     print_message(message);
     bwprintf(COM2, "Expected (%c, %x) but got (%c, %x) \n", a, a, b, b);
