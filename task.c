@@ -23,6 +23,7 @@ void init_tasks() {
   int i;
   for (i = 1; i < MAX_TASKS + 1; i++) {
     push(&free_task_ids, i);
+    tasks[i].state = UNUSED;
   }
 }
 
@@ -57,11 +58,19 @@ Task* task_create(int parent_tid, int priority, void (*code)) {
 }
 
 Task* task_get(int tid) {
-  return &tasks[tid];
+  return (tasks + tid);
 }
 
 void task_set_state(Task* task, int state) {
   task->state = state;
+}
+
+void tid_set_state(int tid, int state) {
+  task_get(tid)->state = state;
+}
+
+int task_get_state(int tid) {
+  return task_get(tid)->state;
 }
 
 void task_delete(int tid) {

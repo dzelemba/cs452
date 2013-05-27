@@ -4,6 +4,7 @@
 #define STACK_SIZE (1024)
 #define MAX_TASKS 1024
 
+#define UNUSED -1
 #define READY 0
 #define SEND_BLCK 1
 #define RECV_BLCK 2
@@ -35,6 +36,10 @@ Task* task_create(int parent_tid, int priority, void (*code));
 Task* task_get(int tid);
 
 void task_set_state(Task* task, int state);
+
+void tid_set_state(int tid, int state);
+
+int task_get_state(int tid);
 
 // NOTE: This isn't fully working. We need to add a generation field to Task
 // so that the same tid won't be given out to different tasks.
