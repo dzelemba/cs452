@@ -2,13 +2,15 @@
 
 static Request request;
 
+// TODO(f2fung): This isn't necessary. Something similar to get_request should
+// be done ONCE, and then the kernel no longer needs it passed along. Perf++
 __attribute__ ((noinline)) static Request* get_request() {
   asm("");
   return &request;
 }
 
 int Create(int priority, void (*code)) {
-  request.syscall = 0;
+  request.syscall = CALLID_CREATE;
   request.args[0] = priority;
   request.args[1] = (int)code;
 
@@ -20,7 +22,7 @@ int Create(int priority, void (*code)) {
 }
 
 int MyTid() {
-  request.syscall = 1;
+  request.syscall = CALLID_MYTID;
 
   get_request(); // Put request into r0
   asm("swi");
@@ -30,7 +32,7 @@ int MyTid() {
 }
 
 int MyParentTid() {
-  request.syscall = 2;
+  request.syscall = CALLID_MYPARENTTID;
 
   get_request(); // Put request into r0
   asm("swi");
@@ -40,7 +42,7 @@ int MyParentTid() {
 }
 
 void Pass() {
-  request.syscall = 3;
+  request.syscall = CALLID_PASS;
 
   get_request(); // Put request into r0
   asm("swi");
@@ -48,9 +50,38 @@ void Pass() {
 
 
 void Exit() {
-  request.syscall = 4;
+  request.syscall = CALLID_EXIT;
 
   get_request(); // Put request into r0
   asm("swi");
 }
 
+int Send(int tid, char *msg, int msglen, char *reply, int replylen) {
+  request.syscall = CALLID_SEND;
+
+  get_request(); // Put request into r0
+  asm("swi");
+
+  register int retval asm("r0");
+  return retval;
+}
+
+int Receive(int *tid, char *msg, int msglen) {
+  request.syscall = CALLID_RECEIVE;
+
+  get_request(); // Put request into r0
+  asm("swi");
+
+  register int retval asm("r0");
+  return retval;
+}
+
+int Reply(int tid, char *reply, int replylen) {
+  request.syscall = CALLID_REPLY;
+
+  get_request(); // Put request into r0
+  asm("swi");
+
+  register int retval asm("r0");
+  return retval;
+}

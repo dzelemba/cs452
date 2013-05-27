@@ -2,7 +2,9 @@
 #define __TASK_H__
 
 #define STACK_SIZE (1024)
-#define MAX_TASKS 1024
+#define MAX_TASKS 127
+
+// TODO: WE NEED STATUS/STATES FOR OUR TASKS
 
 #define UNUSED -1
 #define READY 0

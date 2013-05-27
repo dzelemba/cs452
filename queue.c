@@ -7,7 +7,7 @@ void init_queue(queue *q) {
 }
 
 static inline int _queue_increment(int i) {
-  return (i == QUEUE_BUFFER_SIZE) ? 0 : i + 1;
+  return (i == QUEUE_MAX_ITEMS) ? 0 : i + 1;
 }
 
 void push(queue *q, int val) {

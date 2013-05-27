@@ -3,12 +3,12 @@
 
 #include "task.h"
 
-#define HI_PRI 0
-#define MED_PRI 1
-#define LOW_PRI 2
-#define VLOW_PRI 3
+#define HI_PRI    0
+#define MED_PRI   1
+#define LOW_PRI   2
+#define VLOW_PRI  3
 
-void scheduler_init();
+void init_scheduler();
 int is_valid_priority(int priority);
 int scheduler_add_task(int priority, Task* task);
 int scheduler_move_to_back(int priority);

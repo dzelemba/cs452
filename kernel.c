@@ -3,12 +3,13 @@
 #include "context_switch.h"
 #include "scheduler.h"
 #include "syscall.h"
+#include "messenger.h"
 #include <bwio.h>
 
 int process_request(Task* task, Request* request) {
   Task* new_task;
   switch (request->syscall) {
-    case 0: /* Create */
+    case CALLID_CREATE:
       // TODO: Move this into user space.
       if (!is_valid_priority((int)request->args[0])) {
         return -1; // Invalid priority.
@@ -21,15 +22,28 @@ int process_request(Task* task, Request* request) {
 
       scheduler_add_task(request->args[0] /* Priority */, new_task);
       return new_task->tid;
-    case 1: /* MyTid */
+    case CALLID_MYTID:
       return task->tid;
-    case 2: /* ParentTid */
+    case CALLID_MYPARENTTID:
       return task->parent_tid;
-    case 3: /* Pass */
+    case CALLID_PASS:
       break;
-    case 4: /* Exit */
+    case CALLID_EXIT:
       scheduler_remove_task(task->priority);
       task_set_state(task, ZOMBIE);
+      break;
+    case CALLID_SEND:
+      // Can we do better than this?
+      messenger_send(task->tid,
+                     (int) request->args[0],
+                     (char*) request->args[1],
+                     (int) request->args[2],
+                     (char*) request->args[3],
+                     (int) request->args[4]);
+      break;
+    case CALLID_RECEIVE:
+      break;
+    case CALLID_REPLY:
       break;
     default:
       bwprintf(COM2, "Illegal syscall number: %d\n", request->syscall);
@@ -41,7 +55,8 @@ int process_request(Task* task, Request* request) {
 void init_kernel() {
   *(int *)(0x28) = (int)&k_enter;
   init_tasks();
-  scheduler_init();
+  init_scheduler();
+  init_messenger();
 }
 
 void kernel_run() {
