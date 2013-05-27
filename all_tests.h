@@ -11,6 +11,8 @@ void run_context_switch_speed_test();
 
 void run_task_creation_errors_test();
 
+void run_message_passing_test();
+
 void run_assignment_1_test();
 
 #endif
