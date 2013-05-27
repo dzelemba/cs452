@@ -29,6 +29,7 @@ int process_request(Task* task, Request* request) {
       break;
     case 4: /* Exit */
       scheduler_remove_task(task->priority);
+      task_set_state(task, ZOMBIE);
       break;
     default:
       bwprintf(COM2, "Illegal syscall number: %d\n", request->syscall);

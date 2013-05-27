@@ -4,6 +4,11 @@
 #define STACK_SIZE (1024)
 #define MAX_TASKS 1024
 
+#define READY 0
+#define SEND_BLCK 1
+#define RECV_BLCK 2
+#define ZOMBIE 3
+
 typedef struct Task {
   // Public
   int tid;
@@ -11,18 +16,25 @@ typedef struct Task {
 
   int priority;
 
+  int state;
+
   // Return value to pass to the user program after a syscall.
   int retval;
 
   int* stack_position;
 
   // Private
+  // TODO: Move this outside the task struct.
   int stack[STACK_SIZE];
 } Task;
 
 void init_tasks();
 
 Task* task_create(int parent_tid, int priority, void (*code));
+
+Task* task_get(int tid);
+
+void task_set_state(Task* task, int state);
 
 // NOTE: This isn't fully working. We need to add a generation field to Task
 // so that the same tid won't be given out to different tasks.

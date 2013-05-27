@@ -34,6 +34,7 @@ Task* task_create(int parent_tid, int priority, void (*code)) {
 
   task->parent_tid = parent_tid;
   task->priority = priority;
+  task->state = READY;
   task->stack_position = task->stack + STACK_SIZE - 1;
 
   // Fill in stack with initial values.
@@ -53,6 +54,14 @@ Task* task_create(int parent_tid, int priority, void (*code)) {
   task->stack_position = stack - 11;
 
   return task;
+}
+
+Task* task_get(int tid) {
+  return &tasks[tid];
+}
+
+void task_set_state(Task* task, int state) {
+  task->state = state;
 }
 
 void task_delete(int tid) {
