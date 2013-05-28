@@ -14,7 +14,7 @@ void print_debug(char* format, ...) {
   va_list args;
 
   va_start(args, format);
-  bwprintf(COM2, format, args);
+  bwformat(COM2, format, args);
   va_end(args);
 }
 
@@ -25,7 +25,7 @@ void method_entry(char* format, ...) {
   va_list args;
 
   va_start(args, format);
-  bwprintf(COM2, format, args);
+  bwformat(COM2, format, args);
   va_end(args);
 
   method_depth++;
@@ -39,6 +39,6 @@ void method_exit(char* format, ...) {
   va_list args;
 
   va_start(args, format);
-  bwprintf(COM2, format, args);
+  bwformat(COM2, format, args);
   va_end(args);
 }
