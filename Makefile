@@ -115,14 +115,20 @@ messenger.s: messenger.c messenger.h
 messenger.o: messenger.s
 	$(AS) $(ASFLAGS) -o messenger.o messenger.s
 
+debug.s: debug.c debug.h
+	$(XCC) -S $(CFLAGS) debug.c
+
+debug.o: debug.s
+	$(AS) $(ASFLAGS) -o debug.o debug.s
+
 main.s: main.c
 	$(XCC) -S $(CFLAGS) main.c
 
 main.o: main.s
 	$(AS) $(ASFLAGS) -o main.o main.s
 
-main.elf: main.o run_tests.o tests.o kernel.o test_helpers.o syscall.o context_switch.o task.o queue.o scheduler.o messenger.o stdlib.o
-	$(LD) $(LDFLAGS) -o $@ main.o run_tests.o tests.o kernel.o test_helpers.o syscall.o context_switch.o task.o queue.o scheduler.o messenger.o stdlib.o -lbwio -lgcc
+main.elf: main.o run_tests.o tests.o kernel.o test_helpers.o syscall.o context_switch.o task.o queue.o scheduler.o messenger.o stdlib.o debug.o
+	$(LD) $(LDFLAGS) -o $@ main.o run_tests.o tests.o kernel.o test_helpers.o syscall.o context_switch.o task.o queue.o scheduler.o messenger.o stdlib.o debug.o -lbwio -lgcc
 
 install: main.elf
 	cp main.elf /u/cs452/tftp/ARM/dzelemba/

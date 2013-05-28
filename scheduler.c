@@ -1,6 +1,7 @@
 #include "scheduler.h"
 #include "queue.h"
 #include "bwio.h"
+#include "debug.h"
 
 #define NUM_PRIORITY_TYPES (4)
 
@@ -21,29 +22,22 @@ int is_valid_priority(int priority) {
 }
 
 int scheduler_add_task(int priority, Task* task) {
-  #ifdef DEBUG
-    bwprintf("--> scheduler_add_task(%d, %x)\n", priority, (int) task);
-  #endif
+  METHOD_ENTRY("scheduler_add_task(%d, %x)\n", priority, (int) task);
 
   if (!is_valid_priority(priority)) {
-    #ifdef DEBUG
-      bwprintf("<-- scheduler_add_task(...): invalid priority\n");
-    #endif
+    METHOD_EXIT("scheduler_add_task: invalid priority\n");
     return 1;
   }
 
   #ifdef DEBUG
   if (is_queue_full(&(task_queues[priority]))) {
-    bwprintf("EXCEPTION: task_queue[%d] is full\n", priority);
+    DEBUG_PRINT("EXCEPTION: task_queue[%d] is full\n", priority);
   }
   #endif
 
   push(&(task_queues[priority]), (int) task);
 
-  #ifdef DEBUG
-    bwprintf("<-- scheduler_add_task(...): 0\n");
-  #endif
-
+  METHOD_EXIT("scheduler_add_task: 0\n");
   return 0;
 }
 
@@ -66,17 +60,10 @@ int scheduler_remove_task(int priority) {
 }
 
 Task* scheduler_get_next_task() {
-  #ifdef DEBUG
-    bwprintf("--> scheduler_get_next_task()\n");
-  #endif
-
   int i;
   for (i = 0; i < NUM_PRIORITY_TYPES; i++) {
     if (!is_queue_empty(&(task_queues[i]))) {
       Task* ret = (Task*) head(&(task_queues[i]));
-      #ifdef DEBUG
-        bwprintf("<-- scheduler_get_next_task(): %x\n", (int) ret);
-      #endif
       return ret;
     }
   }
