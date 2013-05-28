@@ -31,7 +31,7 @@ int scheduler_add_task(int priority, Task* task) {
 
   #ifdef DEBUG
   if (is_queue_full(&(task_queues[priority]))) {
-    DEBUG_PRINT("EXCEPTION: task_queue[%d] is full\n", priority);
+    PRINT_DEBUG("EXCEPTION: task_queue[%d] is full\n", priority);
   }
   #endif
 

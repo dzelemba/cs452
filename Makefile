@@ -19,6 +19,9 @@ LDFLAGS = -init main -Map main.map -N  -T orex.ld -L/u/wbcowan/gnuarm-4.0.2/lib/
 
 all: main.elf
 
+dbg: CFLAGS += -DDEBUG
+dbg: main.elf
+
 # Purely Assembly Files
 
 context_switch.o: context_switch.s
