@@ -25,9 +25,11 @@ static messagelist receive_list[MAX_TASKS];
 void push_back(messagelist* ll, message* v) {
   if (ll->head == 0) {
     ll->head = v;
+  } else {
     ll->tail->next = v;
   }
   ll->tail = v;
+  v->next = 0;
 }
 
 message* pop_front(messagelist* ll) {
