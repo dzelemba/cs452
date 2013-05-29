@@ -130,14 +130,20 @@ debug.s: debug.c debug.h
 debug.o: debug.s
 	$(AS) $(ASFLAGS) -o debug.o debug.s
 
+timer.s: timer.c timer.h
+	$(XCC) -S $(CFLAGS) timer.c
+
+timer.o: timer.s
+	$(AS) $(ASFLAGS) -o timer.o timer.s
+
 main.s: main.c
 	$(XCC) -S $(CFLAGS) main.c
 
 main.o: main.s
 	$(AS) $(ASFLAGS) -o main.o main.s
 
-main.elf: main.o run_tests.o tests.o kernel.o test_helpers.o syscall.o context_switch.o task.o queue.o scheduler.o messenger.o stdlib.o debug.o
-	$(LD) $(LDFLAGS) -o $@ main.o run_tests.o tests.o kernel.o test_helpers.o syscall.o context_switch.o task.o queue.o scheduler.o messenger.o stdlib.o debug.o -lbwio -lgcc
+main.elf: main.o run_tests.o tests.o kernel.o test_helpers.o syscall.o context_switch.o task.o queue.o scheduler.o messenger.o stdlib.o debug.o timer.o
+	$(LD) $(LDFLAGS) -o $@ main.o run_tests.o tests.o kernel.o test_helpers.o syscall.o context_switch.o task.o queue.o scheduler.o messenger.o stdlib.o debug.o timer.o -lbwio -lgcc
 
 install: main.elf
 	cp main.elf /u/cs452/tftp/ARM/dzelemba/
