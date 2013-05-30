@@ -9,6 +9,7 @@ void run_tests() {
   run_context_switch_speed_test();
   run_task_creation_errors_test();
   run_message_passing_test();
+  run_nameserver_test();
 
 //  run_assignment_1_test();
 }

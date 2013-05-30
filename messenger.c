@@ -3,6 +3,7 @@
 #include "messenger.h"
 #include "stdlib.h"
 #include "scheduler.h"
+#include <bwio.h>
 
 typedef struct _message {
   char* msg;
@@ -19,8 +20,8 @@ typedef struct _messagelist {
   message* tail;
 } messagelist;
 
-static message message_buffer[MAX_TASKS];
-static messagelist receive_list[MAX_TASKS];
+static message message_buffer[MAX_TASKS + 1];
+static messagelist receive_list[MAX_TASKS + 1];
 
 void push_back(messagelist* ll, message* v) {
   if (ll->head == 0) {
@@ -35,12 +36,13 @@ void push_back(messagelist* ll, message* v) {
 message* pop_front(messagelist* ll) {
   message* ret = ll->head;
   ll->head = ll->head->next;
+  ret->next = 0;
   return ret;
 }
 
 void init_messenger() {
   int i;
-  for (i = 0; i < MAX_TASKS; i++) {
+  for (i = 0; i < MAX_TASKS + 1; i++) {
     message_buffer[i].next = (message*) 0;
     receive_list[i].head = 0;
     receive_list[i].tail = 0;
@@ -98,6 +100,7 @@ int messenger_receive(int receiver, int* tid, char *msg, int msglen) {
     message* inbox = pop_front(&(receive_list[receiver]));
 
     *tid = (inbox - message_buffer);
+    tid_set_state(*tid, REPLY_BLCK);
 
     int mn = min(msglen, inbox->msglen);
     memcpy(msg, inbox->msg, mn);
@@ -118,6 +121,7 @@ int messenger_reply(int tid, char *reply, int replylen) {
 
   Task* task = task_get(tid);
   task->retval = replylen;
+  task_set_state(task, READY);
   scheduler_add_task(task->priority, task);
 
   return 0;

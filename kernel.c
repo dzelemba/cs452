@@ -4,6 +4,7 @@
 #include "scheduler.h"
 #include "syscall.h"
 #include "messenger.h"
+#include "nameserver.h"
 #include <bwio.h>
 
 int process_request(Task* task, Request* request) {
@@ -64,6 +65,8 @@ void init_kernel() {
   init_tasks();
   init_scheduler();
   init_messenger();
+
+  start_nameserver();
 }
 
 void kernel_run() {

@@ -5,25 +5,28 @@
 #include "syscall.h"
 #include "test_helpers.h"
 
+// Nameserver takes the first task id.
+#define FIRST_TID 2
+
 static int flag;
 static int did_run;
 
 static void user_task3() {
   int tid = MyTid();
-  assert_int_equals(3, tid, "Basic Test: Child_2 Check Tid");
+  assert_int_equals(FIRST_TID + 2, tid, "Basic Test: Child_2 Check Tid");
 
   int p_tid = MyParentTid();
-  assert_int_equals(1, p_tid, "Basic Test: Child_2 Check Parent Tid");
+  assert_int_equals(FIRST_TID, p_tid, "Basic Test: Child_2 Check Parent Tid");
 
   Exit();
 }
 
 static void user_task2() {
   int tid = MyTid();
-  assert_int_equals(2, tid, "Basic Test: Child Check Tid");
+  assert_int_equals(FIRST_TID + 1, tid, "Basic Test: Child Check Tid");
 
   int p_tid = MyParentTid();
-  assert_int_equals(1, p_tid, "Basic Test: Child Check Parent Tid");
+  assert_int_equals(FIRST_TID, p_tid, "Basic Test: Child Check Parent Tid");
 
   flag = 1;
 
@@ -33,10 +36,10 @@ static void user_task2() {
 static void user_task() {
   did_run = 1;
   int tid = MyTid();
-  assert_int_equals(1, tid, "Basic Test: Parent Check Tid");
+  assert_int_equals(FIRST_TID, tid, "Basic Test: Parent Check Tid");
 
   int child_tid = Create(MED_PRI, &user_task2);
-  assert_int_equals(2, child_tid, "Basic Test: Parent Check Child Tid");
+  assert_int_equals(FIRST_TID + 1, child_tid, "Basic Test: Parent Check Child Tid");
 
   int p_tid = MyParentTid();
   assert_int_equals(-1, p_tid, "Basic Test: Parent Check Parent Tid");
@@ -46,7 +49,7 @@ static void user_task() {
 
   // Let child run first to test that the right return value is returned.
   int child_2_tid = Create(HI_PRI, &user_task3);
-  assert_int_equals(3, child_2_tid, "Basic Test: Parent Check Child_2 Tid");
+  assert_int_equals(FIRST_TID + 2, child_2_tid, "Basic Test: Parent Check Child_2 Tid");
 
   Exit();
 }

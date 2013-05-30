@@ -1,4 +1,5 @@
 #include "syscall.h"
+#include "nameserver.h"
 
 static Request request;
 

@@ -5,6 +5,8 @@
 #include "syscall.h"
 #include "test_helpers.h"
 
+#define TASKS_TO_CREATE (MAX_TASKS - 2)
+
 static int tasks_run;
 
 static void child_task() {
@@ -22,7 +24,7 @@ static void user_task() {
 
   // Create too many tasks.
   int i;
-  for (i = 0; i < MAX_TASKS - 1; i++) {
+  for (i = 0; i < TASKS_TO_CREATE; i++) {
     retval = Create(LOW_PRI, &child_task);
     assert_true(retval >= 0, "Task Creation Errors: Create returned unexpected error");
   }
@@ -42,7 +44,7 @@ void run_task_creation_errors_test() {
 
   kernel_run();
 
-  assert_int_equals(MAX_TASKS, tasks_run, "Task Creation Errors: Tasks Didn't Run");
+  assert_int_equals(TASKS_TO_CREATE + 1, tasks_run, "Task Creation Errors: Tasks Didn't Run");
 
   if (did_fail()) {
     bwprintf(COM2, "Task Creation Errors Test Failed!\n");

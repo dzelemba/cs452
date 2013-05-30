@@ -10,6 +10,9 @@
 #define CALLID_RECEIVE      6
 #define CALLID_REPLY        7
 
+// TODO(dzelemba): Fix where priority definitions are.
+#include "scheduler.h"
+
 typedef struct Request {
   int syscall;
   int args[5];
@@ -30,5 +33,11 @@ int Send(int tid, char *msg, int msglen, char *reply, int replylen);
 int Receive(int *tid, char *msg, int msglen);
 
 int Reply(int tid, char *reply, int replylen);
+
+/* Implemented in nameserver.c */
+
+int RegisterAs(char* name);
+
+int WhoIs(char *name);
 
 #endif
