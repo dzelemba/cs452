@@ -1,5 +1,6 @@
 #include "syscall.h"
 #include "nameserver.h"
+#include "task.h"
 
 static Request request;
 
@@ -58,6 +59,10 @@ void Exit() {
 }
 
 int Send(int tid, char *msg, int msglen, char *reply, int replylen) {
+  if (tid < 0 || tid > MAX_TASKS) {
+    return -1;
+  }
+
   request.syscall = CALLID_SEND;
   request.args[0] = tid;
   request.args[1] = (int)msg;
@@ -86,6 +91,10 @@ int Receive(int *tid, char *msg, int msglen) {
 }
 
 int Reply(int tid, char *reply, int replylen) {
+  if (tid < 0 || tid > MAX_TASKS) {
+    return -1;
+  }
+
   request.syscall = CALLID_REPLY;
   request.args[0] = tid;
   request.args[1] = (int)reply;

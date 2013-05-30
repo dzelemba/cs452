@@ -5,7 +5,7 @@
 // Instead of dealing with adding/substracting 1 to go from task id
 // to array index we will just not use position 0 in the array.
 static Task tasks[MAX_TASKS + 1];
-static int next_tid = 1;
+static int next_tid;
 
 Task* get_next_available_task() {
   if (next_tid > MAX_TASKS) {
@@ -13,7 +13,7 @@ Task* get_next_available_task() {
   }
 
   int tid = next_tid;
-  Task* task = &tasks[tid];
+  Task* task = &(tasks[tid]);
   task->tid = tid;
   next_tid++;
 
@@ -21,6 +21,8 @@ Task* get_next_available_task() {
 }
 
 void init_tasks() {
+  next_tid = 1;
+
   int i;
   for (i = 1; i < MAX_TASKS + 1; i++) {
     tasks[i].state = UNUSED;

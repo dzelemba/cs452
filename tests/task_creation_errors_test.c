@@ -1,8 +1,9 @@
 #include "all_tests.h"
-#include "scheduler.h"
-#include "kernel.h"
 #include <bwio.h>
+#include "kernel.h"
+#include "scheduler.h"
 #include "syscall.h"
+#include "task.h"
 #include "test_helpers.h"
 
 #define TASKS_TO_CREATE (MAX_TASKS - 2)

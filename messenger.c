@@ -50,9 +50,10 @@ void init_messenger() {
 }
 
 // Post-condition: Sender is guaranteed to either be SEND_BLOCK or REPLY_BLOCK
-int messenger_send(int from, int to, char *msg, int msglen, char *reply, int replylen) {
-  if (task_get_state(to) == UNUSED) {
-    return -2;
+void messenger_send(int from, int to, char *msg, int msglen, char *reply, int replylen) {
+  if (task_get_state(to) == UNUSED || task_get_state(to) == ZOMBIE) {
+    task_get(from)->retval = -2;
+    return;
   }
 
   message* letter = &(message_buffer[from]);
@@ -73,7 +74,6 @@ int messenger_send(int from, int to, char *msg, int msglen, char *reply, int rep
 
     tid_set_state(from, REPLY_BLCK);
     scheduler_remove_task(task_get(from)->priority);
-    return 0;
   }
 
   letter->msg = msg;
@@ -82,8 +82,6 @@ int messenger_send(int from, int to, char *msg, int msglen, char *reply, int rep
 
   tid_set_state(from, SEND_BLCK);
   scheduler_remove_task(task_get(from)->priority);
-
-  return 0;
 }
 
 int messenger_receive(int receiver, int* tid, char *msg, int msglen) {
@@ -111,6 +109,9 @@ int messenger_receive(int receiver, int* tid, char *msg, int msglen) {
 }
 
 int messenger_reply(int tid, char *reply, int replylen) {
+  if (task_get_state(tid) == UNUSED || task_get_state(tid) == ZOMBIE) {
+    return -2;
+  }
   if (task_get_state(tid) != REPLY_BLCK) {
     return -3;
   }
@@ -125,4 +126,16 @@ int messenger_reply(int tid, char *reply, int replylen) {
   scheduler_add_task(task->priority, task);
 
   return 0;
+}
+
+void messenger_incomplete(int receiver) {
+  while (receive_list[receiver].head != 0) {
+    message* sender_box = pop_front(&(receive_list[receiver]));
+    int sender_tid = (sender_box - message_buffer);
+    Task* sender_task = task_get(sender_tid);
+
+    sender_task->retval = -3;
+    task_set_state(sender_task, READY);
+    scheduler_add_task(sender_task->priority, sender_task);
+  }
 }

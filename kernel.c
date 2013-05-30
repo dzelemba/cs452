@@ -31,6 +31,7 @@ int process_request(Task* task, Request* request) {
     case CALLID_PASS:
       break;
     case CALLID_EXIT:
+      messenger_incomplete(task->tid);
       scheduler_remove_task(task->priority);
       task_set_state(task, ZOMBIE);
       break;
@@ -50,9 +51,9 @@ int process_request(Task* task, Request* request) {
                         (int) request->args[2]);
       break;
     case CALLID_REPLY:
-      messenger_reply((int) request->args[0],
-                      (char*) request->args[1],
-                      (int) request->args[2]);
+      return messenger_reply((int) request->args[0],
+                             (char*) request->args[1],
+                             (int) request->args[2]);
       break;
     default:
       bwprintf(COM2, "Illegal syscall number: %d\n", request->syscall);
