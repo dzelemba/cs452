@@ -14,5 +14,6 @@ void run_tests() {
   run_syscall_speed_test();
   run_srr_speed_test();
 
-  /*run_assignment_1_test();*/
+  //run_assignment_1_test();
+  //run_rps_server_test();
 }
