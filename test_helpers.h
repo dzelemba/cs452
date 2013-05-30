@@ -11,6 +11,8 @@ void record_failure();
 
 int did_fail();
 
+void assert_string_equals(char* a, char* b, char* message);
+
 void assert_char_equals(char a, char b, char* message);
 
 void assert_int_equals(int a, int b, char* message);

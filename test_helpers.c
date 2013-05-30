@@ -1,6 +1,7 @@
 #include "test_helpers.h"
 #include <bwio.h>
 #include "syscall.h"
+#include "strings.h"
 
 static int failure;
 
@@ -26,6 +27,14 @@ void record_failure() {
 
 int did_fail() {
   return failure;
+}
+
+void assert_string_equals(char* a, char* b, char* message) {
+  if (!string_equal(a, b)) {
+    print_message(message);
+    bwprintf(COM2, "Expected %s but got %s \n", a, b);
+    record_failure();
+  }
 }
 
 void assert_char_equals(char a, char b, char* message) {

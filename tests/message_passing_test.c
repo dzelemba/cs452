@@ -95,12 +95,70 @@ static void multiple_clients_test() {
   Exit();
 }
 
+/* Send & Receive Tests */
+
+// Testing both sending & receiving in each user task.
+
+#define MESSAGE_SIZE 12
+#define ITERATIONS 10
+
+static int task_1_tid;
+static int task_2_tid;
+static char* message_1;
+static char* message_2;
+
+static void task_1() {
+  char reply[MESSAGE_SIZE];
+  int tid;
+
+  int i;
+  for (i = 0; i < ITERATIONS; i++) {
+    Send(task_2_tid, message_1, MESSAGE_SIZE, reply, MESSAGE_SIZE);
+    assert_string_equals(message_2, reply, "Message Passing Test: Send Receive");
+
+    Receive(&tid, reply, MESSAGE_SIZE);
+    assert_int_equals(task_2_tid, tid, "Message Passing Test: Send Receive Task 1 Check Tid");
+    assert_string_equals(message_2, reply, "Message Passing Test: Send Receive Task 1 Check Reply");
+    Reply(tid, message_1, MESSAGE_SIZE);
+  }
+
+  Exit();
+}
+
+static void task_2() {
+  char reply[MESSAGE_SIZE];
+  int tid;
+
+  int i;
+  for (i = 0; i < ITERATIONS; i++) {
+    Receive(&tid, reply, MESSAGE_SIZE);
+    assert_int_equals(task_1_tid, tid, "Message Passing Test: Send Receive");
+    assert_string_equals(message_1, reply, "Message Passing Test: Send Receive");
+    Reply(tid, message_2, MESSAGE_SIZE);
+
+    Send(task_1_tid, message_2, MESSAGE_SIZE, reply, MESSAGE_SIZE);
+    assert_string_equals(message_1, reply, "Message Passing Test: Send Receive Check Send Reply");
+  }
+
+  Exit();
+}
+
+static void send_receive_tests() {
+  message_1 = "message 1";
+  message_2 = "message 2";
+
+  task_1_tid = Create(MED_PRI, &task_1);
+  task_2_tid = Create(MED_PRI, &task_2);
+
+  Exit();
+}
 
 /* Main */
 
 static void first() {
   Create(HI_PRI, &simple_test);
   Create(HI_PRI, &multiple_clients_test);
+  Create(HI_PRI, &send_receive_tests);
 
   Exit();
 }
