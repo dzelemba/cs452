@@ -6,10 +6,13 @@ void run_tests() {
   // TODO(dzelemba): Fix this.
   run_basic_test();
   run_multiple_priorities_test();
-  run_context_switch_speed_test();
   run_task_creation_errors_test();
   run_message_passing_test();
   run_nameserver_test();
 
-//  run_assignment_1_test();
+  // Performance Tests
+  run_syscall_speed_test();
+  run_srr_speed_test();
+
+  /*run_assignment_1_test();*/
 }

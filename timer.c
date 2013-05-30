@@ -14,6 +14,6 @@ void init_time() {
 
 unsigned int ticks() {
   unsigned int start_time = START_TICK;
-  unsigned int* timer_value = (unsigned int*)(TIMER3_BASE + LDR_OFFSET);
+  unsigned int* timer_value = (unsigned int*)(TIMER3_BASE + VAL_OFFSET);
   return start_time - *timer_value;
 }

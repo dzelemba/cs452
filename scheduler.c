@@ -60,12 +60,17 @@ int scheduler_remove_task(int priority) {
 }
 
 Task* scheduler_get_next_task() {
+  METHOD_ENTRY("scheduler_get_next_task\n");
+
   int i;
   for (i = 0; i < NUM_PRIORITY_TYPES; i++) {
     if (!is_queue_empty(&(task_queues[i]))) {
       Task* ret = (Task*) head(&(task_queues[i]));
+      METHOD_EXIT("scheduler_get_next_task: %x\n", ret);
       return ret;
     }
   }
+
+  METHOD_EXIT("scheduler_get_next_task: empty\n");
   return (Task*) 0;
 }

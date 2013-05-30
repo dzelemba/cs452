@@ -1,10 +1,11 @@
-#include "kernel.h"
-#include "task.h"
 #include "context_switch.h"
-#include "scheduler.h"
-#include "syscall.h"
+#include "kernel.h"
 #include "messenger.h"
 #include "nameserver.h"
+#include "scheduler.h"
+#include "syscall.h"
+#include "task.h"
+#include "timer.h"
 #include <bwio.h>
 
 int process_request(Task* task, Request* request) {
@@ -60,8 +61,23 @@ int process_request(Task* task, Request* request) {
   return 0;
 }
 
+void init_cache() {
+  // invalidate cache
+  asm("mov r1, #0");
+  asm("mcr p15, 0, r1, c7, c5, 0");
+
+  // enable instruction cache
+  asm("mrc p15, 0, r1, c1, c0, 0");
+  asm("orr r1, r1, #4096"); // enable instruction cache
+  asm("orr r1, r1, #4"); // enable data cache
+  asm("mcr p15, 0, r1, c1, c0, 0");
+}
+
 void init_kernel() {
+  init_cache();
   *(int *)(0x28) = (int)&k_enter;
+
+  init_time();
   init_tasks();
   init_scheduler();
   init_messenger();
