@@ -5,24 +5,24 @@
 // Instead of dealing with adding/substracting 1 to go from task id
 // to array index we will just not use position 0 in the array.
 static Task tasks[MAX_TASKS + 1];
-static queue free_task_ids;
+static int next_tid = 1;
 
 Task* get_next_available_task() {
-  if (is_queue_empty(&free_task_ids)) {
+  if (next_tid > MAX_TASKS) {
     return 0;
   }
-  int task_id = pop(&free_task_ids);
-  Task* task = &tasks[task_id];
 
-  task->tid = task_id;
+  int tid = next_tid;
+  Task* task = &tasks[tid];
+  task->tid = tid;
+  next_tid++;
+
   return task;
 }
 
 void init_tasks() {
-  init_queue(&free_task_ids);
   int i;
   for (i = 1; i < MAX_TASKS + 1; i++) {
-    push(&free_task_ids, i);
     tasks[i].state = UNUSED;
   }
 }
@@ -71,8 +71,4 @@ void tid_set_state(int tid, int state) {
 
 int task_get_state(int tid) {
   return task_get(tid)->state;
-}
-
-void task_delete(int tid) {
-  push(&free_task_ids, tid);
 }
