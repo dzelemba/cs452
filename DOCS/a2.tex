@@ -11,70 +11,80 @@
 
 \section{How To Run}
 \begin{verbatim}
-	> load -b 0x00218000 -h 10.15.167.4 "INSERT FINAL DIR HERE"
+	TODO: Compile this and put it somewhere
+	> load -b 0x00218000 -h 10.15.167.4 "ARM/f2fung/THISISBAD.elf"
 	> go
 \end{verbatim}
 
 \section{Submitted Files}
-Files listed here can be found under \verb!AND HERE!\\
-\\
-Listing Format:\\
-\\
-\verb!filename (md5hash)!\\
-description
+Files listed here can be found under \verb!/u0/f2fung/cs452/a2!
+
+\subsection{md5sums}
+\begin{verbatim}
+	TODO: Run md5sum*
+\end{verbatim}
 
 \subsection{Header Files}
-\verb!messenger.h ()!\\
-TODO.\\
-\verb!nameserver.h ()!\\
-TODO.\\
-\verb!rps_server.h()!\\
-TODO.\\
-\verb!stdlib.h ()!\\
-TODO.\\
-\verb!strings.h ()!\\
-TODO.\\
-\verb!timer.h ()!\\
-TODO.\\
-\verb!debug.h ()!\\
-TODO.\\
+\verb!context_switch.h! - Function definitions for compiler to use our assembly functions.\\
+\verb!debug.h! - Macros wrapping debugging functions that can compile away.\\
+\verb!messenger.h! - Function definitions for messenger.\\
+\verb!nameserver.h! - TODO.\\
+\verb!queue.h! - Function definitions for our queue implementation.\\
+\verb!rps_server.h! - TODO.\\
+\verb!scheduler.h! - Function definitions for scheduler.\\
+\verb!string.h! - Functions definitions for string library.\\
+\verb!stdlib.h! - Function definitions for commonly used functions.\\
+\verb!syscall.h! - Function definitions for syscalls.\\
+\verb!task.h! - Contains Task structure and function definitions.\\
+\verb!timer.h! - Function definitions for timer.\\
 
 \subsection{Source Files}
-
-One .c file for every .h file mentioned above.\\
+\verb!context_switch.s! - ARM assembly used to switch in and out of tasks and kernel mode.\\
+\verb!debug.c! - Debugging facilities.\\
+\verb!kernel.c! - The infinite kernel loop. Interrupts are processed here and tasks and scheduled.\\
+\verb!main.c! - Beginning of execution, described below.\\
+\verb!messenger.c! - Coordinates message passing.\\
+\verb!Makefile! - Our makefile.\\
+\verb!nameserver.c! - TODO.\\
+\verb!queue.c! - A simple queue implementation.\\
+\verb!rps_server.c! - TODO.\\
+\verb!scheduler.c! - Our scheduler.\\
+\verb!stdlib.c! - Common functions. Not actually a standard library.\\
+\verb!strings.c! - String library.\\
+\verb!syscall.c! - System calls.\\
+\verb!task.c! - Creating and managing tasks.\\
+\verb!timer.c! - Timing functions.\\
 
 \subsection{Test Files}
-\verb!message_passing_test.c ()!\\
-TODO.\\
-\verb!nameserver_test.h ()!\\
-TODO.\\
-\verb!rps_server_test.c ()!\\
-TODO.\\
-\verb!syscall_speed_test.h ()!\\
-TODO.\\
-\verb!srr_speed_test.c ()!\\
-TODO.\\
+\verb!tests/basic_test.c! - This is a basic test. (This is only run for debugging)\\
+\verb!tests/message_passing_test.c! - TODO.\\
+\verb!tests/multiple_priorities_test.c! - Tests the correct scheduling of multiple tasks with different priorities.\\
+\verb!tests/nameserver_test.c! - TODO.\\
+\verb!tests/rps_server_test.c! - TODO.\\
+\verb!tests/srr_speed_test.c! - The test that is run to analyze our performance.\\
+\verb!tests/syscall_speed_test.c! - Test the time required to execute various sys calls.\\
+\verb!tests/task_creation_errors_test.c! - Tests error return values for task creation.\\
+\\
+\verb!run_tests.h! - Header for run\_tests.c.\\
+\verb!run_tests.c! - Calls all our tests.\\
+\verb!test_helpers.h! - Header for test\_helpers.c. Different types of asserts and such.\\
+\verb!test_helpers.c! - Test helpers. Asserts and other things.
 
 \section{Program Description}
 
 \subsection{Message Passing}
 
-TODO \\
+To make better use of the cache, we've made a space-saving statically allocated data structure for message passing. We create a fixed-size array of INBOXes, MAX\_TASKS in number. Each INBOX contains fields we reuse to contain EITHER a sent message and reply address (params of Send()), or the receiving address (params of Receive()). There are no collisions because Send() and Receive() cannot be concurrent for a single task. Each INBOX contains a NEXT pointer, which may point to another INBOX or NULL allowing INBOXes to be chained together in a linked-list fashion. Then for MAX\_TASKS, we also store `head' and `tail' pointers to INBOXes to represent the receive queue for each task in constant space relative to the length of the receive queue.
+
+In summary, when blocking, tasks will write their addresses to their own INBOX, and it'll be chained into the receiving task's linked-list. By reusing INBOXes for future messages, we never allocate more memory.
 
 \subsection{Nameserver}
 
-TODO \\
+\subsection{Rock, Paper, Scissors Server}
 
-\subsection{Data Structures}
+\subsection{Timing}
 
-TODO. \\
+All timing code is being run in user-mode. When testing the send-receive-reply speeds, we only measure the full round-trip. In the case of send before receive, we begin timing before being send blocked to when the task is active again. (Implying that receive and reply have been called from the other task). We ensure there are only two tasks and so our sender task goes directly from ready to active without further delay. In the case of receive before send, we begin timing before being receive blocked and after we return from reply. Based on our implementation, these times all contain the time required to copy messages across buffers.
 
-\section{Rock, Paper, Scissors Server}
-
-TODO. \\
-
-\section{Timing Statistics}
-
-TODO. \\
-
+Our memcpy implementation is naive and I believe a lot of our time is being spent here. Increasing message size adds a significant performance hit as seen in our performance results.
 \end{document}
