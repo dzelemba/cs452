@@ -74,6 +74,7 @@ void messenger_send(int from, int to, char *msg, int msglen, char *reply, int re
 
     tid_set_state(from, REPLY_BLCK);
     scheduler_remove_task(task_get(from)->priority);
+    return;
   }
 
   letter->msg = msg;
