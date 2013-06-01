@@ -11,7 +11,7 @@
 
 \section{How To Run}
 \begin{verbatim}
-	> load -b 0x00218000 -h 10.15.167.4 "ARM/cs452_10/dzelemba_f2funq_a2.elf"
+	> load -b 0x00218000 -h 10.15.167.4 "ARM/dzelemba_10/a2_final.elf"
 	> go
 \end{verbatim}
 
@@ -127,7 +127,7 @@ The nameserver is a user space task that is started by the kernel. It uses a sim
 
 The nameserver's task id is stored in a static variable that is visible only to the nameserver. The nameserver exposes a function, {\tt get\_nameserver\_tid()} that provides access to the nameserver's tid. This way we can ensure that the nameserver only writes to this variable once during startup to avoid race conditions. \\
 
-If a non-existent registration is passed to WhoIs, it will return -1. This was the simplest implementation for now and if a blocking version of WhoIs is needed in the future a seperate syscall, WhoIs\_Blck, will be writted to provide synchronization methods for tasks needing to wait on other tasks to start. 
+If a non-existent registration is passed to WhoIs, it will return -1. This was the simplest implementation for now and if a blocking version of WhoIs is needed in the future a seperate syscall, WhoIs\_Blck, will be writted to provide synchronization methods for tasks needing to wait on other tasks to start.
 
 \subsection{Rock, Paper, Scissors Server}
 
@@ -262,11 +262,11 @@ Enter character to continue to next round...
 
 Player 4 Done...
 Player 6 Done...
-Main Exiting... 
+Main Exiting...
 
 Program completed with status 0
 
 \end{verbatim}
 
-This game involves 4 clients each playing a predetermined set of moves. The player number is their task id. Player's 4 and 6 signup for another game after they finish to test that quit properly resets state. The game's are all run at the same priority level, which is why the RPS server alternates playing a round of each game. The game between player 4 and 5 starts first, because they were the first tasks created. 
+This game involves 4 clients each playing a predetermined set of moves. The player number is their task id. Player's 4 and 6 signup for another game after they finish to test that quit properly resets state. The game's are all run at the same priority level, which is why the RPS server alternates playing a round of each game. The game between player 4 and 5 starts first, because they were the first tasks created.
 \end{document}
