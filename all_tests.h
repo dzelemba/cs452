@@ -11,6 +11,7 @@ void run_task_creation_errors_test();
 
 void run_syscall_speed_test();
 void run_srr_speed_test();
+void run_scheduler_speed_test();
 
 void run_assignment_1_test();
 

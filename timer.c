@@ -17,3 +17,7 @@ unsigned int ticks() {
   unsigned int* timer_value = (unsigned int*)(TIMER3_BASE + VAL_OFFSET);
   return start_time - *timer_value;
 }
+
+unsigned int ticks_to_micros(unsigned int ticks) {
+  return (unsigned int)((float)ticks * (1000.0 / 508.0));
+}

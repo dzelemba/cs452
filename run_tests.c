@@ -11,6 +11,7 @@ void run_tests() {
   // Performance Tests
   run_syscall_speed_test();
   run_srr_speed_test();
+  run_scheduler_speed_test();
 
   //run_assignment_1_test();
   //run_rps_server_test();
