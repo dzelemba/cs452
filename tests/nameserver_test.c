@@ -1,10 +1,10 @@
 #include "all_tests.h"
-#include "scheduler.h"
 #include "kernel.h"
 #include <bwio.h>
 #include "syscall.h"
 #include "test_helpers.h"
 #include "nameserver.h"
+#include "priorities.h"
 
 static int task_1_tid;
 static int task_2_tid;
@@ -78,8 +78,7 @@ void run_nameserver_test() {
   reset_did_fail();
   num_tasks_ran = 0;
 
-  Task* first_task = task_create(-1 /* Parent tid */, MED_PRI, &init_task);
-  scheduler_add_task(MED_PRI, first_task);
+  kernel_add_task(MED_PRI, &init_task);
 
   kernel_run();
 

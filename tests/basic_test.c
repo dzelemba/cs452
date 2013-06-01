@@ -1,32 +1,32 @@
 #include "all_tests.h"
-#include "scheduler.h"
 #include "kernel.h"
 #include <bwio.h>
 #include "syscall.h"
 #include "test_helpers.h"
-
-// Nameserver takes the first task id.
-#define FIRST_TID 2
+#include "priorities.h"
 
 static int flag;
 static int did_run;
 
+static int parent_tid;
+static int child_1_tid;
+static int child_2_tid;
+
 static void user_task3() {
-  int tid = MyTid();
-  assert_int_equals(FIRST_TID + 2, tid, "Basic Test: Child_2 Check Tid");
+  child_2_tid = MyTid();
 
   int p_tid = MyParentTid();
-  assert_int_equals(FIRST_TID, p_tid, "Basic Test: Child_2 Check Parent Tid");
+  assert_int_equals(parent_tid, p_tid, "Basic Test: Child_2 Check Parent Tid");
 
   Exit();
 }
 
 static void user_task2() {
   int tid = MyTid();
-  assert_int_equals(FIRST_TID + 1, tid, "Basic Test: Child Check Tid");
+  assert_int_equals(child_1_tid, tid, "Basic Test: Child Check Tid");
 
   int p_tid = MyParentTid();
-  assert_int_equals(FIRST_TID, p_tid, "Basic Test: Child Check Parent Tid");
+  assert_int_equals(parent_tid, p_tid, "Basic Test: Child Check Parent Tid");
 
   flag = 1;
 
@@ -35,11 +35,9 @@ static void user_task2() {
 
 static void user_task() {
   did_run = 1;
-  int tid = MyTid();
-  assert_int_equals(FIRST_TID, tid, "Basic Test: Parent Check Tid");
+  parent_tid = MyTid();
 
-  int child_tid = Create(MED_PRI, &user_task2);
-  assert_int_equals(FIRST_TID + 1, child_tid, "Basic Test: Parent Check Child Tid");
+  child_1_tid = Create(MED_PRI, &user_task2);
 
   int p_tid = MyParentTid();
   assert_int_equals(-1, p_tid, "Basic Test: Parent Check Parent Tid");
@@ -48,8 +46,8 @@ static void user_task() {
   assert_int_equals(1, flag, "Basic Test: Parent Check Pass");
 
   // Let child run first to test that the right return value is returned.
-  int child_2_tid = Create(HI_PRI, &user_task3);
-  assert_int_equals(FIRST_TID + 2, child_2_tid, "Basic Test: Parent Check Child_2 Tid");
+  int tid = Create(HI_PRI, &user_task3);
+  assert_int_equals(child_2_tid, tid, "Basic Test: Parent Check Child_2 Tid");
 
   Exit();
 }
@@ -60,8 +58,7 @@ void run_basic_test() {
   flag = 0;
   did_run = 0;
 
-  Task* first_task = task_create(-1 /* Parent tid */, MED_PRI, &user_task);
-  scheduler_add_task(MED_PRI, first_task);
+  kernel_add_task(MED_PRI, &user_task);
 
   kernel_run();
 

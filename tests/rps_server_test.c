@@ -1,10 +1,10 @@
 #include "all_tests.h"
-#include "scheduler.h"
 #include "kernel.h"
 #include <bwio.h>
 #include "syscall.h"
 #include "test_helpers.h"
 #include "rps_server.h"
+#include "priorities.h"
 
 #define NUM_ROUNDS 5
 
@@ -81,8 +81,7 @@ void run_rps_server_test() {
   init_kernel();
   reset_did_fail();
 
-  Task* first_task = task_create(-1 /* Parent tid */, MED_PRI, &first);
-  scheduler_add_task(MED_PRI, first_task);
+  kernel_add_task(MED_PRI, &first);
 
   kernel_run();
 }

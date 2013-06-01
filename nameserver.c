@@ -4,6 +4,7 @@
 #include "strings.h"
 #include "syscall.h"
 #include "bwio.h"
+#include "priorities.h"
 
 #define NAMESERVER_PRIORITY MED_PRI
 
@@ -97,9 +98,7 @@ void nameserver_run() {
 void start_nameserver() {
   nameserver_init();
 
-  Task* nameserver = task_create(-1 /* Parent tid */, NAMESERVER_PRIORITY, &nameserver_run);
-  nameserver_tid = nameserver->tid;
-  scheduler_add_task(NAMESERVER_PRIORITY, nameserver);
+  nameserver_tid = Create(NAMESERVER_PRIORITY, &nameserver_run);
 }
 
 int RegisterAs(char* name) {

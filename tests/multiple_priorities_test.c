@@ -1,9 +1,9 @@
 #include "all_tests.h"
-#include "scheduler.h"
 #include "kernel.h"
 #include <bwio.h>
 #include "syscall.h"
 #include "test_helpers.h"
+#include "priorities.h"
 
 static int execution_order;
 
@@ -55,8 +55,7 @@ void run_multiple_priorities_test() {
   reset_did_fail();
   execution_order = 0;
 
-  Task* first_task = task_create(-1 /* Parent tid */, HI_PRI, &user_task_hi);
-  scheduler_add_task(HI_PRI, first_task);
+  kernel_add_task(HI_PRI, &user_task_hi);
 
   kernel_run();
 

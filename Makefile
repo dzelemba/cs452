@@ -43,7 +43,8 @@ context_switch.o: context_switch.s
 # Kernel Sources
 
 %.o: %.c
-	$(XCC) -S $(CFLAGS) $< -o $(OBJECT_DIR)/$(<:.c=.s); $(AS) $(ASFLAGS) -o $(OBJECT_DIR)/$@ $(OBJECT_DIR)/$(<:.c=.s)
+	$(XCC) -S $(CFLAGS) $< -o $(OBJECT_DIR)/$(<:.c=.s)
+	$(AS) $(ASFLAGS) -o $(OBJECT_DIR)/$@ $(OBJECT_DIR)/$(<:.c=.s)
 
 # Test Sources
 

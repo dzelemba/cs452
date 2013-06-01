@@ -3,10 +3,10 @@
 
 #include "all_tests.h"
 #include "kernel.h"
-#include "scheduler.h"
 #include "syscall.h"
 #include "test_helpers.h"
 #include "timer.h"
+#include "priorities.h"
 
 #define ITERATIONS 1000
 
@@ -45,10 +45,8 @@ void run_syscall_speed_test() {
   init_kernel();
   reset_did_fail();
 
-  Task* first_task = task_create(-1 /* Parent tid */, HI_PRI, &user_time_pass);
-  Task* second_task = task_create(-1 /* Parent tid */, HI_PRI, &user_time_create);
-  scheduler_add_task(HI_PRI, first_task);
-  scheduler_add_task(HI_PRI, second_task);
+  kernel_add_task(HI_PRI, &user_time_pass);
+  kernel_add_task(HI_PRI, &user_time_create);
 
   kernel_run();
   if (did_fail()) {

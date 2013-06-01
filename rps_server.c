@@ -2,7 +2,7 @@
 #include "task.h"
 #include "bwio.h"
 #include "syscall.h"
-#include "scheduler.h"
+#include "priorities.h"
 
 /* Private Methods */
 

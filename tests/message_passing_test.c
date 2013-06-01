@@ -1,9 +1,9 @@
 #include "all_tests.h"
-#include "scheduler.h"
 #include "kernel.h"
 #include <bwio.h>
 #include "syscall.h"
 #include "test_helpers.h"
+#include "priorities.h"
 
 #define NUM_CLIENTS 8
 #define MESSAGES_PER_CLIENT 2
@@ -167,8 +167,7 @@ void run_message_passing_test() {
   init_kernel();
   reset_did_fail();
 
-  Task* first_task = task_create(-1 /* Parent tid */, LOW_PRI, &first);
-  scheduler_add_task(LOW_PRI, first_task);
+  kernel_add_task(LOW_PRI, &first);
 
   kernel_run();
 

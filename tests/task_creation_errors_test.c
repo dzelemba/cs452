@@ -1,12 +1,12 @@
 #include "all_tests.h"
 #include <bwio.h>
 #include "kernel.h"
-#include "scheduler.h"
 #include "syscall.h"
 #include "task.h"
 #include "test_helpers.h"
+#include "priorities.h"
 
-#define TASKS_TO_CREATE (MAX_TASKS - 2)
+#define TASKS_TO_CREATE (MAX_TASKS - 3)
 
 static int tasks_run;
 
@@ -40,8 +40,7 @@ void run_task_creation_errors_test() {
   reset_did_fail();
   tasks_run = 0;
 
-  Task* first_task = task_create(-1 /* Parent tid */, HI_PRI, &user_task);
-  scheduler_add_task(HI_PRI, first_task);
+  kernel_add_task(HI_PRI, &user_task);
 
   kernel_run();
 

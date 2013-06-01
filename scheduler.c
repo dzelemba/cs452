@@ -2,8 +2,7 @@
 #include "queue.h"
 #include "bwio.h"
 #include "debug.h"
-
-#define NUM_PRIORITY_TYPES (4)
+#include "priorities.h"
 
 static queue task_queues[NUM_PRIORITY_TYPES];
 

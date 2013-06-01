@@ -1,9 +1,9 @@
 #include "all_tests.h"
-#include "scheduler.h"
 #include "kernel.h"
 #include <bwio.h>
 #include "syscall.h"
 #include "test_helpers.h"
+#include "priorities.h"
 
 static void second_user_task() {
   int tid = MyTid();
@@ -32,8 +32,7 @@ void run_assignment_1_test() {
   init_kernel();
   reset_did_fail();
 
-  Task* first_task = task_create(-1 /* Parent tid */, MED_PRI, &first_user_task);
-  scheduler_add_task(MED_PRI, first_task);
+  kernel_add_task(MED_PRI, &first_user_task);
 
   kernel_run();
 

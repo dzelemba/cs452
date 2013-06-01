@@ -10,9 +10,6 @@
 #define CALLID_RECEIVE      6
 #define CALLID_REPLY        7
 
-// TODO(dzelemba): Fix where priority definitions are.
-#include "scheduler.h"
-
 typedef struct Request {
   int syscall;
   int args[5];

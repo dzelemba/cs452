@@ -1,12 +1,13 @@
 #include "context_switch.h"
 #include "kernel.h"
 #include "messenger.h"
-#include "nameserver.h"
 #include "scheduler.h"
 #include "syscall.h"
 #include "task.h"
 #include "timer.h"
 #include <bwio.h>
+#include "first_task.h"
+#include "priorities.h"
 
 int process_request(Task* task, Request* request) {
   Task* new_task;
@@ -83,7 +84,13 @@ void init_kernel() {
   init_scheduler();
   init_messenger();
 
-  start_nameserver();
+  // Create task that will intialize servers.
+  kernel_add_task(MAX_PRI, &first_user_task);
+}
+
+void kernel_add_task(int priority, void* code) {
+  Task* task = task_create(-1 /* Parent tid */, priority, code);
+  scheduler_add_task(priority, task);
 }
 
 void kernel_run() {

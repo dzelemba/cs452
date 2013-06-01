@@ -1,10 +1,10 @@
 #include "all_tests.h"
-#include "scheduler.h"
 #include "kernel.h"
 #include <bwio.h>
 #include "syscall.h"
 #include "test_helpers.h"
 #include "timer.h"
+#include "priorities.h"
 
 /* Simple Tests */
 
@@ -68,8 +68,7 @@ void run_srr_speed_test() {
   init_kernel();
   reset_did_fail();
 
-  Task* first_task = task_create(-1 /* Parent tid */, HI_PRI, &first);
-  scheduler_add_task(HI_PRI, first_task);
+  kernel_add_task(HI_PRI, &first);
 
   kernel_run();
 
