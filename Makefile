@@ -61,5 +61,16 @@ main.elf: $(KERNEL_OBJ_FILES)
 install: main.elf
 	cp $(OBJECT_DIR)/main.elf /u/cs452/tftp/ARM/dzelemba/
 
+# Unit Tests
+
+GCC = /usr/bin/gcc
+TESTFLAGS = -g -Wall
+
+unittests: test.out
+	./test.out
+
+test.out: unittests/* strings.*
+	$(GCC) $(TESTFLAGS) unittests/all_tests.c unittests/test_helpers.c strings.c -o test.out
+
 clean:
-	rm -rf obj dbg
+	rm -rf obj dbg test.out
