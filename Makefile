@@ -32,8 +32,14 @@ directories:
 	mkdir -p obj/tests dbg/tests
 
 dbg: CFLAGS += -DDEBUG
-dbg: OBJECT_DIR = dbg
-dbg: stuff
+dbg: dbg_common
+
+dbg1: CFLAGS += -DDEBUG_1
+dbg1: dbg_common
+
+dbg_common: OBJECT_DIR = dbg
+dbg_common: stuff
+dbg_common: install
 
 # Assembly Sources
 

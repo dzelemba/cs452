@@ -73,8 +73,9 @@ Task* scheduler_get_next_task() {
   METHOD_ENTRY("scheduler_get_next_task\n");
 
   if (!la_is_empty(&ready_queues)) {
+    Task* ret = (Task*)head(la_head(&ready_queues));
     METHOD_EXIT("scheduler_get_next_task: %x\n", ret);
-    return (Task*)head(la_head(&ready_queues));
+    return ret;
   }
 
   METHOD_EXIT("scheduler_get_next_task: empty\n");

@@ -1,5 +1,6 @@
 #include "linked_array.h"
 #include "stdlib.h"
+#include "debug.h"
 
 struct node {
   void* data;
@@ -42,7 +43,7 @@ void la_create(linked_array* la, int size) {
 
 void la_insert(linked_array* la, int pos, void* data) {
   node* n = get_node(la, pos);
-  // ASSERT(!n->valid)
+  ASSERT(!n->valid, "la_insert");
 
   n->data = data;
   n->valid = 1;
@@ -91,14 +92,14 @@ void* la_get_element(linked_array* la, int pos) {
 }
 
 void* la_head(linked_array* la) {
-  // ASSERT(!la_is_empty(la))
+  ASSERT(!la_is_empty(la), "la_head");
   return la->head->data;
 }
 
 void la_remove(linked_array* la, int pos) {
   node* n = get_node(la, pos);
 
-  // ASSERT(n->valid)
+  ASSERT(n->valid, "la_remove");
   if (n->prev) {
     n->prev->next = n->next;
   }

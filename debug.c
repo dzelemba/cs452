@@ -42,3 +42,9 @@ void method_exit(char* format, ...) {
   bwformat(COM2, format, args);
   va_end(args);
 }
+
+void assert(int exp, char* exp_str, char* msg) {
+  if (!exp) {
+    bwprintf(COM2, "Assertion Failed! (%s) , %s\n", exp_str, msg);
+  }
+}
