@@ -9,8 +9,16 @@
 #include "first_task.h"
 #include "priorities.h"
 #include "stdlib.h"
+#include "icu.h"
 
 int process_request(Task* task, Request* request) {
+  if (request == 0) {
+    clear_soft_int();
+    bwprintf(COM2, "HWI!\n");
+    return 0;
+  }
+
+
   Task* new_task;
   switch (request->syscall) {
     case CALLID_CREATE:
@@ -79,6 +87,10 @@ void init_cache() {
 void init_kernel() {
   init_cache();
   *(int *)(0x28) = (int)&k_enter;
+  *(int *)(0x38) = (int)&hwi_enter;
+
+  // Turn on a single interrupt.
+  *(int *)(VIC1_BASE + INT_ENABLE_OFFSET) = 1;
 
   init_stdlib();
   init_time();

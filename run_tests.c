@@ -8,6 +8,8 @@ void run_tests() {
   run_message_passing_test();
   run_nameserver_test();
 
+  run_hwi_test();
+
   // Performance Tests
   run_syscall_speed_test();
   run_srr_speed_test();

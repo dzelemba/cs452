@@ -8,6 +8,7 @@ void run_message_passing_test();
 void run_multiple_priorities_test();
 void run_nameserver_test();
 void run_task_creation_errors_test();
+void run_hwi_test();
 
 void run_syscall_speed_test();
 void run_srr_speed_test();
