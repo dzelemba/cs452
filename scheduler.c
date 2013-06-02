@@ -3,17 +3,20 @@
 #include "bwio.h"
 #include "debug.h"
 #include "priorities.h"
+#include "linked_array.h"
 
 static queue task_queues[NUM_PRIORITY_TYPES];
+static linked_array ready_queues;
 
 // Wow. These API decisions are terrible.
 
 void init_scheduler() {
   int i;
   for (i = 0; i < NUM_PRIORITY_TYPES; i++) {
-    task_queues[i].start = 0;
-    task_queues[i].end = 0;
+    init_queue(&task_queues[i]);
   }
+
+  la_create(&ready_queues, NUM_PRIORITY_TYPES);
 }
 
 int is_valid_priority(int priority) {
@@ -34,7 +37,11 @@ int scheduler_add_task(int priority, Task* task) {
   }
   #endif
 
-  push(&(task_queues[priority]), (int) task);
+  queue* q = &task_queues[priority];
+  if (is_queue_empty(q)) {
+    la_insert(&ready_queues, priority, (void *)q);
+  }
+  push(q, (int) task);
 
   METHOD_EXIT("scheduler_add_task: 0\n");
   return 0;
@@ -54,20 +61,20 @@ int scheduler_remove_task(int priority) {
   if (!is_valid_priority(priority)) {
     return 1;
   }
-  pop(&(task_queues[priority]));
+  queue* q = &task_queues[priority];
+  pop(q);
+  if (is_queue_empty(q)) {
+    la_remove(&ready_queues, priority);
+  }
   return 0;
 }
 
 Task* scheduler_get_next_task() {
   METHOD_ENTRY("scheduler_get_next_task\n");
 
-  int i;
-  for (i = 0; i < NUM_PRIORITY_TYPES; i++) {
-    if (!is_queue_empty(&(task_queues[i]))) {
-      Task* ret = (Task*) head(&(task_queues[i]));
-      METHOD_EXIT("scheduler_get_next_task: %x\n", ret);
-      return ret;
-    }
+  if (!la_is_empty(&ready_queues)) {
+    METHOD_EXIT("scheduler_get_next_task: %x\n", ret);
+    return (Task*)head(la_head(&ready_queues));
   }
 
   METHOD_EXIT("scheduler_get_next_task: empty\n");
