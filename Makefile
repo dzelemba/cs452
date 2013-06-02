@@ -69,8 +69,8 @@ TESTFLAGS = -g -Wall
 unittests: test.out
 	./test.out
 
-test.out: unittests/* strings.*
-	$(GCC) $(TESTFLAGS) unittests/all_tests.c unittests/test_helpers.c strings.c -o test.out
+test.out: unittests/* strings.* linked_array.* stdlib.*
+	$(GCC) $(TESTFLAGS) unittests/all_tests.c unittests/test_helpers.c strings.c linked_array.c stdlib.c -o test.out
 
 clean:
 	rm -rf obj dbg test.out

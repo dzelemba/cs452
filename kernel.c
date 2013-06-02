@@ -8,6 +8,7 @@
 #include <bwio.h>
 #include "first_task.h"
 #include "priorities.h"
+#include "stdlib.h"
 
 int process_request(Task* task, Request* request) {
   Task* new_task;
@@ -79,6 +80,7 @@ void init_kernel() {
   init_cache();
   *(int *)(0x28) = (int)&k_enter;
 
+  init_stdlib();
   init_time();
   init_tasks();
   init_scheduler();

@@ -2,12 +2,17 @@
  * Main runner for tests.
  */
 
- #include "strings_test.c"
+#include "../stdlib.h"
+#include "strings_test.c"
+#include "linked_array_tests.c"
 
- int main(int argc, char** argv) {
-   strings_tests();
+int main(int argc, char** argv) {
+  init_stdlib();
 
-   printf("******* All Test Passed! ********\n\n");
+  strings_tests();
+  linked_array_tests();
 
-   return 0;
- }
+  printf("******* All Test Passed! ********\n\n");
+
+  return 0;
+}

@@ -1,5 +1,14 @@
 #include "stdlib.h"
 
+#define HEAP_SIZE 1024 * 1024
+
+static char heap[HEAP_SIZE];
+static char* free_ptr;
+
+void init_stdlib() {
+  free_ptr = heap;
+}
+
 int min(int a, int b) {
   return a < b ? a : b;
 }
@@ -11,4 +20,12 @@ int memcpy(char* destination, const char* source, int len) {
   }
 
   return 0;
+}
+
+char* kmalloc(int size) {
+  // ASSERT(free_ptr + size < heap + HEAP_SIZE);
+
+  char* ret = free_ptr;
+  free_ptr += size;
+  return ret;
 }
