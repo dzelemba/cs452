@@ -1,4 +1,5 @@
 #include "stdlib.h"
+#include "debug.h"
 
 #define HEAP_SIZE 1024 * 1024
 
@@ -23,7 +24,7 @@ int memcpy(char* destination, const char* source, int len) {
 }
 
 char* kmalloc(int size) {
-  // ASSERT(free_ptr + size < heap + HEAP_SIZE);
+  ASSERT(free_ptr + size < heap + HEAP_SIZE, "kmalloc out of memory");
 
   char* ret = free_ptr;
   free_ptr += size;

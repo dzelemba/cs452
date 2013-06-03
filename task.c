@@ -1,5 +1,6 @@
 #include "task.h"
 #include "queue.h"
+#include "stdlib.h"
 
 // Task ids need to be positive.
 // Instead of dealing with adding/substracting 1 to go from task id
@@ -38,7 +39,7 @@ Task* task_create(int parent_tid, int priority, void (*code)) {
   task->parent_tid = parent_tid;
   task->priority = priority;
   task->state = READY;
-  task->stack_position = task->stack + STACK_SIZE - 1;
+  task->stack_position = (int *)kmalloc(STACK_SIZE) + STACK_SIZE - 1;
 
   // Fill in stack with initial values.
   int* stack = task->stack_position;

@@ -24,10 +24,6 @@ typedef struct Task {
   int retval;
 
   int* stack_position;
-
-  // Private
-  // TODO: Move this outside the task struct.
-  int stack[STACK_SIZE];
 } Task;
 
 void init_tasks();
