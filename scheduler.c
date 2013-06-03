@@ -3,10 +3,10 @@
 #include "bwio.h"
 #include "debug.h"
 #include "priorities.h"
-#include "linked_array.h"
+#include "bitmask.h"
 
 static queue task_queues[NUM_PRIORITY_TYPES];
-static linked_array ready_queues;
+static bitmask bm;
 
 // Wow. These API decisions are terrible.
 
@@ -16,7 +16,7 @@ void init_scheduler() {
     init_queue(&task_queues[i]);
   }
 
-  la_create(&ready_queues, NUM_PRIORITY_TYPES);
+  bm_create(&bm);
 }
 
 int is_valid_priority(int priority) {
@@ -39,7 +39,7 @@ int scheduler_add_task(int priority, Task* task) {
 
   queue* q = &task_queues[priority];
   if (is_queue_empty(q)) {
-    la_insert(&ready_queues, priority, (void *)q);
+    bm_set(&bm, priority + 1);
   }
   push(q, (int) task);
 
@@ -64,7 +64,7 @@ int scheduler_remove_task(int priority) {
   queue* q = &task_queues[priority];
   pop(q);
   if (is_queue_empty(q)) {
-    la_remove(&ready_queues, priority);
+    bm_unset(&bm, priority + 1);
   }
   return 0;
 }
@@ -72,8 +72,9 @@ int scheduler_remove_task(int priority) {
 Task* scheduler_get_next_task() {
   METHOD_ENTRY("scheduler_get_next_task\n");
 
-  if (!la_is_empty(&ready_queues)) {
-    Task* ret = (Task*)head(la_head(&ready_queues));
+  int hi_pri = bm_getlowbit(&bm);
+  if (hi_pri != 0) {
+    Task* ret = (Task *)head(&task_queues[hi_pri - 1]);
     METHOD_EXIT("scheduler_get_next_task: %x\n", ret);
     return ret;
   }
