@@ -4,11 +4,8 @@
 
 static Request request;
 
-// TODO(f2fung): This isn't necessary. Something similar to get_request should
-// be done ONCE, and then the kernel no longer needs it passed along. Perf++
-__attribute__ ((noinline)) static Request* get_request() {
-  asm("");
-  return &request;
+int syscall(Request* req) {
+  asm("swi");
 }
 
 int Create(int priority, void (*code)) {
@@ -16,46 +13,32 @@ int Create(int priority, void (*code)) {
   request.args[0] = priority;
   request.args[1] = (int)code;
 
-  get_request(); // Put request into r0
-  asm("swi");
-
-  register int retval asm("r0");
-  return retval;
+  return syscall(&request);
 }
 
 int MyTid() {
   request.syscall = CALLID_MYTID;
 
-  get_request(); // Put request into r0
-  asm("swi");
-
-  register int retval asm("r0");
-  return retval;
+  return syscall(&request);
 }
 
 int MyParentTid() {
   request.syscall = CALLID_MYPARENTTID;
 
-  get_request(); // Put request into r0
-  asm("swi");
-
-  register int retval asm("r0");
-  return retval;
+  return syscall(&request);
 }
 
 void Pass() {
   request.syscall = CALLID_PASS;
 
-  get_request(); // Put request into r0
-  asm("swi");
+  syscall(&request);
 }
 
 
 void Exit() {
   request.syscall = CALLID_EXIT;
 
-  get_request(); // Put request into r0
-  asm("swi");
+  syscall(&request);
 }
 
 int Send(int tid, char *msg, int msglen, char *reply, int replylen) {
@@ -70,11 +53,7 @@ int Send(int tid, char *msg, int msglen, char *reply, int replylen) {
   request.args[3] = (int)reply;
   request.args[4] = replylen;
 
-  get_request(); // Put request into r0
-  asm("swi");
-
-  register int retval asm("r0");
-  return retval;
+  return syscall(&request);
 }
 
 int Receive(int *tid, char *msg, int msglen) {
@@ -83,11 +62,7 @@ int Receive(int *tid, char *msg, int msglen) {
   request.args[1] = (int)msg;
   request.args[2] = msglen;
 
-  get_request(); // Put request into r0
-  asm("swi");
-
-  register int retval asm("r0");
-  return retval;
+  return syscall(&request);
 }
 
 int Reply(int tid, char *reply, int replylen) {
@@ -100,9 +75,5 @@ int Reply(int tid, char *reply, int replylen) {
   request.args[1] = (int)reply;
   request.args[2] = replylen;
 
-  get_request(); // Put request into r0
-  asm("swi");
-
-  register int retval asm("r0");
-  return retval;
+  return syscall(&request);
 }
