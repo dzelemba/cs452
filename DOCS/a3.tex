@@ -1,0 +1,95 @@
+\documentclass[letterpaper]{article}
+\usepackage{enumerate}
+
+\pagestyle{empty}
+
+\begin{document}
+
+\title{CS 452 Kernel 3}
+\author{Felix Fung (f2fung) \\ Dusan Zelembaba (dzelemba)}
+\maketitle
+
+\section{How To Run}
+\begin{verbatim}
+	> load -b 0x00218000 -h 10.15.167.4 "_______________"
+	> go
+\end{verbatim}
+
+\section{Submitted Files}
+
+Files listed here can be found under \verb!_________________!
+
+\subsection{md5sums}
+\begin{verbatim}
+
+\end{verbatim}
+
+\subsection{Header Files}
+\verb!context_switch.h! - Function definitions for compiler to use our assembly functions.\\
+\verb!debug.h! - Macros wrapping debugging functions that can compile away.\\
+\verb!messenger.h! - Function definitions for messenger.\\
+\verb!nameserver.h! - Function definitions for starting the nameserver.\\
+\verb!queue.h! - Function definitions for our queue implementation.\\
+\verb!rps_server.h! - Functions definitions for starting and using the rock, paper, scissors server. \\
+\verb!scheduler.h! - Function definitions for scheduler.\\
+\verb!string.h! - Functions definitions for string library.\\
+\verb!stdlib.h! - Function definitions for commonly used functions.\\
+\verb!syscall.h! - Function definitions for syscalls.\\
+\verb!task.h! - Contains Task structure and function definitions.\\
+\verb!timer.h! - Function definitions for timer.\\
+
+\subsection{Source Files}
+\verb!context_switch.s! - ARM assembly used to switch in and out of tasks and kernel mode.\\
+\verb!debug.c! - Debugging facilities.\\
+\verb!kernel.c! - The infinite kernel loop. Interrupts are processed here and tasks and scheduled.\\
+\verb!main.c! - Beginning of execution, described below.\\
+\verb!messenger.c! - Coordinates message passing.\\
+\verb!Makefile! - Our makefile.\\
+\verb!nameserver.c! - Implementation of the nameserver, and WhoIs/RegisterAs syscalls.\\
+\verb!queue.c! - A simple queue implementation.\\
+\verb!rps_server.c! - Implementation of the rock, paper, scissors server and wrappers for Send that clients can use to talk to the rps server..\\
+\verb!scheduler.c! - Our scheduler.\\
+\verb!stdlib.c! - Common functions. Not actually a standard library.\\
+\verb!strings.c! - String library.\\
+\verb!syscall.c! - System calls.\\
+\verb!task.c! - Creating and managing tasks.\\
+\verb!timer.c! - Timing functions.\\
+
+\subsection{Test Files}
+\verb!tests/basic_test.c! - This is a basic test. (This is only run for debugging)\\
+\verb!tests/message_passing_test.c! - Tests all aspects of Send, Receive, Relpy.\\
+\verb!tests/multiple_priorities_test.c! - Tests the correct scheduling of multiple tasks with different priorities.\\
+\verb!tests/nameserver_test.c! - Tests WhoIs \& RegisterAs.\\
+\verb!tests/rps_server_test.c! - Implements a set of clients for the nameserver.\\
+\verb!tests/srr_speed_test.c! - The test that is run to analyze our performance.\\
+\verb!tests/syscall_speed_test.c! - Test the time required to execute various sys calls.\\
+\verb!tests/task_creation_errors_test.c! - Tests error return values for task creation.\\
+\\
+\verb!run_tests.h! - Header for run\_tests.c.\\
+\verb!run_tests.c! - Calls all our tests.\\
+\verb!test_helpers.h! - Header for test\_helpers.c. Different types of asserts and such.\\
+\verb!test_helpers.c! - Test helpers. Asserts and other things.
+
+\section{Program Description}
+
+\subsection{Scheduler}
+
+Our old scheduler used an array of queues to implement the priority queues. It was mentioned that this approach would be too slow once we added more priorities, so we upgraded our implementation to use a bitmask. 
+
+Our bitmask has one bit for every priority. If a bit is set, that means there are tasks's ready to be run for that priority. So, when a queue empties we set its bit to 0 and when a queue gets a first element we set its bit to 1. Then {\tt scheduler\_get\_next\_task} becomes a find lowest bit operation (0 is highest priority). To do this we used the linux kernel's implementation of {\tt fls}.
+
+\subsection{Context Switch}
+
+To support hardware interrupts we had to enhance out context switch. Our old context switch stored registers r4 - r13, the pc of the user, and the CPSR of the user on the user's stack. For hardware interrupts, we also had to store registers r0 - r3. To do this, we created a wrapper around {\tt k\_enter} and {\tt k\_exit}: {\tt hwi\_enter}.
+
+The wrapper saves registers r0 - r3, the user's CPSR and PC on the user's stack. Then it sets the {\tt Request} object to null (to signal an interrupt request) and sets up the SPSR\_pc and LR\_pc so that {\tt k\_exit} will jump back into the wrapper. It then jumps to {\tt k\_enter}.
+
+Once the kernel finishes, we get back into the wrapper and restors the user's scratch registers, CPSR and PC.
+
+\subsection{AwaitEvent}
+
+\subsection{Clock Server}
+
+\section{Program Output}
+
+\end{document}
