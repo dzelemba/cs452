@@ -9,15 +9,13 @@
 #include "first_task.h"
 #include "priorities.h"
 #include "stdlib.h"
-#include "icu.h"
+#include "interrupt_handler.h"
 
 int process_request(Task* task, Request* request) {
   if (request == 0) {
-    clear_soft_int();
-    bwprintf(COM2, "HWI!\n");
+    process_interrupt();
     return 0;
   }
-
 
   Task* new_task;
   switch (request->syscall) {
@@ -89,8 +87,7 @@ void init_kernel() {
   *(int *)(0x28) = (int)&k_enter;
   *(int *)(0x38) = (int)&hwi_enter;
 
-  // Turn on a single interrupt.
-  *(int *)(VIC1_BASE + INT_ENABLE_OFFSET) = 1;
+  init_interrupts();
 
   init_stdlib();
   init_time();

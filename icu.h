@@ -12,4 +12,6 @@
 
 void clear_soft_int();
 
+void trigger_interrupt();
+
 #endif
