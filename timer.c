@@ -2,7 +2,7 @@
 #include "ts7200.h"
 
 // 10ms on the 508kHz clock.
-#define RESET_VALUE 50800
+#define RESET_VALUE 5080
 
 void init_timer() {
   unsigned int* timer_load = (unsigned int*)(TIMER3_BASE + LDR_OFFSET);
@@ -27,7 +27,7 @@ void clear_timer_interrupt() {
 
 void init_debug_timer() {
   unsigned int* timer_crtl = (unsigned int*)(DEBUG_TIMER_HIGH);
-  *timer_crtl = 0xffffffff;
+  *timer_crtl = 0xffff;
 }
 
 unsigned int ticks() {
@@ -37,5 +37,4 @@ unsigned int ticks() {
 
 unsigned int ticks_to_micros(unsigned int ticks) {
   return ((ticks * 1000) / 983);
-  //return (unsigned int)((float)ticks * (1000.0 / 508.0));
 }

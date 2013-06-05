@@ -65,7 +65,7 @@ main.elf: $(KERNEL_OBJ_FILES)
 	$(LD) $(LDFLAGS) -o $(OBJECT_DIR)/$@ $(addprefix $(OBJECT_DIR)/,$(KERNEL_OBJ_FILES)) -lbwio -lgcc
 
 install: main.elf
-	cp $(OBJECT_DIR)/main.elf /u/cs452/tftp/ARM/dzelemba/
+	cp $(OBJECT_DIR)/main.elf /u/cs452/tftp/ARM/f2fung/debug/
 
 # Unit Tests
 

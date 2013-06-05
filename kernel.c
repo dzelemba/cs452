@@ -123,4 +123,6 @@ void kernel_run() {
       scheduler_move_to_back(next_task->priority);
     }
   }
+
+  clean_interrupts();
 }

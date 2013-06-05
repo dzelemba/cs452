@@ -6,22 +6,20 @@
 void init_interrupts() {
   clear_timer_interrupt();
 
+  *(int *)(VIC2_BASE + INT_SELECT_OFFSET) = 0;
+  *(int *)(VIC2_BASE + INT_ENABLE_OFFSET) = 0x80000;
   enable_interrupt(SOFT_INTERRUPT);
-  //enable_interrupt(TIMER_INTERRUPT);
-  //int val = *(int *)(VIC2_BASE + INT_ENABLE_OFFSET);
-  //*(int *)(VIC2_BASE + INT_ENABLE_OFFSET) = 0x80000;
+}
 
-  int i;
-// 40-44
-  for (i = 41; i < 63; i++) {
-    enable_interrupt(i);
-  }
+void clean_interrupts() {
+  *(int *)(VIC2_BASE + INT_ENABLE_CLEAR_OFFSET) = 0x80000;
 }
 
 void process_interrupt() {
   bwprintf(COM2, "HWI! Int: %x , %x \n",*(int *)(VIC1_BASE), *(int *)VIC2_BASE);
-  clear_soft_int();
+  bwprintf(COM2, "HWI! Tix: %d\n", ticks());
   clear_timer_interrupt();
+  clear_soft_int();
 }
 
 void await_event(Task* task, int event) {
