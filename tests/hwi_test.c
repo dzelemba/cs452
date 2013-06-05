@@ -23,11 +23,11 @@ static void test_scratch_registers() {
 static void user_task() {
   // Trigger HWI
   // Trigger within a function to test that the LR gets saved.
-  trigger_interrupt();
+  trigger_interrupt(SOFT_INTERRUPT);
 
-  trigger_interrupt();
+  trigger_interrupt(SOFT_INTERRUPT);
 
-  trigger_interrupt();
+  trigger_interrupt(SOFT_INTERRUPT);
 
   Exit();
 }

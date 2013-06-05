@@ -18,7 +18,7 @@ static void user_time_pass() {
     Pass();
   }
   unsigned int t2 = ticks();
-  bwprintf(COM2, "pass ticks: %d\n", (t2 - t1));
+  bwprintf(COM2, "pass micros: %d\n", ticks_to_micros(t2 - t1));
 
 
   Exit();
@@ -36,7 +36,7 @@ static void user_time_create() {
     Create(VLOW_PRI, &do_nothing);
   }
   unsigned int t2 = ticks();
-  bwprintf(COM2, "create ticks: %d\n", (t2 - t1));
+  bwprintf(COM2, "create micros: %d\n", ticks_to_micros(t2 - t1));
 
   Exit();
 }

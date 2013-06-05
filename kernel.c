@@ -90,7 +90,8 @@ void init_kernel() {
   init_interrupts();
 
   init_stdlib();
-  init_time();
+  init_debug_timer();
+  init_timer();
   init_tasks();
   init_scheduler();
   init_messenger();
