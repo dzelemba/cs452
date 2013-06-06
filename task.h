@@ -9,7 +9,8 @@
 #define SEND_BLCK 1
 #define RECV_BLCK 2
 #define REPLY_BLCK 3
-#define ZOMBIE 4
+#define EVENT_BLCK 4
+#define ZOMBIE 5
 
 typedef struct Task {
   // Public

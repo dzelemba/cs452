@@ -20,6 +20,6 @@
 void print_debug(char* format, ...);
 void method_entry(char* format, ...);
 void method_exit(char* format, ...);
-void assert(int exp, char* exp_str, char* msq);
+void assert(int exp, char* exp_str, char* msg);
 
 #endif

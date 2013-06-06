@@ -9,6 +9,7 @@
 #define CALLID_SEND         5
 #define CALLID_RECEIVE      6
 #define CALLID_REPLY        7
+#define CALLID_AWAITEVENT   8
 
 typedef struct Request {
   int syscall;
@@ -31,10 +32,20 @@ int Receive(int *tid, char *msg, int msglen);
 
 int Reply(int tid, char *reply, int replylen);
 
+int AwaitEvent(int eventid);
+
 /* Implemented in nameserver.c */
 
 int RegisterAs(char* name);
 
 int WhoIs(char *name);
+
+/* Implemented in clockserver.c */
+
+int Delay(int ticks);
+
+int Time();
+
+int DelayUntil(int ticks);
 
 #endif

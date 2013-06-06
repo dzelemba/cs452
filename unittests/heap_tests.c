@@ -14,13 +14,13 @@ static void simple_heap_test() {
   heap_insert(&hp, 0, &a);
   heap_insert(&hp, 5, &c);
 
-  char ret = *(char*) heap_min(&hp);
+  char ret = *(char*) heap_min_value(&hp);
   assert_equals(ret, 'a', "Simple Heap Min 1");
 
   ret = *(char*) heap_delete_min(&hp);
   assert_equals(ret, 'a', "Simple Heap Delete 1");
 
-  ret = *(char*) heap_min(&hp);
+  ret = *(char*) heap_min_value(&hp);
   assert_equals(ret, 'b', "Simple Heap Min 2");
 
   ret = *(char*) heap_delete_min(&hp);

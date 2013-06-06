@@ -30,10 +30,6 @@ static int next_entry;
 
 static int nameserver_tid;
 
-void nameserver_init() {
-  next_entry = 0;
-}
-
 int find_entry(char* name) {
   int i;
   for (i = 0; i < next_entry; i++) {
@@ -96,8 +92,7 @@ void nameserver_run() {
 /* Public Methods */
 
 void start_nameserver() {
-  nameserver_init();
-
+  next_entry = 0;
   nameserver_tid = Create(NAMESERVER_PRIORITY, &nameserver_run);
 }
 

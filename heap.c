@@ -7,14 +7,18 @@ void init_heap(heap* hp) {
   hp->size = 0;
 }
 
-void* heap_min(heap* hp) {
+int heap_min_pri(heap* hp) {
+  return hp->buf[0].priority;
+}
+
+void* heap_min_value(heap* hp) {
   return hp->buf[0].value;
 }
 
 void* heap_delete_min(heap* hp) {
   ASSERT(hp->size > 0, "heap_delete_min from empty heap");
 
-  void* mn = heap_min(hp);
+  void* mn = heap_min_value(hp);
   hp->size = hp->size - 1;
 
   heap_node* buf = hp->buf;

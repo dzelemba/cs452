@@ -77,3 +77,10 @@ int Reply(int tid, char *reply, int replylen) {
 
   return syscall(&request);
 }
+
+int AwaitEvent(int eventid) {
+  request.syscall = CALLID_AWAITEVENT;
+  request.args[0] = eventid;
+
+  return syscall(&request);
+}

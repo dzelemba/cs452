@@ -63,6 +63,9 @@ int process_request(Task* task, Request* request) {
                              (char*) request->args[1],
                              (int) request->args[2]);
       break;
+    case CALLID_AWAITEVENT:
+      await_event(task, (int) request->args[0]);
+      break;
     default:
       bwprintf(COM2, "Illegal syscall number: %d\n", request->syscall);
   }
