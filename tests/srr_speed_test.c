@@ -45,13 +45,13 @@ static void replyer() {
 
   int tid;
 
-  unsigned int t1 = ticks();
+  unsigned int t1 = edges();
   for (i = 0; i < ITERATIONS; i++) {
     Receive(&tid, sentbuf, 64);
     Reply(tid, buf, len);
   }
-  unsigned int t2 = ticks();
-  bwprintf(COM2, "receive-block-reply ticks: %d\n", (t2 - t1));
+  unsigned int t2 = edges();
+  bwprintf(COM2, "receive-block-reply edges: %d\n", (t2 - t1));
 
   Exit();
 }

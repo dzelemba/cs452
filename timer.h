@@ -11,8 +11,8 @@ void clear_timer_interrupt();
 
 void init_debug_timer();
 
-unsigned int ticks();
+unsigned int edges();
 
-unsigned int ticks_to_micros(unsigned int ticks);
+unsigned int edges_to_micros(unsigned int edges);
 
 #endif

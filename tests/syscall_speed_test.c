@@ -13,12 +13,12 @@
 static void user_time_pass() {
 
   int i;
-  unsigned int t1 = ticks();
+  unsigned int t1 = edges();
   for (i = 0; i < ITERATIONS; i++) {
     Pass();
   }
-  unsigned int t2 = ticks();
-  bwprintf(COM2, "pass micros: %d\n", ticks_to_micros(t2 - t1));
+  unsigned int t2 = edges();
+  bwprintf(COM2, "pass micros: %d\n", edges_to_micros(t2 - t1));
 
 
   Exit();
@@ -31,12 +31,12 @@ static void do_nothing() {
 static void user_time_create() {
 
   int i;
-  unsigned int t1 = ticks();
+  unsigned int t1 = edges();
   for (i = 0; i < ITERATIONS; i++) {
     Create(VLOW_PRI, &do_nothing);
   }
-  unsigned int t2 = ticks();
-  bwprintf(COM2, "create micros: %d\n", ticks_to_micros(t2 - t1));
+  unsigned int t2 = edges();
+  bwprintf(COM2, "create micros: %d\n", edges_to_micros(t2 - t1));
 
   Exit();
 }

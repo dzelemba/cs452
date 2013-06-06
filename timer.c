@@ -30,11 +30,11 @@ void init_debug_timer() {
   *timer_crtl = 0xffff;
 }
 
-unsigned int ticks() {
+unsigned int edges() {
   unsigned int* timer_value = (unsigned int*)(DEBUG_TIMER_LOW);
   return *timer_value;
 }
 
-unsigned int ticks_to_micros(unsigned int ticks) {
-  return ((ticks * 1000) / 983);
+unsigned int edges_to_micros(unsigned int edges) {
+  return ((edges * 1000) / 983);
 }
