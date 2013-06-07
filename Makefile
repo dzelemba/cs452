@@ -26,6 +26,7 @@ OBJECT_DIR = obj
 
 all: stuff
 
+stuff: export RTOS_COMPILER=/u/wbcowan/gnuarm-4.0.2/arm-elf/bin/gcc
 stuff: directories main.elf
 
 directories:
@@ -64,19 +65,19 @@ tests/%.o: tests/%.c
 main.elf: $(KERNEL_OBJ_FILES)
 	$(LD) $(LDFLAGS) -o $(OBJECT_DIR)/$@ $(addprefix $(OBJECT_DIR)/,$(KERNEL_OBJ_FILES)) -lbwio -lgcc
 
-install: main.elf
-	cp $(OBJECT_DIR)/main.elf /u/cs452/tftp/ARM/dzelemba/
+install: stuff
+	cp $(OBJECT_DIR)/main.elf /u/cs452/tftp/ARM/dzelemba
 
 # Unit Tests
 
-GCC = /usr/bin/gcc
 TESTFLAGS = -g -Wall
 
 unit: test.out
 	./test.out
 
+test.out: export RTOS_COMPILER=/usr/bin/gcc
 test.out: unittests/* strings.* linked_array.* stdlib.* bitmask.*
-	$(GCC) $(TESTFLAGS) unittests/all_tests.c unittests/test_helpers.c strings.c linked_array.c stdlib.c bitmask.* -o test.out
+	$(XCC) $(TESTFLAGS) unittests/all_tests.c unittests/test_helpers.c strings.c linked_array.c stdlib.c bitmask.c -o test.out
 
 clean:
 	rm -rf obj dbg test.out

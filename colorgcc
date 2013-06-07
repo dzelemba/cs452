@@ -93,7 +93,7 @@ use IPC::Open3;
 
 sub initDefaults
 {
-   $compilerPaths{"gcc"} = "/u/wbcowan/gnuarm-4.0.2/arm-elf/bin/gcc";
+   $compilerPaths{"gcc"} = "/usr/bin/gcc";
    $compilerPaths{"g++"} = "/usr/bin/g++";
 
    $compilerPaths{"cc"}  = "/usr/bin/cc";
@@ -191,7 +191,7 @@ if (-f $configFile)
 $0 =~ m%.*/(.*)$%;
 $progName = $1 || $0;
 
-$compiler = $compilerPaths{$progName} || $compilerPaths{"gcc"};
+$compiler = $ENV{"RTOS_COMPILER"} || $compilerPaths{$progName} || $compilerPaths{"gcc"};
 
 # Get the terminal type.
 $terminal = $ENV{"TERM"} || "dumb";
