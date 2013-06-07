@@ -17,12 +17,23 @@ ASFLAGS	= -mcpu=arm920t -mapcs-32
 
 LDFLAGS = -init main -Map main.map -N  -T orex.ld -L/u/wbcowan/gnuarm-4.0.2/lib/gcc/arm-elf/4.0.2 -L../lib
 
-TEST_SRC_FILES = $(wildcard tests/*.c)
-TEST_OBJ_FILES = $(TEST_SRC_FILES:.c=.o)
-KERNEL_SRC_FILES = $(wildcard *.c)
-KERNEL_OBJ_FILES = $(KERNEL_SRC_FILES:.c=.o) context_switch.o tests.o
+ifdef DBG
+	CFLAGS += -DDEBUG
+	OBJECT_DIR = dbg
+else
+ifdef DBG1
+	CFLAGS += -DDEBUG_1
+	OBJECT_DIR = dbg
+else
+	OBJECT_DIR = obj
+endif
+endif
 
-OBJECT_DIR = obj
+TEST_SRC_FILES = $(wildcard tests/*.c)
+TEST_OBJ_FILES = $(addprefix $(OBJECT_DIR)/,$(TEST_SRC_FILES:.c=.o))
+KERNEL_SRC_FILES = $(wildcard *.c)
+KERNEL_OBJ_FILES = $(addprefix $(OBJECT_DIR)/,$(KERNEL_SRC_FILES:.c=.o) context_switch.o tests.o)
+
 
 all: stuff
 
@@ -32,38 +43,36 @@ stuff: directories main.elf
 directories:
 	mkdir -p obj/tests dbg/tests
 
-dbg: CFLAGS += -DDEBUG
-dbg: dbg_common
+dbg:
+	$(MAKE) install DBG=1
 
-dbg1: CFLAGS += -DDEBUG_1
-dbg1: dbg_common
+dbg1:
+	$(MAKE) install DBG1=1
 
-dbg_common: OBJECT_DIR = dbg
-dbg_common: stuff
-dbg_common: install
+obj: install
 
 # Assembly Sources
 
-context_switch.o: context_switch.s
+$(OBJECT_DIR)/context_switch.o: context_switch.s
 	$(AS) $(ASFLAGS) -o $(OBJECT_DIR)/context_switch.o context_switch.s
 
 # Kernel Sources
 
-%.o: %.c
+$(OBJECT_DIR)/%.o: %.c
 	$(XCC) -S $(CFLAGS) $< -o $(OBJECT_DIR)/$(<:.c=.s)
-	$(AS) $(ASFLAGS) -o $(OBJECT_DIR)/$@ $(OBJECT_DIR)/$(<:.c=.s)
+	$(AS) $(ASFLAGS) -o $@ $(OBJECT_DIR)/$(<:.c=.s)
 
 # Test Sources
 
-tests.o: $(TEST_OBJ_FILES)
-	$(LD) -r $(LDFLAGS) -o $(OBJECT_DIR)/tests.o $(addprefix $(OBJECT_DIR)/,$^)
+$(OBJECT_DIR)/tests.o: $(TEST_OBJ_FILES)
+	$(LD) -r $(LDFLAGS) -o $@ $^
 
 tests/%.o: tests/%.c
 	$(XCC) -S $(CFLAGS) $< -o $(OBJECT_DIR)/$(<:.c=.s)
 	$(AS) $(ASFLAGS) -o $(OBJECT_DIR)/$@ $(OBJECT_DIR)/$(<:.c=.s)
 
 main.elf: $(KERNEL_OBJ_FILES)
-	$(LD) $(LDFLAGS) -o $(OBJECT_DIR)/$@ $(addprefix $(OBJECT_DIR)/,$(KERNEL_OBJ_FILES)) -lbwio -lgcc
+	$(LD) $(LDFLAGS) -o $(OBJECT_DIR)/$@ $(KERNEL_OBJ_FILES) -lbwio -lgcc
 
 install: stuff
 	cp $(OBJECT_DIR)/main.elf /u/cs452/tftp/ARM/dzelemba
