@@ -84,9 +84,8 @@ TESTFLAGS = -g -Wall
 unit: test.out
 	./test.out
 
-test.out: export RTOS_COMPILER=/usr/bin/gcc
-test.out: unittests/* strings.* linked_array.* stdlib.* bitmask.*
-	$(XCC) $(TESTFLAGS) unittests/all_tests.c unittests/test_helpers.c strings.c linked_array.c stdlib.c bitmask.c -o test.out
+test.out: unittests/* strings.* linked_array.* stdlib.* bitmask.* heap.*
+	$(GCC) $(TESTFLAGS) unittests/all_tests.c unittests/test_helpers.c strings.c linked_array.c stdlib.c heap.c bitmask.c -o test.out
 
 clean:
 	rm -rf obj dbg test.out

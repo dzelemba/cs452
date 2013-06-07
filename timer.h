@@ -1,7 +1,15 @@
 #ifndef __TIMER_H__
 #define __TIMER_H__
 
-void init_time();
+/* 32-Bit Timer */
+
+void init_timer();
+
+void clear_timer_interrupt();
+
+/* Uses the 40-bit debug timer */
+
+void init_debug_timer();
 
 unsigned int ticks();
 

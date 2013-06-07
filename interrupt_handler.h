@@ -5,6 +5,8 @@
 
 void init_interrupts();
 
+void clean_interrupts();
+
 void process_interrupt();
 
 void await_event(Task* task, int event);
