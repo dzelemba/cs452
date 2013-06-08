@@ -46,18 +46,23 @@ static void dummy() {
 static int total_edges;
 
 static void time_adding_all_tasks() {
-  int i;
+  int i, num_priorities_created;
   unsigned int t1, t2;
 
-  // Don't add a task of MAX_PRI so no other tasks run during this test.
-  // Don't add a task of MIN or VLOW pri so all the tasks get cleaned up before
+  num_priorities_created = 0;
+
+  // Don't add a task of HI_PRI_1 so no other tasks run during this test.
+  // Don't add a task of VLOW_PRI_1 so all the tasks get cleaned up before
   // the next run.
   t1 = edges();
-  for (i = VLOW_PRI_1; i > MAX_PRI; i--) {
-    Create(i, &dummy);
+  for (i = LOW_PRI; i > HI_PRI_1; i--) {
+    if (!is_kernel_priority(i)) {
+      num_priorities_created++;
+      Create(i, &dummy);
+    }
   }
   t2 = edges();
-  total_edges += (t2 - t1) / (NUM_PRIORITY_TYPES - 3);
+  total_edges += (t2 - t1) / num_priorities_created;
 
   Exit();
 }
@@ -67,7 +72,7 @@ static void time_add_task() {
   total_edges = 0;
 
   for (i = 0; i < ADD_TASK_ITERATIONS; i++) {
-    Create(MAX_PRI, &time_adding_all_tasks);
+    Create(HI_PRI_1, &time_adding_all_tasks);
   }
   bwprintf(COM2, "Add Task Test: Average time to create task: %d\n",
                  edges_to_micros(total_edges / (ADD_TASK_ITERATIONS)));
@@ -76,9 +81,11 @@ static void time_add_task() {
 }
 
 static void first() {
-  Create(VLOW_PRI, &low_pri_test);
-  Create(MAX_PRI, &hi_pri_test);
-  Create(VLOW_PRI, &time_add_task);
+  // This task is VLOW_PRI, everything it spawns should be a higher so that they
+  // are performed sequentially.
+  Create(VLOW_PRI_1, &low_pri_test);
+  Create(HI_PRI_1, &hi_pri_test);
+  Create(VLOW_PRI_1, &time_add_task);
 
   Exit();
 }
@@ -87,12 +94,12 @@ void run_scheduler_speed_test() {
   init_kernel();
   reset_did_fail();
 
-  kernel_add_task(MIN_PRI, &first);
+  kernel_add_task(VLOW_PRI, &first);
 
   kernel_run();
   if (did_fail()) {
-    bwprintf(COM2, "Syscall Speed Test Failed!\n");
+    bwprintf(COM2, "Scheduler Speed Test Failed!\n");
   } else {
-    bwprintf(COM2, "Syscall Speed Test Passed!\n");
+    bwprintf(COM2, "Scheduler Speed Test Passed!\n");
   }
 }

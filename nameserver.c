@@ -6,7 +6,7 @@
 #include "bwio.h"
 #include "priorities.h"
 
-#define NAMESERVER_PRIORITY MED_PRI
+#define NAMESERVER_PRIORITY MED_PRI_K
 
 #define WHO_IS 0
 #define REGISTER_AS 1

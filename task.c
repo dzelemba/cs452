@@ -1,12 +1,17 @@
-#include "task.h"
+#include "priorities.h"
 #include "queue.h"
 #include "stdlib.h"
+#include "task.h"
+
+#include "bwio.h"
 
 // Task ids need to be positive.
 // Instead of dealing with adding/substracting 1 to go from task id
 // to array index we will just not use position 0 in the array.
 static Task tasks[MAX_TASKS + 1];
 static int next_tid;
+static int num_user_tasks;
+
 
 Task* get_next_available_task() {
   if (next_tid > MAX_TASKS) {
@@ -23,6 +28,7 @@ Task* get_next_available_task() {
 
 void init_tasks() {
   next_tid = 1;
+  num_user_tasks = 0;
 
   int i;
   for (i = 1; i < MAX_TASKS + 1; i++) {
@@ -34,6 +40,11 @@ Task* task_create(int parent_tid, int priority, void (*code)) {
   Task* task = get_next_available_task();
   if (task == 0) {
     return 0;
+  }
+
+  if (!is_kernel_priority(priority)) {
+    num_user_tasks++;
+    /*bwprintf(COM2, "task_create, num_user_tasks: %d, parent_tid: %d\n", num_user_tasks, parent_tid);*/
   }
 
   task->parent_tid = parent_tid;
@@ -66,12 +77,20 @@ Task* task_get(int tid) {
 
 void task_set_state(Task* task, int state) {
   task->state = state;
+  if (!is_kernel_priority(task->priority) && state == ZOMBIE) {
+    num_user_tasks--;
+    /*bwprintf(COM2, "num_user_tasks: %d\n", num_user_tasks);*/
+  }
 }
 
 void tid_set_state(int tid, int state) {
-  task_get(tid)->state = state;
+  task_set_state(task_get(tid), state);
 }
 
 int task_get_state(int tid) {
   return task_get(tid)->state;
+}
+
+int get_num_user_tasks() {
+  return num_user_tasks;
 }

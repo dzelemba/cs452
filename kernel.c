@@ -1,15 +1,15 @@
+#include <bwio.h>
 #include "context_switch.h"
+#include "first_task.h"
+#include "interrupt_handler.h"
 #include "kernel.h"
 #include "messenger.h"
+#include "priorities.h"
 #include "scheduler.h"
+#include "stdlib.h"
 #include "syscall.h"
 #include "task.h"
 #include "timer.h"
-#include <bwio.h>
-#include "first_task.h"
-#include "priorities.h"
-#include "stdlib.h"
-#include "interrupt_handler.h"
 
 int process_request(Task* task, Request* request) {
   if (request == 0) {
@@ -85,10 +85,15 @@ void init_cache() {
   asm("mcr p15, 0, r1, c1, c0, 0");
 }
 
+#define DEVICE_CONFIG_ADDR 0x80930080
+
 void init_kernel() {
   init_cache();
   *(int *)(0x28) = (int)&k_enter;
   *(int *)(0x38) = (int)&hwi_enter;
+
+  int device_config = *(int *)(DEVICE_CONFIG_ADDR);
+  *(int *)(DEVICE_CONFIG_ADDR) = device_config | 0x1;
 
   init_interrupts();
 
@@ -112,7 +117,7 @@ void kernel_run() {
   Task* next_task;
   while (1) {
     next_task = scheduler_get_next_task();
-    if (next_task == 0) {
+    if (get_num_user_tasks() == 0) {
       break;
     }
 

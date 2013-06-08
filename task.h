@@ -44,4 +44,6 @@ int task_get_state(int tid);
 // This is OK for now since we don't actually use this.
 void task_delete(int tid);
 
+int get_num_user_tasks();
+
 #endif

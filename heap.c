@@ -1,5 +1,8 @@
-#include "heap.h"
 #include "debug.h"
+#include "heap.h"
+#include "task.h"
+
+#include "bwio.h"
 
 // TODO: Better SWAP
 
@@ -16,8 +19,6 @@ void* heap_min_value(heap* hp) {
 }
 
 void* heap_delete_min(heap* hp) {
-  ASSERT(hp->size > 0, "heap_delete_min from empty heap");
-
   void* mn = heap_min_value(hp);
   hp->size = hp->size - 1;
 
@@ -56,8 +57,6 @@ void* heap_delete_min(heap* hp) {
 }
 
 void heap_insert(heap* hp, int priority, void* value) {
-  ASSERT(hp->size == MAX_TASKS, "heap_insert into full heap");
-
   heap_node* buf = hp->buf;
   unsigned char it = hp->size;
 

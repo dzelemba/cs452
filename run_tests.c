@@ -2,22 +2,24 @@
 #include "all_tests.h"
 
 void run_tests() {
-  run_basic_test();
-  run_multiple_priorities_test();
+  /*run_basic_test();*/
+  /*run_multiple_priorities_test();*/
 
   // Having trouble with this test because we now create more user tasks from the first
   /*run_task_creation_errors_test();*/
 
-  run_message_passing_test();
-  run_nameserver_test();
+  /*run_message_passing_test();*/
+  /*run_nameserver_test();*/
+  /*run_clockserver_test();*/
 
-  run_hwi_test();
+  /*run_hwi_test();*/
 
   // Performance Tests
-  run_syscall_speed_test();
-  run_srr_speed_test();
-  run_scheduler_speed_test();
+  /*run_syscall_speed_test();*/
+  /*run_srr_speed_test();*/
+  /*run_scheduler_speed_test();*/
 
-  //run_assignment_1_test();
-  //run_rps_server_test();
+  /*run_assignment_1_test();*/
+  /*run_rps_server_test();*/
+  run_assignment_3_test();
 }
