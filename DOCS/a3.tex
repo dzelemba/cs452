@@ -57,7 +57,7 @@ Files listed here can be found under \verb!_________________!
 
 \subsection{Test Files}
 \verb!tests/basic_test.c! - This is a basic test. (This is only run for debugging)\\
-\verb!tests/message_passing_test.c! - Tests all aspects of Send, Receive, Relpy.\\
+\verb!tests/message_passing_test.c! - Tests all aspects of Send, Receive, Reply.\\
 \verb!tests/multiple_priorities_test.c! - Tests the correct scheduling of multiple tasks with different priorities.\\
 \verb!tests/nameserver_test.c! - Tests WhoIs \& RegisterAs.\\
 \verb!tests/rps_server_test.c! - Implements a set of clients for the nameserver.\\
@@ -74,7 +74,7 @@ Files listed here can be found under \verb!_________________!
 
 \subsection{Scheduler}
 
-Our old scheduler used an array of queues to implement the priority queues. It was mentioned that this approach would be too slow once we added more priorities, so we upgraded our implementation to use a bitmask. 
+Our old scheduler used an array of queues to implement the priority queues. It was mentioned that this approach would be too slow once we added more priorities, so we upgraded our implementation to use a bitmask.
 
 Our bitmask has one bit for every priority. If a bit is set, that means there are tasks's ready to be run for that priority. So, when a queue empties we set its bit to 0 and when a queue gets a first element we set its bit to 1. Then {\tt scheduler\_get\_next\_task} becomes a find lowest bit operation (0 is highest priority). To do this we used the linux kernel's implementation of {\tt fls}.
 
@@ -91,5 +91,56 @@ Once the kernel finishes, we get back into the wrapper and restors the user's sc
 \subsection{Clock Server}
 
 \section{Program Output}
+
+\begin{verbatim}
+
+RedBoot> load -b 0x00218000 -h 10.15.167.4 "ARM/f2fung/debug/main.elf"
+Using default protocol (TFTP)
+Entry point: 0x0031d3f4, address range: 0x00218000-0x003231c0
+RedBoot> go
+tid: 7, delay interval: 10, # delay completed: 1
+tid: 7, delay interval: 10, # delay completed: 2
+tid: 8, delay interval: 23, # delay completed: 1
+tid: 7, delay interval: 10, # delay completed: 3
+tid: 9, delay interval: 33, # delay completed: 1
+tid: 7, delay interval: 10, # delay completed: 4
+tid: 8, delay interval: 23, # delay completed: 2
+tid: 7, delay interval: 10, # delay completed: 5
+tid: 7, delay interval: 10, # delay completed: 6
+tid: 9, delay interval: 33, # delay completed: 2
+tid: 8, delay interval: 23, # delay completed: 3
+tid: 7, delay interval: 10, # delay completed: 7
+tid: 10, delay interval: 71, # delay completed: 1
+tid: 7, delay interval: 10, # delay completed: 8
+tid: 7, delay interval: 10, # delay completed: 9
+tid: 8, delay interval: 23, # delay completed: 4
+tid: 9, delay interval: 33, # delay completed: 3
+tid: 7, delay interval: 10, # delay completed: 10
+tid: 7, delay interval: 10, # delay completed: 11
+tid: 8, delay interval: 23, # delay completed: 5
+tid: 7, delay interval: 10, # delay completed: 12
+tid: 7, delay interval: 10, # delay completed: 13
+tid: 9, delay interval: 33, # delay completed: 4
+tid: 8, delay interval: 23, # delay completed: 6
+tid: 7, delay interval: 10, # delay completed: 14
+tid: 10, delay interval: 71, # delay completed: 2
+tid: 7, delay interval: 10, # delay completed: 15
+tid: 7, delay interval: 10, # delay completed: 16
+tid: 8, delay interval: 23, # delay completed: 7
+tid: 9, delay interval: 33, # delay completed: 5
+tid: 7, delay interval: 10, # delay completed: 17
+tid: 7, delay interval: 10, # delay completed: 18
+tid: 8, delay interval: 23, # delay completed: 8
+tid: 7, delay interval: 10, # delay completed: 19
+tid: 9, delay interval: 33, # delay completed: 6
+tid: 7, delay interval: 10, # delay completed: 20
+tid: 8, delay interval: 23, # delay completed: 9
+tid: 10, delay interval: 71, # delay completed: 3
+Assignment 3 Passed!
+Main Exiting...
+
+Program completed with status 0
+
+\end{verbatim}
 
 \end{document}
