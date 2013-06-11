@@ -2,6 +2,6 @@
 #define __EVENTS_H__
 
 #define EVENT_TIMER 0
-#define NUM_EVENTS 4
+#define NUM_EVENTS 1
 
 #endif

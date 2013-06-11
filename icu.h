@@ -12,13 +12,17 @@
 #define SOFT_INT_CLEAR_OFFSET 0x1c
 
 // Unused so we can use it for testing.
-#define SOFT_INTERRUPT 0
-#define TIMER_INTERRUPT 51
+#define INTERRUPT_SOFT 0
+#define INTERRUPT_TIMER 51
 
 void clear_soft_int();
 
 void trigger_interrupt(int interrupt);
 
 void enable_interrupt(int interrupt);
+
+void disable_interrupt(int interrupt);
+
+int check_interrupt(int interrupt);
 
 #endif

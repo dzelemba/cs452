@@ -5,7 +5,7 @@
 
 void init_interrupts();
 
-void clean_interrupts();
+void reset_interrupts();
 
 void process_interrupt();
 

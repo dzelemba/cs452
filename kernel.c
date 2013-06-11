@@ -132,5 +132,5 @@ void kernel_run() {
     }
   }
 
-  clean_interrupts();
+  reset_interrupts();
 }

@@ -12,24 +12,29 @@ static Task* event_queues[NUM_EVENTS];
 
 void init_interrupts() {
   clear_timer_interrupt();
+  clear_soft_int();
 
   int i;
   for (i = 0; i < NUM_EVENTS; i++) {
     event_queues[i] = (Task *)0;
   }
 
+  *(int *)(VIC1_BASE + INT_SELECT_OFFSET) = 0;
   *(int *)(VIC2_BASE + INT_SELECT_OFFSET) = 0;
-  *(int *)(VIC2_BASE + INT_ENABLE_OFFSET) = 0x80000;
-  enable_interrupt(SOFT_INTERRUPT);
+  enable_interrupt(INTERRUPT_TIMER);
+  enable_interrupt(INTERRUPT_SOFT);
 }
 
-void clean_interrupts() {
-  *(int *)(VIC2_BASE + INT_ENABLE_CLEAR_OFFSET) = 0x80000;
+void reset_interrupts() {
+  disable_interrupt(INTERRUPT_TIMER);
+  disable_interrupt(INTERRUPT_SOFT);
 }
 
 void process_interrupt() {
-  if (((*(int *)VIC2_BASE) & 0x80000) == 0x80000) {
-    Task* waiting_task = event_queues[EVENT_TIMER];
+  Task* waiting_task;
+
+  if (check_interrupt(INTERRUPT_TIMER)) {
+    waiting_task = event_queues[EVENT_TIMER];
     if (waiting_task != (Task *)0) {
       task_set_state(waiting_task, READY);
       scheduler_add_task(waiting_task->priority, waiting_task);
@@ -39,9 +44,6 @@ void process_interrupt() {
   } else {
     clear_soft_int();
   }
-
-  /*bwprintf(COM2, "HWI! Int: %x , %x \n",*(int *)(VIC1_BASE), *(int *)VIC2_BASE);*/
-  /*bwprintf(COM2, "HWI! Tix: %d\n", ticks());*/
 }
 
 void await_event(Task* task, int event) {
