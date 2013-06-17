@@ -30,6 +30,11 @@ void trigger_interrupt(int interrupt) {
   set_at_offset(SOFT_INT_OFFSET, interrupt);
 }
 
+void set_all_intr_to_irq() {
+  *(int *)(VIC1_BASE + INT_SELECT_OFFSET) = 0;
+  *(int *)(VIC2_BASE + INT_SELECT_OFFSET) = 0;
+}
+
 void enable_interrupt(int interrupt) {
   set_at_offset(INT_ENABLE_OFFSET, interrupt);
 }

@@ -18,14 +18,24 @@ ASFLAGS	= -mcpu=arm920t -mapcs-32
 LDFLAGS = -init main -Map main.map -N  -T orex.ld -L/u/wbcowan/gnuarm-4.0.2/lib/gcc/arm-elf/4.0.2 -L../lib
 
 ifdef DBG
-	CFLAGS += -DDEBUG
-	OBJECT_DIR = dbg
+  CFLAGS += -DDEBUG
+  OBJECT_DIR = dbg
+else
+ifdef DBG3
+  CFLAGS += -DDEBUG_3
+  OBJECT_DIR = dbg3
+else
+ifdef DBG2
+  CFLAGS += -DDEBUG_2
+  OBJECT_DIR = dbg2
 else
 ifdef DBG1
-	CFLAGS += -DDEBUG_1
-	OBJECT_DIR = dbg
+  CFLAGS += -DDEBUG_1
+  OBJECT_DIR = dbg1
 else
-	OBJECT_DIR = obj
+  OBJECT_DIR = obj
+endif
+endif
 endif
 endif
 
@@ -34,6 +44,7 @@ TEST_OBJ_FILES = $(addprefix $(OBJECT_DIR)/,$(TEST_SRC_FILES:.c=.o))
 KERNEL_SRC_FILES = $(wildcard *.c)
 KERNEL_OBJ_FILES = $(addprefix $(OBJECT_DIR)/,$(KERNEL_SRC_FILES:.c=.o) context_switch.o tests.o)
 
+.PHONY: dbg dbg1 dbg2 dbg3 clean
 
 all: stuff
 
@@ -41,13 +52,19 @@ stuff: export RTOS_COMPILER=/u/wbcowan/gnuarm-4.0.2/arm-elf/bin/gcc
 stuff: directories main.elf
 
 directories:
-	mkdir -p obj/tests dbg/tests
+	mkdir -p obj/tests dbg/tests dbg1/tests dbg2/tests dbg3/tests
 
 dbg:
 	$(MAKE) install DBG=1
 
 dbg1:
 	$(MAKE) install DBG1=1
+
+dbg2:
+	$(MAKE) install DBG2=1
+
+dbg3:
+	$(MAKE) install DBG3=1
 
 obj: install
 
@@ -89,4 +106,4 @@ test.out: unittests/* strings.* linked_array.* stdlib.* bitmask.* heap.*
 	$(XCC) $(TESTFLAGS) unittests/all_tests.c unittests/test_helpers.c strings.c linked_array.c stdlib.c heap.c bitmask.c -o test.out
 
 clean:
-	rm -rf obj dbg test.out
+	rm -rf obj dbg dbg1 dbg2 dbg3 test.out

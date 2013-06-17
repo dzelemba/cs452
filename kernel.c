@@ -10,6 +10,7 @@
 #include "syscall.h"
 #include "task.h"
 #include "timer.h"
+#include "serialio.h"
 
 int process_request(Task* task, Request* request) {
   if (request == 0) {
@@ -95,14 +96,15 @@ void init_kernel() {
   int device_config = *(int *)(DEVICE_CONFIG_ADDR);
   *(int *)(DEVICE_CONFIG_ADDR) = device_config | 0x1;
 
-  init_interrupts();
-
   init_stdlib();
   init_debug_timer();
   init_timer();
   init_tasks();
   init_scheduler();
   init_messenger();
+
+  init_train_uart();
+  init_interrupts();
 
   // Create task that will intialize servers.
   kernel_add_task(MAX_PRI, &first_user_task);

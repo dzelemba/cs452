@@ -14,10 +14,14 @@
 // Unused so we can use it for testing.
 #define INTERRUPT_SOFT 0
 #define INTERRUPT_TIMER 51
+#define INTERRUPT_UART1 52
+#define INTERRUPT_UART2 54
 
 void clear_soft_int();
 
 void trigger_interrupt(int interrupt);
+
+void set_all_intr_to_irq();
 
 void enable_interrupt(int interrupt);
 

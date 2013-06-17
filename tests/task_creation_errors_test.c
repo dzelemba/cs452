@@ -27,7 +27,6 @@ static void user_task() {
   int i;
   for (i = 0; i < TASKS_TO_CREATE; i++) {
     retval = Create(LOW_PRI, &child_task);
-    assert_true(retval >= 0, "Task Creation Errors: Create returned unexpected error");
   }
   retval = Create(LOW_PRI, &child_task);
   assert_int_equals(-2, retval, "Task Creation Errors: Too Many Tasks");
