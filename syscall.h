@@ -48,4 +48,10 @@ int Time();
 
 int DelayUntil(int ticks);
 
+/* Implemented in ioserver.c */
+
+int Getc(int channel);
+
+int Putc(int channel, char ch);
+
 #endif
