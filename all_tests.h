@@ -11,6 +11,7 @@ void run_clockserver_test();
 void run_task_creation_errors_test();
 void run_hwi_test();
 void run_uart1_intr_test();
+void run_read_sensors_test();
 
 void run_syscall_speed_test();
 void run_srr_speed_test();

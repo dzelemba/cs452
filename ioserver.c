@@ -76,13 +76,11 @@ void ioserver_run() {
         break;
 
       case REQUEST_NOTIF_READ:
-        ch = ua_getc(COM1);
-
         if (!is_queue_empty(&getc_queue)) {
           qgetc_tid = pop(&getc_queue);
-          Reply(qgetc_tid, &ch, sizeof(char));
+          Reply(qgetc_tid, &req.msg, sizeof(char));
         } else {
-          push(&data_queue, ch);
+          push(&data_queue, req.msg);
         }
 
         Reply(tid, (void *)0, 0);
