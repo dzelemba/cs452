@@ -1,12 +1,11 @@
-#include <bwio.h>
 #include <ts7200.h>
-
 #include "all_tests.h"
 #include "kernel.h"
 #include "syscall.h"
 #include "test_helpers.h"
 #include "timer.h"
 #include "priorities.h"
+#include "stdio.h"
 
 #define ITERATIONS 1000
 
@@ -19,7 +18,7 @@ static void time_pass(char* name) {
     Pass();
   }
   unsigned int t2 = edges();
-  bwprintf(COM2, "%s Test: Average time for Pass: %d\n", name,
+  printf(COM2, "%s Test: Average time for Pass: %d\n", name,
                  edges_to_micros((t2 - t1) / ITERATIONS));
 }
 
@@ -74,7 +73,7 @@ static void time_add_task() {
   for (i = 0; i < ADD_TASK_ITERATIONS; i++) {
     Create(HI_PRI_1, &time_adding_all_tasks);
   }
-  bwprintf(COM2, "Add Task Test: Average time to create task: %d\n",
+  printf(COM2, "Add Task Test: Average time to create task: %d\n",
                  edges_to_micros(total_edges / (ADD_TASK_ITERATIONS)));
 
   Exit();
@@ -91,15 +90,12 @@ static void first() {
 }
 
 void run_scheduler_speed_test() {
-  init_kernel();
-  reset_did_fail();
+  char* name = "Scheduler Speed Test";
+  start_test(name);
 
   kernel_add_task(VLOW_PRI, &first);
 
   kernel_run();
-  if (did_fail()) {
-    bwprintf(COM2, "Scheduler Speed Test Failed!\n");
-  } else {
-    bwprintf(COM2, "Scheduler Speed Test Passed!\n");
-  }
+
+  end_test(name);
 }

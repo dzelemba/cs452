@@ -1,6 +1,5 @@
 #include "all_tests.h"
 #include "kernel.h"
-#include <bwio.h>
 #include "syscall.h"
 #include "test_helpers.h"
 #include "priorities.h"
@@ -40,16 +39,12 @@ static void first() {
 }
 
 void run_hwi_test() {
-  init_kernel();
-  reset_did_fail();
+  char* name = "HWI Test";
+  start_test(name);
 
   kernel_add_task(MED_PRI, &first);
 
   kernel_run();
 
-  if (did_fail()) {
-    bwprintf(COM2, "HWI Test Failed!\n");
-  } else {
-    bwprintf(COM2, "HWI Test Passed!\n");
-  }
+  end_test(name);
 }

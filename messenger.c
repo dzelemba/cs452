@@ -3,7 +3,6 @@
 #include "messenger.h"
 #include "stdlib.h"
 #include "scheduler.h"
-#include <bwio.h>
 
 typedef struct _message {
   char* msg;

@@ -1,5 +1,5 @@
 #include "icu.h"
-#include "bwio.h"
+#include "debug.h"
 
 static void set_at_offset(int offset, int interrupt) {
   if (interrupt < 32) {
@@ -7,7 +7,7 @@ static void set_at_offset(int offset, int interrupt) {
   } else if (interrupt < 64) {
     *(int *)(VIC2_BASE + offset) |= (1 << (interrupt - 32));
   } else {
-    bwprintf(COM2, "set_at_offset: Invalid interrupt number\n");
+    ERROR("set_at_offset: Invalid interrupt number\n");
   }
 }
 
@@ -17,7 +17,7 @@ static int get_at_offset(int offset, int interrupt) {
   } else if (interrupt < 64) {
     return (*(int *)(VIC2_BASE + offset) & (1 << (interrupt - 32))) != 0;
   } else {
-    bwprintf(COM2, "get_at_offset: Invalid interrupt number\n");
+    ERROR("get_at_offset: Invalid interrupt number\n");
     return 0;
   }
 }

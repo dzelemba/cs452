@@ -1,10 +1,10 @@
 #include "all_tests.h"
 #include "kernel.h"
-#include <bwio.h>
 #include "syscall.h"
 #include "test_helpers.h"
 #include "timer.h"
 #include "priorities.h"
+#include "stdio.h"
 
 /* Simple Tests */
 
@@ -51,7 +51,7 @@ static void replyer() {
     Reply(tid, buf, len);
   }
   unsigned int t2 = edges();
-  bwprintf(COM2, "receive-block-reply edges: %d\n", (t2 - t1));
+  printf(COM2, "receive-block-reply edges: %d\n", (t2 - t1));
 
   Exit();
 }
@@ -72,5 +72,5 @@ void run_srr_speed_test() {
 
   kernel_run();
 
-  bwprintf(COM2, "Send-Receive-Reply Performance Test Updated!\n");
+  printf(COM2, "Send-Receive-Reply Performance Test Updated!\n");
 }

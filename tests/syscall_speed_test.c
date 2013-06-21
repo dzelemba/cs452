@@ -1,12 +1,11 @@
-#include <bwio.h>
 #include <ts7200.h>
-
 #include "all_tests.h"
 #include "kernel.h"
 #include "syscall.h"
 #include "test_helpers.h"
 #include "timer.h"
 #include "priorities.h"
+#include "stdio.h"
 
 #define ITERATIONS 1000
 
@@ -18,7 +17,7 @@ static void user_time_pass() {
     Pass();
   }
   unsigned int t2 = edges();
-  bwprintf(COM2, "pass micros: %d\n", edges_to_micros(t2 - t1));
+  printf(COM2, "pass micros: %d\n", edges_to_micros(t2 - t1));
 
 
   Exit();
@@ -36,7 +35,7 @@ static void user_time_create() {
     Create(VLOW_PRI, &do_nothing);
   }
   unsigned int t2 = edges();
-  bwprintf(COM2, "create micros: %d\n", edges_to_micros(t2 - t1));
+  printf(COM2, "create micros: %d\n", edges_to_micros(t2 - t1));
 
   Exit();
 }
@@ -50,8 +49,8 @@ void run_syscall_speed_test() {
 
   kernel_run();
   if (did_fail()) {
-    bwprintf(COM2, "Syscall Speed Test Failed!\n");
+    printf(COM2, "Syscall Speed Test Failed!\n");
   } else {
-    bwprintf(COM2, "Syscall Speed Test Passed!\n");
+    printf(COM2, "Syscall Speed Test Passed!\n");
   }
 }

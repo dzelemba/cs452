@@ -1,4 +1,3 @@
-#include <bwio.h>
 #include "context_switch.h"
 #include "first_task.h"
 #include "interrupt_handler.h"
@@ -11,6 +10,7 @@
 #include "task.h"
 #include "timer.h"
 #include "serialio.h"
+#include "debug.h"
 
 int process_request(Task* task, Request* request) {
   if (request == 0) {
@@ -68,7 +68,7 @@ int process_request(Task* task, Request* request) {
       await_event(task, (int) request->args[0]);
       break;
     default:
-      bwprintf(COM2, "Illegal syscall number: %d\n", request->syscall);
+      ERROR("Illegal syscall number: %d\n", request->syscall);
   }
 
   return 0;

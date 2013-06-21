@@ -30,3 +30,9 @@ char* kmalloc(int size) {
   free_ptr += size;
   return ret;
 }
+
+int in_userspace() {
+  asm("mrs r3, cpsr");
+  register int cpsr asm("r3");
+  return (cpsr & 0x1f) == 10;
+}

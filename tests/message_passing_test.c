@@ -1,6 +1,5 @@
 #include "all_tests.h"
 #include "kernel.h"
-#include <bwio.h>
 #include "syscall.h"
 #include "test_helpers.h"
 #include "priorities.h"
@@ -164,16 +163,12 @@ static void first() {
 }
 
 void run_message_passing_test() {
-  init_kernel();
-  reset_did_fail();
+  char* name = "Message Passing Test";
+  start_test(name);
 
   kernel_add_task(LOW_PRI, &first);
 
   kernel_run();
 
-  if (did_fail()) {
-    bwprintf(COM2, "Message Passing Test Failed!\n");
-  } else {
-    bwprintf(COM2, "Message Passing Test Passed!\n");
-  }
+  end_test(name);
 }

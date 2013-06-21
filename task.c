@@ -3,8 +3,6 @@
 #include "stdlib.h"
 #include "task.h"
 
-#include "bwio.h"
-
 // Task ids need to be positive.
 // Instead of dealing with adding/substracting 1 to go from task id
 // to array index we will just not use position 0 in the array.
@@ -44,7 +42,6 @@ Task* task_create(int parent_tid, int priority, void (*code)) {
 
   if (!is_kernel_priority(priority)) {
     num_user_tasks++;
-    /*bwprintf(COM2, "task_create, num_user_tasks: %d, parent_tid: %d\n", num_user_tasks, parent_tid);*/
   }
 
   task->parent_tid = parent_tid;
@@ -79,7 +76,6 @@ void task_set_state(Task* task, int state) {
   task->state = state;
   if (!is_kernel_priority(task->priority) && state == ZOMBIE) {
     num_user_tasks--;
-    /*bwprintf(COM2, "num_user_tasks: %d\n", num_user_tasks);*/
   }
 }
 

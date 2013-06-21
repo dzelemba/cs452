@@ -1,5 +1,4 @@
 #include "all_tests.h"
-#include "bwio.h"
 #include "kernel.h"
 #include "priorities.h"
 #include "syscall.h"
@@ -87,10 +86,8 @@ static void first() {
 }
 
 void run_clockserver_test() {
-  bwprintf(COM2, "Clockserver Test Begin!\n");
-
-  init_kernel();
-  reset_did_fail();
+  char* name = "Clockserver Test";
+  start_test(name);
   tasks_run = 0;
 
   kernel_add_task(VLOW_PRI, &first);
@@ -99,9 +96,5 @@ void run_clockserver_test() {
 
   assert_int_equals(3, tasks_run, "Clockserver Test: Tasks Didn't Run");
 
-  if (did_fail()) {
-    bwprintf(COM2, "Clockserver Test Failed!\n");
-  } else {
-    bwprintf(COM2, "Clockserver Test Passed!\n");
-  }
+  end_test(name);
 }

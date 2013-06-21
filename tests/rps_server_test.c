@@ -1,22 +1,22 @@
 #include "all_tests.h"
 #include "kernel.h"
-#include <bwio.h>
 #include "syscall.h"
 #include "test_helpers.h"
 #include "rps_server.h"
 #include "priorities.h"
+#include "stdio.h"
 
 #define NUM_ROUNDS 5
 
 static void player_play(int player, int* moves, int num_moves) {
-  bwprintf(COM2, "Player %d Starting...\n", player);
+  printf(COM2, "Player %d Starting...\n", player);
 
   int rps_server = get_rps_tid();
-  bwprintf(COM2, "Player %d Acquired RPS Tid...\n", player);
+  printf(COM2, "Player %d Acquired RPS Tid...\n", player);
 
   int retval = signup(rps_server);
   assert_int_equals(OK, retval, "RPS Test: Player Signup");
-  bwprintf(COM2, "Player %d Signed Up...\n", player);
+  printf(COM2, "Player %d Signed Up...\n", player);
 
   int i;
   for (i = 0; i < num_moves; i++) {
@@ -27,7 +27,7 @@ static void player_play(int player, int* moves, int num_moves) {
   retval = quit(rps_server);
   assert_int_equals(SUCCESSFUL_QUIT, retval, "RPS Test: Player Quit");
 
-  bwprintf(COM2, "Player %d Done...\n", player);
+  printf(COM2, "Player %d Done...\n", player);
 }
 
 static void player_1() {
@@ -65,7 +65,7 @@ static void player_4() {
 }
 
 static void first() {
-  bwprintf(COM2, "Rock Paper Scissor Server Starting...\n\n");
+  printf(COM2, "Rock Paper Scissor Server Starting...\n\n");
 
   start_rps_server();
 

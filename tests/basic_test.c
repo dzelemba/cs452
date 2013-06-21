@@ -1,6 +1,5 @@
 #include "all_tests.h"
 #include "kernel.h"
-#include <bwio.h>
 #include "syscall.h"
 #include "test_helpers.h"
 #include "priorities.h"
@@ -53,8 +52,8 @@ static void user_task() {
 }
 
 void run_basic_test() {
-  init_kernel();
-  reset_did_fail();
+  char* name = "Basic Test";
+  start_test(name);
   flag = 0;
   did_run = 0;
 
@@ -64,9 +63,5 @@ void run_basic_test() {
 
   assert_int_equals(1, did_run, "Basic Test: User Program Never Ran");
 
-  if (did_fail()) {
-    bwprintf(COM2, "Basic Test Failed!\n");
-  } else {
-    bwprintf(COM2, "Basic Test Passed!\n");
-  }
+  end_test(name);
 }

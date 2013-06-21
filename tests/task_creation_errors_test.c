@@ -1,5 +1,4 @@
 #include "all_tests.h"
-#include <bwio.h>
 #include "kernel.h"
 #include "syscall.h"
 #include "task.h"
@@ -35,8 +34,8 @@ static void user_task() {
 }
 
 void run_task_creation_errors_test() {
-  init_kernel();
-  reset_did_fail();
+  char* name = "Task Creation Errors Test";
+  start_test(name);
   tasks_run = 0;
 
   kernel_add_task(HI_PRI, &user_task);
@@ -45,9 +44,5 @@ void run_task_creation_errors_test() {
 
   assert_int_equals(TASKS_TO_CREATE + 1, tasks_run, "Task Creation Errors: Tasks Didn't Run");
 
-  if (did_fail()) {
-    bwprintf(COM2, "Task Creation Errors Test Failed!\n");
-  } else {
-    bwprintf(COM2, "Task Creation Errors Test Passed!\n");
-  }
+  end_test(name);
 }

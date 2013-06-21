@@ -3,8 +3,8 @@
 #include "queue.h"
 #include "strings.h"
 #include "syscall.h"
-#include "bwio.h"
 #include "priorities.h"
+#include "debug.h"
 
 #define NAMESERVER_PRIORITY MED_PRI_K
 
@@ -51,7 +51,7 @@ int who_is(char* name) {
 
 int register_as(int tid, char* name) {
   if (next_entry == MAX_ENTRIES) {
-    bwprintf(COM2, "Nameserver ran out of name entries\n");
+    ERROR("Nameserver ran out of name entries\n");
     return -1;
   }
 
@@ -84,7 +84,7 @@ void nameserver_run() {
         Reply(tid, (char *)&retval, sizeof(int));
         break;
       default:
-        bwprintf(COM2, "Invalid nameserver request type %d, from: %d\n", req.type, req.tid);
+        ERROR("Invalid nameserver request type %d, from: %d\n", req.type, req.tid);
     }
   }
 }

@@ -1,9 +1,9 @@
 #include "all_tests.h"
-#include <bwio.h>
 #include "kernel.h"
 #include "priorities.h"
 #include "syscall.h"
 #include "test_helpers.h"
+#include "stdio.h"
 
 static void priority_3() {
   int tid = MyTid();
@@ -12,7 +12,7 @@ static void priority_3() {
   int i;
   for (i = 0; i < 20; i++) {
     Delay(delay_interval);
-    bwprintf(COM2, "tid: %d, delay interval: %d, # delay completed: %d\n", tid, delay_interval, (i + 1));
+    printf(COM2, "tid: %d, delay interval: %d, # delay completed: %d\n", tid, delay_interval, (i + 1));
   }
 
   Exit();
@@ -25,7 +25,7 @@ static void priority_4() {
   int i;
   for (i = 0; i < 9; i++) {
     Delay(delay_interval);
-    bwprintf(COM2, "tid: %d, delay interval: %d, # delay completed: %d\n", tid, delay_interval, (i + 1));
+    printf(COM2, "tid: %d, delay interval: %d, # delay completed: %d\n", tid, delay_interval, (i + 1));
   }
 
   Exit();
@@ -38,7 +38,7 @@ static void priority_5() {
   int i;
   for (i = 0; i < 6; i++) {
     Delay(delay_interval);
-    bwprintf(COM2, "tid: %d, delay interval: %d, # delay completed: %d\n", tid, delay_interval, (i + 1));
+    printf(COM2, "tid: %d, delay interval: %d, # delay completed: %d\n", tid, delay_interval, (i + 1));
   }
 
   Exit();
@@ -51,7 +51,7 @@ static void priority_6() {
   int i;
   for (i = 0; i < 3; i++) {
     Delay(delay_interval);
-    bwprintf(COM2, "tid: %d, delay interval: %d, # delay completed: %d\n", tid, delay_interval, (i + 1));
+    printf(COM2, "tid: %d, delay interval: %d, # delay completed: %d\n", tid, delay_interval, (i + 1));
   }
 
   Exit();
@@ -67,16 +67,12 @@ static void first_user_task() {
 }
 
 void run_assignment_3_test() {
-  init_kernel();
-  reset_did_fail();
+  char* name = "Assignment 3 Test";
+  start_test(name);
 
   kernel_add_task(VLOW_PRI, &first_user_task);
 
   kernel_run();
 
-  if (did_fail()) {
-    bwprintf(COM2, "Assignment 3 Failed!\n");
-  } else {
-    bwprintf(COM2, "Assignment 3 Passed!\n");
-  }
+  end_test(name);
 }

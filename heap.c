@@ -2,8 +2,6 @@
 #include "heap.h"
 #include "task.h"
 
-#include "bwio.h"
-
 // TODO: Better SWAP
 
 void init_heap(heap* hp) {

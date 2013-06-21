@@ -1,6 +1,5 @@
 #include "all_tests.h"
 #include "kernel.h"
-#include <bwio.h>
 #include "syscall.h"
 #include "test_helpers.h"
 #include "nameserver.h"
@@ -74,8 +73,8 @@ static void init_task() {
 }
 
 void run_nameserver_test() {
-  init_kernel();
-  reset_did_fail();
+  char* name = "Nameserver Test";
+  start_test(name);
   num_tasks_ran = 0;
 
   kernel_add_task(MED_PRI, &init_task);
@@ -84,9 +83,5 @@ void run_nameserver_test() {
 
   assert_int_equals(4, num_tasks_ran, "Nameserver Test: Not all tests ran");
 
-  if (did_fail()) {
-    bwprintf(COM2, "Nameserver Test Failed!\n");
-  } else {
-    bwprintf(COM2, "Nameserver Test Passed!\n");
-  }
+  end_test(name);
 }

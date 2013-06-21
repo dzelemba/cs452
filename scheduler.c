@@ -1,6 +1,5 @@
 #include "scheduler.h"
 #include "queue.h"
-#include "bwio.h"
 #include "debug.h"
 #include "priorities.h"
 #include "bitmask.h"

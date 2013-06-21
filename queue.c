@@ -1,5 +1,4 @@
 #include "queue.h"
-#include <bwio.h>
 
 void init_queue(queue *q) {
   q->start = 0;

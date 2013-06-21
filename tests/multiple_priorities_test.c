@@ -1,6 +1,5 @@
 #include "all_tests.h"
 #include "kernel.h"
-#include <bwio.h>
 #include "syscall.h"
 #include "test_helpers.h"
 #include "priorities.h"
@@ -51,17 +50,13 @@ static void user_task_hi() {
 }
 
 void run_multiple_priorities_test() {
-  init_kernel();
-  reset_did_fail();
+  char* name = "Multiple Priorities Test";
+  start_test(name);
   execution_order = 0;
 
   kernel_add_task(HI_PRI, &user_task_hi);
 
   kernel_run();
 
-  if (did_fail()) {
-    bwprintf(COM2, "Multiple Priorities Test Failed!\n");
-  } else {
-    bwprintf(COM2, "Multiple Priorities Test Passed!\n");
-  }
+  end_test(name);
 }

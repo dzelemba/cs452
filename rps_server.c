@@ -1,8 +1,9 @@
 #include "rps_server.h"
 #include "task.h"
-#include "bwio.h"
 #include "syscall.h"
 #include "priorities.h"
+#include "debug.h"
+#include "stdio.h"
 
 /* Private Methods */
 
@@ -86,8 +87,8 @@ void _signup(int tid) {
 }
 
 void print_outcome(int player, int move, int result) {
-  bwprintf(COM2, "Player %d played: %s, Result: %s\n", player,
-           move_to_string(move), result_to_string(result));
+  printf(COM2, "Player %d played: %s, Result: %s\n", player,
+         move_to_string(move), result_to_string(result));
 }
 
 void play_round(int p1, int p2) {
@@ -103,11 +104,11 @@ void play_round(int p1, int p2) {
   reply(p1, p1_outcome);
   reply(p2, p2_outcome);
 
-  bwprintf(COM2, "\nRound Complete\n");
+  printf(COM2, "\nRound Complete\n");
   print_outcome(p1, p1_move, p1_outcome);
   print_outcome(p2, p2_move, p2_outcome);
-  bwprintf(COM2, "Enter character to continue to next round...\n\n");
-  bwgetc(COM2);
+  printf(COM2, "Enter character to continue to next round...\n\n");
+  // Getc(COM2); TODO(dzelemba): Uncomment once serial io to term is working.
 }
 
 void _play(int tid, int move) {
@@ -168,7 +169,7 @@ void rps_server_run() {
         _quit(tid);
         break;
       default:
-        bwprintf(COM2, "Invalid rps request type %d\n", req.type);
+        ERROR("Invalid rps request type %d\n", req.type);
     }
   }
 }
@@ -176,7 +177,6 @@ void rps_server_run() {
 /* Public Methods */
 
 void start_rps_server() {
-	bwsetfifo(COM2, OFF);
   waiting_to_play = -1;
 
   int i;

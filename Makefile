@@ -4,7 +4,7 @@
 XCC = ./colorgcc
 AS = /u/wbcowan/gnuarm-4.0.2/arm-elf/bin/as
 LD = /u/wbcowan/gnuarm-4.0.2/arm-elf/bin/ld
-CFLAGS  = -O2 -c -fPIC -Wall -I. -I../include -mcpu=arm920t -msoft-float
+CFLAGS  = -O2 -c -fPIC -Wall -I. -mcpu=arm920t -msoft-float -fno-builtin
 
 # -g: include hooks for gdb
 # -c: only compile
@@ -89,7 +89,7 @@ tests/%.o: tests/%.c
 	$(AS) $(ASFLAGS) -o $(OBJECT_DIR)/$@ $(OBJECT_DIR)/$(<:.c=.s)
 
 main.elf: $(KERNEL_OBJ_FILES)
-	$(LD) $(LDFLAGS) -o $(OBJECT_DIR)/$@ $(KERNEL_OBJ_FILES) -lbwio -lgcc
+	$(LD) $(LDFLAGS) -o $(OBJECT_DIR)/$@ $(KERNEL_OBJ_FILES) -lgcc
 
 install: stuff
 	cp $(OBJECT_DIR)/main.elf /u/cs452/tftp/ARM/dzelemba

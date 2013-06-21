@@ -5,6 +5,10 @@
  * Helper methods for unit tests.
  */
 
+void start_test(char* name);
+
+void end_test(char* name);
+
 void reset_did_fail();
 
 void record_failure();

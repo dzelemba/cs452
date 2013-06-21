@@ -1,5 +1,4 @@
 #include "all_tests.h"
-#include "bwio.h"
 #include "kernel.h"
 #include "priorities.h"
 #include "syscall.h"
@@ -53,16 +52,12 @@ static void first() {
 }
 
 void run_uart1_intr_test() {
-  init_kernel();
-  reset_did_fail();
+  char* name = "UART1 Interrupt Test";
+  start_test(name);
 
   kernel_add_task(VLOW_PRI, &first);
 
   kernel_run();
 
-  if (did_fail()) {
-    bwprintf(COM2, "Serial IO Test Failed!\n");
-  } else {
-    bwprintf(COM2, "Serial IO Test Passed!\n");
-  }
+  end_test(name);
 }

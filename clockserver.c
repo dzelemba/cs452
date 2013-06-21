@@ -6,8 +6,6 @@
 #include "icu.h"
 #include "events.h"
 
-#include "bwio.h"
-
 // We can make the clockserver faster by never actually implementing the user-task.
 // This is a lot more work, but we can get rid of 2-3 context switches every 10ms.
 
