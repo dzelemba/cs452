@@ -33,6 +33,14 @@ void enable_event(int event) {
       ua_enableinterrupts(COM1, RIEN_MASK);
       enable_interrupt(INTERRUPT_UART1);
       break;
+    case EVENT_UART2_TX_READY:
+      ua_enableinterrupts(COM2, TIEN_MASK);
+      enable_interrupt(INTERRUPT_UART2);
+      break;
+    case EVENT_UART2_RCV_READY:
+      ua_enableinterrupts(COM2, RIEN_MASK);
+      enable_interrupt(INTERRUPT_UART2);
+      break;
     default:
       ERROR("interrupt_handler.c: enable_event: invalid event given: %d\n", event);
   }
@@ -57,6 +65,7 @@ void reset_interrupts() {
   disable_interrupt(INTERRUPT_TIMER);
   disable_interrupt(INTERRUPT_SOFT);
   disable_interrupt(INTERRUPT_UART1);
+  disable_interrupt(INTERRUPT_UART2);
 }
 
 void send_event(int event, int data) {
@@ -99,6 +108,16 @@ void process_interrupt() {
     if (sm_is_ready(&UART1_txReadySM)) {
       send_event(EVENT_UART1_TX_READY, 0);
       sm_reset(&UART1_txReadySM);
+    }
+  } else if (check_interrupt(INTERRUPT_UART2)) {
+    int intStatus = ua_get_intr_status(COM2);
+    if (intStatus & TIS_MASK) {
+      PRINT_DEBUG("UART2 TX Interrupt Received\n");
+      ua_disableinterrupts(COM2, TIEN_MASK);
+      send_event(EVENT_UART2_TX_READY, 0);
+    } else if (intStatus & RIS_MASK) {
+      PRINT_DEBUG("UART2 RCV Interrupt Received\n");
+      send_event(EVENT_UART2_RCV_READY, ua_getc(COM2));
     }
   } else if (check_interrupt(INTERRUPT_SOFT)) {
     clear_soft_int();
