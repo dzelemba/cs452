@@ -5,6 +5,8 @@ void init_stdlib();
 
 int min(int a, int b);
 
+int atoi(char* src);
+
 int memcpy(char* destination, const char* source, int len);
 
 char* kmalloc(int size);

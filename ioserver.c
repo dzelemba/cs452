@@ -32,7 +32,23 @@ typedef struct ioserver_request {
 } ioserver_request;
 
 static int ioserver_tid;
+
+#define TRAIN_DATA_MEM_SIZE 32
+#define TRAIN_GETC_MEM_SIZE 8
+#define TRAIN_PUTC_MEM_SIZE 128
+#define TERM_DATA_MEM_SIZE 128
+#define TERM_GETC_MEM_SIZE 8
+#define TERM_PUTC_MEM_SIZE 1024
+#define FLUSH_MEM_SIZE 128
+
 static queue train_data_queue, train_getc_queue, train_putc_queue, term_data_queue, term_getc_queue, term_putc_queue, flush_queue;
+static int train_data_mem[TRAIN_DATA_MEM_SIZE]; // We should never be getting more than 10 bytes from the sensors before reading them all
+static int train_getc_mem[TRAIN_GETC_MEM_SIZE]; // Not many tasks should be call getc on the train controller?
+static int train_putc_mem[TRAIN_PUTC_MEM_SIZE];
+static int term_data_mem[TERM_DATA_MEM_SIZE];
+static int term_getc_mem[TERM_GETC_MEM_SIZE]; // Not many tasks should be getting from the terminal?
+static int term_putc_mem[TERM_PUTC_MEM_SIZE]; // This is why we're doing this stupid shit anyways
+static int flush_mem[FLUSH_MEM_SIZE];
 
 void uart1_write_notifier_run() {
   ioserver_request req = { NOTIF_TRAIN_CANPUT, 0, 0, 0 };
@@ -83,13 +99,13 @@ void ioserver_run() {
 
   ioserver_tid = MyTid();
 
-  init_queue(&train_getc_queue); // tid
-  init_queue(&train_data_queue); // char
-  init_queue(&train_putc_queue); // char
-  init_queue(&term_getc_queue); // tid
-  init_queue(&term_data_queue); // char
-  init_queue(&term_putc_queue); // char
-  init_queue(&flush_queue); // tid
+  init_queue(&train_data_queue, train_data_mem, TRAIN_DATA_MEM_SIZE); // char
+  init_queue(&train_getc_queue, train_getc_mem, TRAIN_GETC_MEM_SIZE); // tid
+  init_queue(&train_putc_queue, train_putc_mem, TRAIN_PUTC_MEM_SIZE); // char
+  init_queue(&term_data_queue, term_data_mem, TERM_DATA_MEM_SIZE); // char
+  init_queue(&term_getc_queue, term_getc_mem, TERM_GETC_MEM_SIZE); // tid
+  init_queue(&term_putc_queue, term_putc_mem, TERM_PUTC_MEM_SIZE); // char
+  init_queue(&flush_queue, flush_mem, FLUSH_MEM_SIZE); // tid
 
   Create(MAX_PRI, &uart1_write_notifier_run);
   Create(MAX_PRI, &uart1_read_notifier_run);

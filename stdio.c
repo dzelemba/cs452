@@ -174,7 +174,7 @@ void _io_format (string* s, char *fmt, va_list va) {
     if ( ch != '%' )
       _putc(s, ch);
     else {
-      lz = 0; w = 0;
+      lz = '0'; w = 0;
       ch = *(fmt++);
       switch (ch) {
       case '0':

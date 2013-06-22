@@ -113,9 +113,9 @@ void update_sensors() {
 
 int get_sensor_data(char sensor, int socket) {
   ASSERT(sensor >= 'A' && sensor < 'A' + NUM_SENSORS, "train.c: get_sensor_data: invalid sensor");
-  ASSERT(socket >= 0 && socket < SOCKETS_PER_SENSOR, "train.c:get_sensor_data: invalid socket");
+  ASSERT(socket > 0 && socket <= SOCKETS_PER_SENSOR, "train.c:get_sensor_data: invalid socket");
 
-  return sensor_data[sensor - 'A'][socket];
+  return sensor_data[sensor - 'A'][socket - 1];
 }
 
 /* Switch Methods */

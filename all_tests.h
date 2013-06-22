@@ -18,10 +18,9 @@ void run_srr_speed_test();
 void run_scheduler_speed_test();
 
 void run_assignment_1_test();
-
 void run_rps_server_test();
-
 void run_assignment_3_test();
+void run_assignment_4_test();
 
 void run_train_test();
 

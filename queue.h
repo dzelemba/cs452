@@ -1,15 +1,14 @@
 #ifndef __QUEUE_H__
 #define __QUEUE_H__
 
-#define QUEUE_MAX_ITEMS (127)
-
 typedef struct _queue {
   int start;
   int end;
-  int buf[QUEUE_MAX_ITEMS + 1];
+  int* buf;
+  int size;
 } queue;
 
-void init_queue(queue *q);
+void init_queue(queue *q, int* buf, int size);
 
 void push(queue *q, int val);
 

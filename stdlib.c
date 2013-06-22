@@ -14,6 +14,16 @@ int min(int a, int b) {
   return a < b ? a : b;
 }
 
+int atoi(char* src) {
+  int num = 0;
+  while ((*src) != 0) {
+    num *= 10;
+    num += ((*src) - '0');
+    src++;
+  }
+  return num;
+}
+
 int memcpy(char* destination, const char* source, int len) {
   int i;
   for (i = 0; i < len; i++) {

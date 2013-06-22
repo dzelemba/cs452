@@ -3,8 +3,10 @@
 #include "debug.h"
 #include "priorities.h"
 #include "bitmask.h"
+#include "task.h"
 
 static queue task_queues[NUM_PRIORITY_TYPES];
+static int task_queues_mem[NUM_PRIORITY_TYPES][MAX_TASKS + 1];
 static bitmask bm;
 
 // Wow. These API decisions are terrible.
@@ -12,7 +14,7 @@ static bitmask bm;
 void init_scheduler() {
   int i;
   for (i = 0; i < NUM_PRIORITY_TYPES; i++) {
-    init_queue(&task_queues[i]);
+    init_queue(&task_queues[i], task_queues_mem[i], MAX_TASKS + 1);
   }
 
   bm_create(&bm);
