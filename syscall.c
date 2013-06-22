@@ -6,6 +6,8 @@ static Request request;
 
 int syscall(Request* req) {
   asm("swi");
+  register int retval asm("r0");
+  return retval;
 }
 
 int Create(int priority, void (*code)) {

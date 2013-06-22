@@ -92,7 +92,7 @@ main.elf: $(KERNEL_OBJ_FILES)
 	$(LD) $(LDFLAGS) -o $(OBJECT_DIR)/$@ $(KERNEL_OBJ_FILES) -lgcc
 
 install: stuff
-	cp $(OBJECT_DIR)/main.elf /u/cs452/tftp/ARM/f2fung/debug
+	cp $(OBJECT_DIR)/main.elf /u/cs452/tftp/ARM/`id -u -n`/
 
 # Unit Tests
 

@@ -19,7 +19,8 @@ void run_tests() {
   run_srr_speed_test();
   run_scheduler_speed_test();
 
-  run_uart1_intr_test();
+
+  //run_uart1_intr_test();
   /*run_assignment_1_test();*/
   /*run_rps_server_test();*/
   /*run_assignment_3_test();*/
