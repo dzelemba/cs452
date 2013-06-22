@@ -53,6 +53,7 @@ static void replyer() {
   unsigned int t2 = edges();
   printf(COM2, "receive-block-reply edges: %d\n", (t2 - t1));
 
+  Flush();
   Exit();
 }
 

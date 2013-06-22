@@ -34,5 +34,5 @@ char* kmalloc(int size) {
 int in_userspace() {
   asm("mrs r3, cpsr");
   register int cpsr asm("r3");
-  return (cpsr & 0x1f) == 10;
+  return (cpsr & 0x1f) == 0x10;
 }

@@ -20,6 +20,7 @@ static void time_pass(char* name) {
   unsigned int t2 = edges();
   printf(COM2, "%s Test: Average time for Pass: %d\n", name,
                  edges_to_micros((t2 - t1) / ITERATIONS));
+  Flush();
 }
 
 static void low_pri_test() {
@@ -76,6 +77,7 @@ static void time_add_task() {
   printf(COM2, "Add Task Test: Average time to create task: %d\n",
                  edges_to_micros(total_edges / (ADD_TASK_ITERATIONS)));
 
+  Flush();
   Exit();
 }
 

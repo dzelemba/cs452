@@ -19,7 +19,7 @@ static void user_time_pass() {
   unsigned int t2 = edges();
   printf(COM2, "pass micros: %d\n", edges_to_micros(t2 - t1));
 
-
+  Flush();
   Exit();
 }
 
@@ -37,6 +37,7 @@ static void user_time_create() {
   unsigned int t2 = edges();
   printf(COM2, "create micros: %d\n", edges_to_micros(t2 - t1));
 
+  Flush();
   Exit();
 }
 
