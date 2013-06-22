@@ -16,18 +16,20 @@ typedef char *va_list;
 #define COM1	0
 #define COM2	1
 
-int putc(int channel, char c);
+#define MAX_STRING_SIZE 127
 
-int putx(int channel, char c );
+void putc(int channel, char c);
 
-int putstr(int channel, char *str );
+void putx(int channel, char c);
 
-int putr(int channel, unsigned int reg );
+void putstr(int channel, char *str);
 
-void putw(int channel, int n, char fc, char *bf );
+void putr(int channel, unsigned int reg);
 
-void printf(int channel, char *format, ... );
+void putw(int channel, int n, char fc, char *bf);
 
-void io_format(int channel, char *fmt, va_list va );
+void printf(int channel, char *format, ...);
+
+void io_format(int channel, char *fmt, va_list va);
 
 #endif

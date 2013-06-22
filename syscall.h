@@ -54,4 +54,6 @@ int Getc(int channel);
 
 int Putc(int channel, char ch);
 
+int Putstr(int channel, char* s, int size);
+
 #endif

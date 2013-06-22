@@ -6,6 +6,7 @@
 #include "syscall.h"
 #include "task.h"
 #include "uart.h"
+#include "debug.h"
 
 #define REQUEST_TRAIN_GETC  0
 #define REQUEST_TRAIN_PUTC  1
@@ -16,9 +17,15 @@
 #define NOTIF_TERM_HASDATA  6
 #define NOTIF_TERM_CANPUT   7
 
+#define REQUEST_TRAIN_PUTSTR 8
+#define REQUEST_TERM_PUTSTR 9
+
 typedef struct ioserver_request {
   char type;
   char msg;
+
+  char* str;
+  int size;
 } ioserver_request;
 
 static int ioserver_tid;
@@ -88,6 +95,7 @@ void ioserver_run() {
   char train_can_put = 0, term_can_put = 0;
 
   // Gross. A bunch of local variables used across our switch statement
+  int i = 0;
   int qgetc_tid;
   char ch;
 
@@ -136,6 +144,20 @@ void ioserver_run() {
         Reply(tid, (void *)0, 0);
         break;
 
+      case REQUEST_TRAIN_PUTSTR:
+        if (train_can_put) {
+          ua_putc(COM1, req.str[0]);
+          train_can_put = 0;
+          i++;
+        }
+
+        for (; i < req.size; i++) {
+          push(&train_putc_queue, req.str[i]);
+        }
+
+        Reply(tid, (void *)0, 0);
+        break;
+
       case NOTIF_TERM_CANPUT:
         if (!is_queue_empty(&term_putc_queue)) {
           ch = pop(&term_putc_queue);
@@ -177,6 +199,20 @@ void ioserver_run() {
 
         Reply(tid, (void *)0, 0);
         break;
+
+      case REQUEST_TERM_PUTSTR:
+        if (term_can_put) {
+          ua_putc(COM2, req.str[0]);
+          term_can_put = 0;
+          i++;
+        }
+
+        for (; i < req.size; i++) {
+          push(&term_putc_queue, req.str[i]);
+        }
+
+        Reply(tid, (void *)0, 0);
+        break;
     }
   }
 
@@ -203,6 +239,17 @@ int Putc(int channel, char ch) {
   ioserver_request req;
   req.type = (channel == COM1) ? REQUEST_TRAIN_PUTC : REQUEST_TERM_PUTC;
   req.msg = ch;
+  Send(ioserver_tid, (char *)&req, sizeof(ioserver_request), (void *)0, 0);
+  return 0;
+}
+
+int Putstr(int channel, char* s, int size) {
+  ASSERT(size > 0, "ioserver.c: Putstr: size too small");
+
+  ioserver_request req;
+  req.type = (channel == COM1) ? REQUEST_TRAIN_PUTSTR : REQUEST_TERM_PUTSTR;
+  req.str = s;
+  req.size = size;
   Send(ioserver_tid, (char *)&req, sizeof(ioserver_request), (void *)0, 0);
   return 0;
 }
