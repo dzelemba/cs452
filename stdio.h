@@ -24,6 +24,8 @@ void putx(int channel, char c);
 
 void putstr(int channel, char *str);
 
+void putbytes(int channel, char *str, int size);
+
 void putr(int channel, unsigned int reg);
 
 void putw(int channel, int n, char fc, char *bf);
@@ -32,4 +34,19 @@ void printf(int channel, char *format, ...);
 
 void io_format(int channel, char *fmt, va_list va);
 
+int bwputc( int channel, char c );
+
+int bwgetc( int channel );
+
+int bwputx( int channel, char c );
+
+int bwputstr( int channel, char *str );
+
+int bwputr( int channel, unsigned int reg );
+
+void bwputw( int channel, int n, char fc, char *bf );
+
+void bwprintf( int channel, char *format, ... );
+
+void bwformat( int channel, char *fmt, va_list va );
 #endif

@@ -13,6 +13,8 @@ void ua_setspeed(int channel, int speed);
 
 void ua_setstopbits(int channel, int state);
 
+int ua_is_intr_enabled(int channel, int mask);
+
 void ua_enableinterrupts(int channel, int mask);
 
 void ua_disableinterrupts(int channel, int mask);
@@ -20,6 +22,8 @@ void ua_disableinterrupts(int channel, int mask);
 int ua_get_intr_status(int channel);
 
 void ua_clearCTSintr(int channel);
+
+int ua_get_cts_status(int channel);
 
 int ua_ready_to_send(int channel);
 

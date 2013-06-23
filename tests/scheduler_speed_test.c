@@ -6,6 +6,8 @@
 #include "timer.h"
 #include "priorities.h"
 #include "stdio.h"
+#include "train.h"
+#include "task.h"
 
 #define ITERATIONS 1000
 
@@ -20,6 +22,7 @@ static void time_pass(char* name) {
   unsigned int t2 = edges();
   printf(COM2, "%s Test: Average time for Pass: %d\n", name,
                  edges_to_micros((t2 - t1) / ITERATIONS));
+  Flush();
 }
 
 static void low_pri_test() {
@@ -31,6 +34,10 @@ static void low_pri_test() {
 static void hi_pri_test() {
   time_pass("Hi Pri");
 
+  tr_sw(10, 'S');
+  tr_sw(10, 'C');
+
+  Flush();
   Exit();
 }
 
@@ -76,6 +83,7 @@ static void time_add_task() {
   printf(COM2, "Add Task Test: Average time to create task: %d\n",
                  edges_to_micros(total_edges / (ADD_TASK_ITERATIONS)));
 
+  Flush();
   Exit();
 }
 

@@ -10,15 +10,17 @@ void run_tests() {
 
   run_message_passing_test();
   run_nameserver_test();
+
   run_clockserver_test();
 
   run_hwi_test();
-
  // Performance Tests
   run_syscall_speed_test();
   run_srr_speed_test();
+
   run_scheduler_speed_test();
 
+  run_train_test();
 
   //run_uart1_intr_test();
   /*run_assignment_1_test();*/

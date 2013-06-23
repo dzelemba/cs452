@@ -8,7 +8,7 @@ void str_create(string* s, char* mem, int size) {
 
   int i;
   for (i = 0; i < size; i++) {
-    mem[i] = 0;
+    mem[i] = '\0';
   }
 }
 

@@ -9,8 +9,8 @@
 #include "syscall.h"
 #include "task.h"
 #include "timer.h"
-#include "serialio.h"
 #include "debug.h"
+#include "train.h"
 
 int process_request(Task* task, Request* request) {
   if (request == 0) {
@@ -103,7 +103,7 @@ void init_kernel() {
   init_scheduler();
   init_messenger();
 
-  init_train_uart();
+  init_trains();
   init_interrupts();
 
   // Create task that will intialize servers.
