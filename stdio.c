@@ -4,6 +4,7 @@
 #include "stdlib.h"
 #include "string.h"
 #include "debug.h"
+#include "interrupt_handler.h"
 
 #define create_string() string s; char mem[MAX_STRING_SIZE]; str_create(&s, mem, MAX_STRING_SIZE);
 #define wrapper(exp) create_string(); exp ; _putstring(channel, &s);
@@ -85,9 +86,21 @@ void _putstr(string* s, char *str) {
   }
 }
 
-void putstr( int channel, char *str ) {
+void putstr(int channel, char *str) {
   wrapper(_putstr(&s, str));
 }
+
+void _putbytes(string* s, char *str, int size) {
+  int i;
+  for (i = 0; i < size; i++) {
+    _putc(s, str[i]);
+  }
+}
+
+void putbytes(int channel, char *str, int size) {
+  wrapper(_putbytes(&s, str, size));
+}
+
 
 void _putw(string* s, int n, char fc, char *bf) {
   char ch;
@@ -98,7 +111,7 @@ void _putw(string* s, int n, char fc, char *bf) {
   while( ( ch = *bf++ ) ) _putc(s, ch);
 }
 
-void putw(int channel, int n, char fc, char *bf ) {
+void putw(int channel, int n, char fc, char *bf) {
   wrapper(_putw(&s, n, fc, bf));
 }
 
