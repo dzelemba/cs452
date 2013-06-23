@@ -1,5 +1,6 @@
 #include "debug.h"
 #include "stdio.h"
+#include "interrupt_handler.h"
 
 static int method_depth = 0;
 
@@ -45,6 +46,7 @@ void method_exit(char* format, ...) {
 
 void assert(int exp, char* exp_str, char* msg) {
   if (!exp) {
-    printf(COM2, "Assertion Failed! (%s) , %s\n", exp_str, msg);
+    reset_interrupts();
+    bwprintf(COM2, "Assertion Failed! (%s) , %s\n", exp_str, msg);
   }
 }
