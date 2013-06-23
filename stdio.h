@@ -24,6 +24,8 @@ void putx(int channel, char c);
 
 void putstr(int channel, char *str);
 
+void putbytes(int channel, char *str, int size);
+
 void putr(int channel, unsigned int reg);
 
 void putw(int channel, int n, char fc, char *bf);
