@@ -1,0 +1,225 @@
+\documentclass[letterpaper]{article}
+\usepackage{enumerate}
+
+\pagestyle{empty}
+
+\begin{document}
+
+\title{CS 452 Kernel 4}
+\author{Felix Fung (f2fung) \\ Dusan Zelembaba (dzelemba)}
+\maketitle
+
+\section{How To Run}
+\begin{verbatim}
+	> load -b 0x00218000 -h 10.15.167.4 "ARM/_______"
+	> go
+\end{verbatim}
+
+\section{Submitted Files}
+
+Files listed here can be found under \verb!/u0/f2fung/cs452/a3!
+
+\subsection{md5sums}
+\begin{verbatim}
+
+643b9c07859fa6a4ba33f112ceaf4efc  all_tests.h
+296f7f84cfb2c088fad7b6a69268d00b  bitmask.c
+35bd0114e8113fbd214e3a389b4844c3  bitmask.h
+d8419bf98ae68cfec7cf8c5ad426df23  clockserver.c
+4c86aadc2cca610cd67c7dd645371d33  clockserver.h
+940c64a85e0ce0be2e92cdec7a6c3186  colorgcc
+f14b1bd18405e4a13aa29074b4d3c265  context_switch.h
+0b5b8505a24502e885a77bc4213b915b  context_switch.o
+e6fe878a12d13ea01c7cdb38895772f8  context_switch.s
+f96dbf43f2eb935a8d1fe48acdbbb730  debug.c
+45c193986addf96a805a1200fec19e3e  debug.h
+5a49cf03ce2afd47c862b6ab4ce8e3a6  events.h
+90985d7c7002f9c2fd4a1116c83516ae  first_task.c
+f5d5f01a856e51feeefb0c672539e687  first_task.h
+9e71c7c723d7f16b3a5dfeb8c2a4a0e6  heap.c
+e1bc08b27132977bdccf932a1432a917  heap.h
+67976de6844564a9bd58822508f3a27c  icu.c
+a046aadf54a41b680a89f97ed71d73e9  icu.h
+afea4d1f6e49a4a945ddd357d0b9df6b  idle_task.c
+574e859de18cdbe722764e3230f226ca  idle_task.h
+2b7568f9b9e5dbbcb15437d2179ca3de  interrupt_handler.c
+c5b1026567dfc98fa4be22dde2163d98  interrupt_handler.h
+c89937a7b00988c424171430dc1a3235  kernel.c
+3ac7a3b2def34929bbd3198847a84c50  kernel.h
+385fa8297c63ad1c00283993d3c3ba7e  linked_array.c
+deb1fdece9e49c8553e3ca0f0d8ba729  linked_array.h
+f8775577c797a37a4d3f5e7874dff684  main.c
+7e0e72519525a3ba322a9b4210f61dff  main.map
+73b96d2cbe9a1397a87ccf24dd898ba1  Makefile
+81330c063f3510d8b4a46fc3ee6bed6a  messenger.c
+d9fcdc742e0118ccfc12d5f5f5f3c043  messenger.h
+2c85c6b7919a92aec49ad1fcf10d074e  nameserver.c
+b2047a8021138c14fd7eea61641669d5  nameserver.h
+1dc118c000601dc8accbed9bf54a2076  orex.ld
+d141a877fdf638c446d299532e5db186  priorities.c
+ad8404d6ff9b3cd23ab35da21a70037f  priorities.h
+d4112505ecd99a3c4745fde1735a0c35  queue.c
+175206a0ac5e05e89f90855d013a58c9  queue.h
+5e7448b250e18eb3bac69247367a2f59  rps_server.c
+f42681e19e3dc50960b701be52a53546  rps_server.h
+ee47b011a4aee5b1f9e3e8201bd3ff47  run_tests.c
+0e390e153530b05118c87063a5dd3120  run_tests.h
+2669fa2d59edd661eb5032365829c85f  scheduler.c
+621140a6884a581a7e896c056efe717e  scheduler.h
+a2a635a9a41459d5b1ecac434c898e3f  stdlib.c
+bbfb9ed8184b862d2b73624989765847  stdlib.h
+792ad97b51eece81a637452da6056674  strings.c
+7a1b1692e08413e0632172e8bab8cd11  strings.h
+1f9aacf2475e6d479db0006dddfbb754  syscall.c
+ef7fb4831f561deccc67a1857ddf27af  syscall.h
+289e1e90032ab3ea2124778d0f338923  tags
+746b1aa0197b7982d0cbe332d4e061bb  task.c
+8b9de320b012d017b7db5f384e7fd399  task.h
+f6a07049571b3c0965a353a8e59acfbc  test_helpers.c
+9570cd2291eb9823e5fb0c501aeea2b3  test_helpers.h
+3cd62f7995e4d59b66f0bc66a750a743  timer.c
+077b0816d3b8542fd64497f05d360c41  timer.h
+
+6ce01266fda3b26d34fc191b81737a81  tests/assignment_1_test.c
+493ae1fe8bf69ca728e92536230138bf  tests/assignment_3_test.c
+9419f563ef21d56910b067f0d79d363c  tests/basic_test.c
+01208b67347f69de75de78286f3efd74  tests/clockserver_test.c
+d211d736533cb05c730a78b5150773bf  tests/hwi_test.c
+55b24c0e448119af6615eab49c332fdf  tests/message_passing_test.c
+9411afb1480ad3e38253a702d37d9f19  tests/multiple_priorities_test.c
+6749a430b7547c5a3205f07722b1a48d  tests/nameserver_test.c
+6d03ea974eb4d53e810726bbbe808486  tests/rps_server_test.c
+1d6e4884db4db9241a636b02fc67c39e  tests/scheduler_speed_test.c
+1719aad329fd9af560abd018d9f3592c  tests/srr_speed_test.c
+825ce73ead9d85e46ad28f5d575d7966  tests/syscall_speed_test.c
+1d4f94d256efbe01dad35ef9ffbc08fe  tests/task_creation_errors_test.c
+
+\end{verbatim}
+
+\subsection{Header Files}
+\verb!bitmask.h! - Function definitions for bitmask.\\
+\verb!clockserver.h! - Kernel API for initializing clock server.\\
+\verb!context_switch.h! - Function definitions for compiler to use our assembly functions.\\
+\verb!debug.h! - Macros wrapping debugging functions that can compile away.\\
+\verb!events.h! - Constants for interacting with AwaitEvent.\\
+\verb!heap.h! - Function definitions for heap.\\
+\verb!idle_task.h! - Kernel API for initializing idle task.\\
+\verb!messenger.h! - Function definitions for messenger.\\
+\verb!nameserver.h! - Function definitions for starting the nameserver.\\
+\verb!queue.h! - Function definitions for our queue implementation.\\
+\verb!priorities.h! - Scheduling priorities.\\
+\verb!rps_server.h! - Functions definitions for starting and using the rock, paper, scissors server. \\
+\verb!scheduler.h! - Function definitions for scheduler.\\
+\verb!string.h! - Functions definitions for string library.\\
+\verb!stdlib.h! - Function definitions for commonly used functions.\\
+\verb!syscall.h! - Function definitions for syscalls.\\
+\verb!task.h! - Contains Task structure and function definitions.\\
+\verb!timer.h! - Function definitions for timer.\\
+
+\subsection{Source Files}
+\verb!bitmask.c! - Generic bitmask functions. Used in faster scheduler.\\
+\verb!clockserver.c! - Clock server.\\
+\verb!context_switch.s! - ARM assembly used to switch in and out of tasks and kernel mode.\\
+\verb!debug.c! - Debugging facilities.\\
+\verb!first_task.c! - Spawns the name server and the clock server.\\
+\verb!heap.c! - A heap.\\
+\verb!icu.c! - Abstractions over the ICU.\\
+\verb!idle_task.c! - Idle task.\\
+\verb!interrupt_handler.c! - Processes hardware-trigger interrupts.\\
+\verb!kernel.c! - The infinite kernel loop. Interrupts are processed here and tasks and scheduled.\\
+\verb!main.c! - Beginning of execution, described below.\\
+\verb!messenger.c! - Coordinates message passing.\\
+\verb!Makefile! - Our makefile.\\
+\verb!nameserver.c! - Implementation of the nameserver, and WhoIs/RegisterAs syscalls.\\
+\verb!priorities.c! - A hack. A function that allows us to segment kernel-created tasks from user-tasks. Used to determine when the kernel can exit.\\
+\verb!queue.c! - A simple queue implementation.\\
+\verb!rps_server.c! - Implementation of the rock, paper, scissors server and wrappers for Send that clients can use to talk to the rps server..\\
+\verb!scheduler.c! - Our scheduler.\\
+\verb!stdlib.c! - Common functions. Not actually a standard library.\\
+\verb!strings.c! - String library.\\
+\verb!syscall.c! - System calls.\\
+\verb!task.c! - Creating and managing tasks.\\
+\verb!timer.c! - Timing functions.\\
+
+\subsection{Test Files}
+\verb!tests/basic_test.c! - Creates tasks of different priorities.\\
+\verb!tests/message_passing_test.c! - Tests all aspects of Send, Receive, Reply.\\
+\verb!tests/multiple_priorities_test.c! - Tests the correct scheduling of multiple tasks with different priorities.\\
+\verb!tests/nameserver_test.c! - Tests WhoIs \& RegisterAs.\\
+\verb!tests/rps_server_test.c! - Implements a set of clients for the nameserver.\\
+\verb!tests/srr_speed_test.c! - The test that is run to analyze our performance.\\
+\verb!tests/syscall_speed_test.c! - Test the time required to execute various sys calls.\\
+\verb!tests/task_creation_errors_test.c! - Tests error return values for task creation.\\
+\\
+\verb!tests/assignment_3_test.c! - As described in assignment 3, a test spawning multiple clients to the clock server with various delay intervals.\\
+\\
+\verb!run_tests.h! - Header for run\_tests.c.\\
+\verb!run_tests.c! - Calls all our tests.\\
+\verb!test_helpers.h! - Header for test\_helpers.c. Different types of asserts and such.\\
+\verb!test_helpers.c! - Test helpers. Asserts and other things.
+
+\section{Program Description}
+
+\subsection{Main}
+
+This is where the kernel's execution begins. We first set a known address ($0x28$) to point to our interrupt handler. Because Create() can only be called in user-mode (causing a system interrupt), we manually call kernel methods to create the first user-task and stick it into the scheduler in main. For the purposes of the assignment, this is done in assignment\_1\_test.c.
+
+\subsection{Context Switch}
+
+We save all the registers on the top of the user's stack. During task create, we fill the user's stack with initial
+register values so that the first context switch into the user task behaves exactly like other context switches.
+
+To support hardware interrupts we had to enhance out context switch. Our old context switch stored registers r4 - r13, the pc of the user, and the CPSR of the user on the user's stack. For hardware interrupts, we also had to store registers r0 - r3. To do this, we created a wrapper around {\tt k\_enter} and {\tt k\_exit}: {\tt hwi\_enter}.
+
+The wrapper saves registers r0 - r3, the user's CPSR and PC on the user's stack. Then it sets the {\tt Request} object to null (to signal an interrupt request) and sets up the SPSR\_pc and LR\_pc so that {\tt k\_exit} will jump back into the wrapper. It then jumps to {\tt k\_enter}.
+
+Once the kernel finishes, we get back into the wrapper and restores the user's scratch registers, CPSR and PC.
+
+\subsection{Task Id Provisioning}
+We use a queue which is initialized with the universe of available task ids (0-127). These task ids point into an array
+of Task structures. We don't recycle task ids because we don't intend on every creating more than 127 ad infinitum.
+
+\subsection{Task Descriptors}
+Task descriptors are structs. They contain their tid, parent's tid, priority, return value for their last system call, stack pointer and a pointer to their stack space. This is suboptimal, but has been thus far unnecessary to optimize.
+
+\subsection{Scheduler}
+
+Our scheduler uses an array of queues to implement the priority queues. Our implementation uses a bitmask.
+
+Our bitmask has one bit for every priority. If a bit is set, that means there are tasks's ready to be run for that priority. So, when a queue empties we set its bit to 0 and when a queue gets a first element we set its bit to 1. Then {\tt scheduler\_get\_next\_task} becomes a find lowest bit operation (0 is highest priority). To do this we used the linux kernel's implementation of {\tt fls}.
+
+\subsection{Message Passing}
+
+To make better use of the cache, we've made a space-saving statically allocated data structure for message passing. We create a fixed-size array of INBOXes, MAX\_TASKS in number. Each INBOX contains fields we reuse to contain EITHER a sent message and reply address (params of Send()), or the receiving address (params of Receive()). There are no collisions because Send() and Receive() cannot be concurrent for a single task. Each INBOX contains a NEXT pointer, which may point to another INBOX or NULL allowing INBOXes to be chained together in a linked-list fashion. Then for MAX\_TASKS, we also store `head' and `tail' pointers to INBOXes to represent the receive queue for each task in constant space relative to the length of the receive queue.
+
+In summary, when blocking, tasks will write their addresses to their own INBOX, and it'll be chained into the receiving task's linked-list. By reusing INBOXes for future messages, we never allocate more memory.
+
+\subsection{Nameserver}
+
+The nameserver is a user space task that is started by the kernel. It uses a simple queue of strings, int pairs to hold each registration it is given. This results in an $O(n)$ (in number of registrations) runtime for both RegisterAs and WhoIs. This was considered acceptable because $n$ will usually be small and these syscalls tend to be called during initialization, where performance isn't as critical. \\
+
+The nameserver's task id is stored in a static variable that is visible only to the nameserver. The nameserver exposes a function, {\tt get\_nameserver\_tid()} that provides access to the nameserver's tid. This way we can ensure that the nameserver only writes to this variable once during startup to avoid race conditions. \\
+
+If a non-existent registration is passed to WhoIs, it will return -1. This was the simplest implementation for now and if a blocking version of WhoIs is needed in the future a separate syscall, WhoIs\_Blck, will be written to provide synchronization methods for tasks needing to wait on other tasks to start.
+
+\subsection{AwaitEvent}
+
+Our AwaitEvent implementation takes in an abstract event id whose value has no correspondence with interrupt addresses or offset numbers. A user task passes in an event id, defined in events.h and the kernel will queue up the task in the appropriate event queue. This will put the user task in a new state, EVENT\_BLOCK. We only expect an event queue to need to contain 1 Task so our structure of all queues is a simple array \verb!Task* event_queues[NUM_EVENTS]!. We enable all hardware interrupts our kernel is interested in on boot. When an interrupt occurs, the kernel checks each active interrupt bit (sorted by priority) and handles the highest one. This unblocks the user task. Our AwaitEvent does not return values.
+
+\subsection{Clock Server}
+
+Our clock server is primarily a while loop which spends most of its time RECV\_BLOCKed. It will receive messages either from other user tasks calling Delay or DelayUntil or the notifier. Delay or DelayUntil for times in the past will call Pass() instead of contacting the clock server. When a delaying task contacts the clock server, it is inserted in a priority queue (implemented as a heap) ordered by the absolute time of when it will be awakened. A heap was chosen for its \verb!O(log(n))! inserts and deletes. In the worst case, all tasks will be delaying and the heap will be max size. Inserting then deleting all tasks from this heap will be \verb!O(nlog(n))! in contrast to a linked-list with \verb!O(n)! inserts making it \verb!O(n^2)! total.
+
+The notifier is a special task spawned by the clock server that waits on timer interrupts, and when it receives one, notifies the clock server and goes back to waiting for timer interrupts. When the clock server is contacted by the notifier, it increments a tick count. We then peek at the top of the heap to see if the current tick count is greater or equal to the upcoming wake time, it will awaken that task and repeat the check for any other tasks that qualify.
+
+After each delay we print the \verb!tid!, delay interval, and number of delays completed. What we see in the output, should be and is a list of delays such that they are sorted by the \verb!no. delays completed * delay completed!. This makes sense because context switches should take relatively no time so the \verb!nth! statement for a particular \verb!tid! will be printed after its \verb!n! accumulated delays.
+
+\subsection{IO Server}
+
+To handle all input/output to and from the terminal and and the train controller, we use a single server design who spawns 4 independent notifiers. 2 notifiers for checking when we are able to transmit to either the train controller or the terminal. 2 notifiers for checking if we've received data from either the train controller or the terminal. Since these events are independent, this is the minimum number of notifiers that made sense. The number of context switches are roughly the same while the single server design allowed us to save on \verb!tid!s and reduced the amount of boilerplate code to write similar underlying server tasks.
+
+\subsubsection{When are we ready to transmit to the train?}
+
+Our notifiers are kept simple and listen to only a single abstract event each such as CAN\_TRANSMIT\_TO\_TRAIN. In order to surface such an event, we much wait for both the CTS and TIS interrupts before we can guarantee this. Thus we've placed a simple state machine in the interrupt handler. Each interrupt sets a bit and we check that both bits are set before firing the event. 
+
+\end{document}
