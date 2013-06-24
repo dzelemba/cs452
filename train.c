@@ -3,6 +3,7 @@
 #include "uart.h"
 #include "stdio.h"
 #include "debug.h"
+#include "priorities.h"
 
 static int train_speeds[NUM_TRAINS + 1];
 static int switch_directions[NUM_SWITCHES + 1];
@@ -54,18 +55,40 @@ void tr_set_speed(int speed, int train) {
   train_speeds[train] = speed;
 }
 
+void tr_reverse_task() {
+  int tid;
+  int train_info[2];
+  Receive(&tid, (char *)train_info, 2*sizeof(int));
+  Reply(tid, (void *)0, 0);
+
+  int train = train_info[0];
+  int speed = train_info[1];
+
+  char cmd[2];
+  fill_set_speed(cmd, 0, train);
+  putbytes(COM1, cmd, 2);
+  Delay(300);
+
+  fill_set_speed(cmd, 15, train);
+  putbytes(COM1, cmd, 2);
+
+  Delay(100);
+
+  fill_set_speed(cmd, speed, train);
+  putbytes(COM1, cmd, 2);
+
+  Exit();
+}
+
 void tr_reverse(int train) {
   ASSERT(train > 0 && train <= NUM_TRAINS, "train.c: tr_reverse: Invalid train number");
 
-  char cmd[4];
-  fill_set_speed(cmd, 0, train);
-  fill_set_speed(cmd + 2, 15, train);
-  putbytes(COM1, cmd, 4);
+  int train_info[2];
+  train_info[0] = train;
+  train_info[1] = train_speeds[train];
 
-  Delay(500);
-
-  fill_set_speed(cmd, train_speeds[train], train);
-  putbytes(COM1, cmd, 2);
+  int child_tid = Create(MED_PRI, &tr_reverse_task);
+  Send(child_tid, (char *)train_info, 2*sizeof(int), (void *)0, 0);
 }
 
 /* Sensor Methods */
