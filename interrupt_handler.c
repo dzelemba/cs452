@@ -50,6 +50,7 @@ void enable_event(int event) {
 void init_interrupts() {
   clear_timer_interrupt();
   clear_soft_int();
+  reset_interrupts();
 
   int i;
   for (i = 0; i < NUM_EVENTS; i++) {
@@ -66,6 +67,9 @@ void reset_interrupts() {
   disable_interrupt(INTERRUPT_SOFT);
   disable_interrupt(INTERRUPT_UART1);
   disable_interrupt(INTERRUPT_UART2);
+
+  ua_disableinterrupts(COM1, TIEN_MASK | MSIEN_MASK | RIEN_MASK);
+  ua_disableinterrupts(COM2, TIEN_MASK | RIEN_MASK);
 }
 
 void send_event(int event, int data) {
@@ -87,21 +91,27 @@ void process_interrupt() {
   } else if (check_interrupt(INTERRUPT_UART1)) {
     int intStatus = ua_get_intr_status(COM1);
     if (intStatus & MIS_MASK) {
-      PRINT_DEBUG("UART1 CTS Interrupt Received\n");
-      sm_report_event(&UART1_txReadySM, 0);
+      ASSERT(event_status[EVENT_UART1_TX_READY] == ENABLED, "intr_handler.c: MIS_MASK");
+      if (ua_get_cts_status(COM1)) {
+        sm_report_event(&UART1_txReadySM, 0);
+      }
       ua_clearCTSintr(COM1);
-    } else if (intStatus & TIS_MASK) {
-      PRINT_DEBUG("UART1 TX Interrupt Received\n");
+    }
+    if (intStatus & TIS_MASK) {
+      ASSERT(event_status[EVENT_UART1_TX_READY] == ENABLED, "intr_handler.c: TIS_MASK");
+      ASSERT(ua_is_intr_enabled(COM1, TIEN_MASK), "intr_handler.c: TIEN Intr disabled");
       sm_report_event(&UART1_txReadySM, 1);
+
       // Turn off transmit interrupt
       ua_disableinterrupts(COM1, TIEN_MASK);
 
       // We don't get an interrupt for CTS at startup
       if (ua_ready_to_send(COM1)) {
         sm_report_event(&UART1_txReadySM, 0);
+        ua_clearCTSintr(COM1);
       }
-    } else if (intStatus & RIS_MASK) {
-      PRINT_DEBUG("UART1 RCV Interrupt Received\n");
+    }
+    if (intStatus & RIS_MASK) {
       send_event(EVENT_UART1_RCV_READY, ua_getc(COM1));
     }
 
@@ -112,11 +122,10 @@ void process_interrupt() {
   } else if (check_interrupt(INTERRUPT_UART2)) {
     int intStatus = ua_get_intr_status(COM2);
     if (intStatus & TIS_MASK) {
-      PRINT_DEBUG("UART2 TX Interrupt Received\n");
       ua_disableinterrupts(COM2, TIEN_MASK);
       send_event(EVENT_UART2_TX_READY, 0);
-    } else if (intStatus & RIS_MASK) {
-      PRINT_DEBUG("UART2 RCV Interrupt Received\n");
+    }
+    if (intStatus & RIS_MASK) {
       send_event(EVENT_UART2_RCV_READY, ua_getc(COM2));
     }
   } else if (check_interrupt(INTERRUPT_SOFT)) {
@@ -129,12 +138,12 @@ void process_interrupt() {
 void await_event(Task* task, int event) {
   ASSERT(event_queues[event] == (Task *)0, "await_event called on event with existing listener");
 
-  if (event_status[event] == DISABLED) {
-    enable_event(event);
-  }
-
   event_queues[event] = task;
 
   task_set_state(task, EVENT_BLCK);
   scheduler_remove_task(task->priority);
+
+  if (event_status[event] == DISABLED) {
+    enable_event(event);
+  }
 }

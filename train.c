@@ -57,12 +57,15 @@ void tr_set_speed(int speed, int train) {
 void tr_reverse(int train) {
   ASSERT(train > 0 && train <= NUM_TRAINS, "train.c: tr_reverse: Invalid train number");
 
-  char cmd[6];
+  char cmd[4];
   fill_set_speed(cmd, 0, train);
   fill_set_speed(cmd + 2, 15, train);
-  fill_set_speed(cmd + 4, train_speeds[train], train);
+  putbytes(COM1, cmd, 4);
 
-  putbytes(COM1, cmd, 6);
+  Delay(500);
+
+  fill_set_speed(cmd, train_speeds[train], train);
+  putbytes(COM1, cmd, 2);
 }
 
 /* Sensor Methods */

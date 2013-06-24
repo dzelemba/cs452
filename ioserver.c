@@ -7,6 +7,7 @@
 #include "task.h"
 #include "uart.h"
 #include "debug.h"
+#include "stdio.h"
 
 #define REQUEST_TRAIN_GETC  0
 #define REQUEST_TRAIN_PUTC  1
@@ -34,7 +35,7 @@ static int ioserver_tid;
 static queue train_data_queue, train_getc_queue, train_putc_queue, term_data_queue, term_getc_queue, term_putc_queue, flush_queue;
 
 void uart1_write_notifier_run() {
-  ioserver_request req = { NOTIF_TRAIN_CANPUT, 0 };
+  ioserver_request req = { NOTIF_TRAIN_CANPUT, 0, 0, 0 };
 
   while (1) {
     AwaitEvent(EVENT_UART1_TX_READY);
@@ -45,7 +46,7 @@ void uart1_write_notifier_run() {
 }
 
 void uart1_read_notifier_run() {
-  ioserver_request req = { NOTIF_TRAIN_HASDATA, 0 };
+  ioserver_request req = { NOTIF_TRAIN_HASDATA, 0, 0, 0 };
 
   while (1) {
     req.msg = AwaitEvent(EVENT_UART1_RCV_READY);
@@ -56,7 +57,7 @@ void uart1_read_notifier_run() {
 }
 
 void uart2_write_notifier_run() {
-  ioserver_request req = { NOTIF_TERM_CANPUT, 0 };
+  ioserver_request req = { NOTIF_TERM_CANPUT, 0, 0 };
 
   while (1) {
     AwaitEvent(EVENT_UART2_TX_READY);
@@ -67,7 +68,7 @@ void uart2_write_notifier_run() {
 }
 
 void uart2_read_notifier_run() {
-  ioserver_request req = { NOTIF_TERM_HASDATA, 0 };
+  ioserver_request req = { NOTIF_TERM_HASDATA, 0, 0 };
 
   while (1) {
     req.msg = AwaitEvent(EVENT_UART2_RCV_READY);
@@ -79,6 +80,8 @@ void uart2_read_notifier_run() {
 
 void ioserver_run() {
   // TODO: The data queues don't make sense to be bounded by MAX_TASKS
+
+  ioserver_tid = MyTid();
 
   init_queue(&train_getc_queue); // tid
   init_queue(&train_data_queue); // char
@@ -106,6 +109,7 @@ void ioserver_run() {
     Receive(&tid, (char *)&req, sizeof(ioserver_request));
     switch (req.type) {
       case NOTIF_TRAIN_CANPUT:
+        Reply(tid, (void *)0, 0);
         if (!is_queue_empty(&train_putc_queue)) {
           ch = pop(&train_putc_queue);
           ua_putc(COM1, ch);
@@ -113,10 +117,10 @@ void ioserver_run() {
           train_can_put = 1;
         }
 
-        Reply(tid, (void *)0, 0);
         break;
 
       case NOTIF_TRAIN_HASDATA:
+        Reply(tid, (void *)0, 0);
         if (!is_queue_empty(&train_getc_queue)) {
           qgetc_tid = pop(&train_getc_queue);
           Reply(qgetc_tid, &req.msg, sizeof(char));
@@ -124,7 +128,6 @@ void ioserver_run() {
           push(&train_data_queue, req.msg);
         }
 
-        Reply(tid, (void *)0, 0);
         break;
 
       case REQUEST_TRAIN_GETC:
@@ -163,6 +166,7 @@ void ioserver_run() {
         break;
 
       case NOTIF_TERM_CANPUT:
+        Reply(tid, (void *)0, 0);
         if (!is_queue_empty(&term_putc_queue)) {
           ch = pop(&term_putc_queue);
           ua_putc(COM2, ch);
@@ -170,10 +174,10 @@ void ioserver_run() {
           term_can_put = 1;
         }
 
-        Reply(tid, (void *)0, 0);
         break;
 
       case NOTIF_TERM_HASDATA:
+        Reply(tid, (void *)0, 0);
         if (!is_queue_empty(&term_getc_queue)) {
           qgetc_tid = pop(&term_getc_queue);
           Reply(qgetc_tid, &req.msg, sizeof(char));
@@ -181,7 +185,6 @@ void ioserver_run() {
           push(&term_data_queue, req.msg);
         }
 
-        Reply(tid, (void *)0, 0);
         break;
 
       case REQUEST_TERM_GETC:
@@ -205,6 +208,7 @@ void ioserver_run() {
         break;
 
       case REQUEST_TERM_PUTSTR:
+        Reply(tid, (void *)0, 0);
         i = 0;
         if (term_can_put) {
           ua_putc(COM2, req.str[0]);
@@ -216,17 +220,15 @@ void ioserver_run() {
           push(&term_putc_queue, req.str[i]);
         }
 
-        Reply(tid, (void *)0, 0);
         break;
+
       case REQUEST_FLUSH:
         push(&flush_queue, tid);
         break;
     }
 
     // Respond to tasks waiting on Flush
-    if (is_queue_empty(&train_getc_queue) &&
-        is_queue_empty(&train_putc_queue) &&
-        is_queue_empty(&term_getc_queue) &&
+    if (is_queue_empty(&train_putc_queue) &&
         is_queue_empty(&term_putc_queue)) {
       while (!is_queue_empty(&flush_queue)) {
         int tid = pop(&flush_queue);
@@ -241,8 +243,8 @@ void ioserver_run() {
 /* Public Methods */
 
 void start_ioserver() {
-  ioserver_tid = Create(MAX_PRI, &ioserver_run);
   ua_setfifo(COM2, OFF);
+  ioserver_tid = Create(HI_PRI_K, &ioserver_run);
 }
 
 // TODO: New constants instead of this COM1, COM2 stuff

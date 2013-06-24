@@ -8,21 +8,17 @@
 #include "stdlib.h"
 
 static void user_task() {
-  //ASSERT(in_userspace(), "");
   USER_INFO("Train Test Starting...\n");
   tr_sw(10, 'S');
   tr_sw(10, 'C');
 
   tr_set_speed(7, 50);
 
-  //ASSERT(in_userspace(), "");
   USER_INFO("Train Test Waiting...\n");
   Delay(500);
 
+  USER_INFO("Train Test Reversing...\n");
   tr_reverse(50);
-
-  USER_INFO("Train Test Waiting...\n");
-  Delay(500);
 
   Flush();
   Exit();

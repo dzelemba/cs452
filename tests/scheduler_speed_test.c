@@ -6,6 +6,8 @@
 #include "timer.h"
 #include "priorities.h"
 #include "stdio.h"
+#include "train.h"
+#include "task.h"
 
 #define ITERATIONS 1000
 
@@ -32,6 +34,10 @@ static void low_pri_test() {
 static void hi_pri_test() {
   time_pass("Hi Pri");
 
+  tr_sw(10, 'S');
+  tr_sw(10, 'C');
+
+  Flush();
   Exit();
 }
 

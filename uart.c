@@ -1,6 +1,7 @@
 #include "uart.h"
 #include "ts7200.h"
 #include "debug.h"
+#include "stdio.h"
 
 /*
  * The UARTs are initialized by RedBoot to the following state
@@ -59,6 +60,11 @@ void ua_setstopbits(int channel, int state) {
   *line = buf;
 }
 
+int ua_is_intr_enabled(int channel, int mask) {
+  int buf = *get_line(channel, UART_CTLR_OFFSET);
+  return (buf & mask);
+}
+
 void ua_enableinterrupts(int channel, int mask) {
   int* line = get_line(channel, UART_CTLR_OFFSET);
 
@@ -88,6 +94,11 @@ char ua_getc(int channel) {
   ASSERT(*get_line(channel, UART_FLAG_OFFSET) & RXFF_MASK, "uart.c: ua_getc: no data ready");
 
   return *get_line(channel, UART_DATA_OFFSET);
+}
+
+int ua_get_cts_status(int channel) {
+  int flags_val = *get_line(channel, UART_FLAG_OFFSET);
+  return (flags_val & CTS_MASK);
 }
 
 int ua_ready_to_send(int channel) {

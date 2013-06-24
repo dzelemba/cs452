@@ -1,4 +1,5 @@
 #include "queue.h"
+#include "debug.h"
 
 void init_queue(queue *q) {
   q->start = 0;
@@ -10,6 +11,8 @@ static inline int _queue_increment(int i) {
 }
 
 void push(queue *q, int val) {
+  ASSERT(!is_queue_full(q), "queue.c: push: queue full");
+
   q->buf[q->end] = val;
   q->end = _queue_increment(q->end);
 }

@@ -34,6 +34,9 @@ void _putstring(int channel, string* s) {
     Putstr(channel, chars, size);
   } else {
     int i;
+    _bwputc(channel, 'b');
+    _bwputc(channel, 'w');
+    _bwputc(channel, ' ');
     for (i = 0; i < size; i++) {
       _bwputc(channel, chars[i]);
     }
