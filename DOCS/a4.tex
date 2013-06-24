@@ -11,89 +11,107 @@
 
 \section{How To Run}
 \begin{verbatim}
-	> load -b 0x00218000 -h 10.15.167.4 "ARM/_______"
+	> load -b 0x00218000 -h 10.15.167.4 "ARM/dzelemba/a4_final.elf
 	> go
 \end{verbatim}
 
 \section{Submitted Files}
 
-Files listed here can be found under \verb!/u0/f2fung/cs452/a3!
+Files listed here can be found under \verb!/u1/dzelembaba/cs452/frozen_a4/!
 
 \subsection{md5sums}
 \begin{verbatim}
-
-643b9c07859fa6a4ba33f112ceaf4efc  all_tests.h
-296f7f84cfb2c088fad7b6a69268d00b  bitmask.c
-35bd0114e8113fbd214e3a389b4844c3  bitmask.h
-d8419bf98ae68cfec7cf8c5ad426df23  clockserver.c
-4c86aadc2cca610cd67c7dd645371d33  clockserver.h
-940c64a85e0ce0be2e92cdec7a6c3186  colorgcc
-f14b1bd18405e4a13aa29074b4d3c265  context_switch.h
-0b5b8505a24502e885a77bc4213b915b  context_switch.o
-e6fe878a12d13ea01c7cdb38895772f8  context_switch.s
-f96dbf43f2eb935a8d1fe48acdbbb730  debug.c
-45c193986addf96a805a1200fec19e3e  debug.h
-5a49cf03ce2afd47c862b6ab4ce8e3a6  events.h
-90985d7c7002f9c2fd4a1116c83516ae  first_task.c
-f5d5f01a856e51feeefb0c672539e687  first_task.h
-9e71c7c723d7f16b3a5dfeb8c2a4a0e6  heap.c
-e1bc08b27132977bdccf932a1432a917  heap.h
-67976de6844564a9bd58822508f3a27c  icu.c
-a046aadf54a41b680a89f97ed71d73e9  icu.h
-afea4d1f6e49a4a945ddd357d0b9df6b  idle_task.c
-574e859de18cdbe722764e3230f226ca  idle_task.h
-2b7568f9b9e5dbbcb15437d2179ca3de  interrupt_handler.c
-c5b1026567dfc98fa4be22dde2163d98  interrupt_handler.h
-c89937a7b00988c424171430dc1a3235  kernel.c
-3ac7a3b2def34929bbd3198847a84c50  kernel.h
-385fa8297c63ad1c00283993d3c3ba7e  linked_array.c
-deb1fdece9e49c8553e3ca0f0d8ba729  linked_array.h
-f8775577c797a37a4d3f5e7874dff684  main.c
-7e0e72519525a3ba322a9b4210f61dff  main.map
-73b96d2cbe9a1397a87ccf24dd898ba1  Makefile
-81330c063f3510d8b4a46fc3ee6bed6a  messenger.c
-d9fcdc742e0118ccfc12d5f5f5f3c043  messenger.h
-2c85c6b7919a92aec49ad1fcf10d074e  nameserver.c
-b2047a8021138c14fd7eea61641669d5  nameserver.h
-1dc118c000601dc8accbed9bf54a2076  orex.ld
-d141a877fdf638c446d299532e5db186  priorities.c
-ad8404d6ff9b3cd23ab35da21a70037f  priorities.h
-d4112505ecd99a3c4745fde1735a0c35  queue.c
-175206a0ac5e05e89f90855d013a58c9  queue.h
-5e7448b250e18eb3bac69247367a2f59  rps_server.c
-f42681e19e3dc50960b701be52a53546  rps_server.h
-ee47b011a4aee5b1f9e3e8201bd3ff47  run_tests.c
-0e390e153530b05118c87063a5dd3120  run_tests.h
-2669fa2d59edd661eb5032365829c85f  scheduler.c
-621140a6884a581a7e896c056efe717e  scheduler.h
-a2a635a9a41459d5b1ecac434c898e3f  stdlib.c
-bbfb9ed8184b862d2b73624989765847  stdlib.h
-792ad97b51eece81a637452da6056674  strings.c
-7a1b1692e08413e0632172e8bab8cd11  strings.h
-1f9aacf2475e6d479db0006dddfbb754  syscall.c
-ef7fb4831f561deccc67a1857ddf27af  syscall.h
-289e1e90032ab3ea2124778d0f338923  tags
-746b1aa0197b7982d0cbe332d4e061bb  task.c
-8b9de320b012d017b7db5f384e7fd399  task.h
-f6a07049571b3c0965a353a8e59acfbc  test_helpers.c
-9570cd2291eb9823e5fb0c501aeea2b3  test_helpers.h
-3cd62f7995e4d59b66f0bc66a750a743  timer.c
-077b0816d3b8542fd64497f05d360c41  timer.h
-
-6ce01266fda3b26d34fc191b81737a81  tests/assignment_1_test.c
-493ae1fe8bf69ca728e92536230138bf  tests/assignment_3_test.c
-9419f563ef21d56910b067f0d79d363c  tests/basic_test.c
-01208b67347f69de75de78286f3efd74  tests/clockserver_test.c
-d211d736533cb05c730a78b5150773bf  tests/hwi_test.c
-55b24c0e448119af6615eab49c332fdf  tests/message_passing_test.c
-9411afb1480ad3e38253a702d37d9f19  tests/multiple_priorities_test.c
-6749a430b7547c5a3205f07722b1a48d  tests/nameserver_test.c
-6d03ea974eb4d53e810726bbbe808486  tests/rps_server_test.c
-1d6e4884db4db9241a636b02fc67c39e  tests/scheduler_speed_test.c
-1719aad329fd9af560abd018d9f3592c  tests/srr_speed_test.c
-825ce73ead9d85e46ad28f5d575d7966  tests/syscall_speed_test.c
-1d4f94d256efbe01dad35ef9ffbc08fe  tests/task_creation_errors_test.c
-
+af6f803dcb02bdd4ebf053c187f85d0b  ./Makefile
+f351ccf69b83adb1e2aa0ef559a11eb8  ./all_tests.h
+296f7f84cfb2c088fad7b6a69268d00b  ./bitmask.c
+35bd0114e8113fbd214e3a389b4844c3  ./bitmask.h
+fdae4efbd96a15f367684687820e7394  ./clockserver.c
+4c86aadc2cca610cd67c7dd645371d33  ./clockserver.h
+940c64a85e0ce0be2e92cdec7a6c3186  ./colorgcc
+f14b1bd18405e4a13aa29074b4d3c265  ./context_switch.h
+e6fe878a12d13ea01c7cdb38895772f8  ./context_switch.s
+7ee58c4791f3415af01dadf7bd9aaae6  ./debug.c
+b0ccaa5d019223ba79f3b63b16a14131  ./debug.h
+9b124aeb5f84630af58c3abc2843c1a6  ./events.h
+ec41e8a9ef6942e983896c9925fcf83a  ./first_task.c
+f5d5f01a856e51feeefb0c672539e687  ./first_task.h
+62e7110b8fcd1b231e9ff6f9975ae1c8  ./heap.c
+e1bc08b27132977bdccf932a1432a917  ./heap.h
+3b096de077660480045b6f57a090e482  ./icu.c
+60122cea48e43550bf96143b8310ab30  ./icu.h
+82a36ae15796491b9bed143f575f1dcd  ./idle_task.c
+574e859de18cdbe722764e3230f226ca  ./idle_task.h
+bde87554c6753ab69679a0096a9f0eab  ./interrupt_handler.c
+c5b1026567dfc98fa4be22dde2163d98  ./interrupt_handler.h
+8a001ef254d4399629af4a7523807a10  ./ioserver.c
+bbd1a58e9662dc9efab4ffbeb4655ab0  ./ioserver.h
+54fa949d614cd5de9e5714c2e86372b7  ./kernel.c
+3ac7a3b2def34929bbd3198847a84c50  ./kernel.h
+385fa8297c63ad1c00283993d3c3ba7e  ./linked_array.c
+deb1fdece9e49c8553e3ca0f0d8ba729  ./linked_array.h
+16008763b80fd197f248791c6e6e193d  ./main.c
+b6c68a3abdfad9bb041e3868045f9eef  ./main.map
+57f30631f3dc41ff841ad52627d8a821  ./messenger.c
+d9fcdc742e0118ccfc12d5f5f5f3c043  ./messenger.h
+c29551c6747135dc2869e0447f716627  ./nameserver.c
+b2047a8021138c14fd7eea61641669d5  ./nameserver.h
+1dc118c000601dc8accbed9bf54a2076  ./orex.ld
+d141a877fdf638c446d299532e5db186  ./priorities.c
+ad8404d6ff9b3cd23ab35da21a70037f  ./priorities.h
+b5c40d28eb3da5c6b60eb86c3db9bea4  ./queue.c
+6560cd52ba8bd3316b4b0ee359709bb3  ./queue.h
+4da63eed62783ca80daa07e1a0082490  ./rps_server.c
+f42681e19e3dc50960b701be52a53546  ./rps_server.h
+2ab912e5d9e4a896d740138ff032f908  ./run_tests.c
+0e390e153530b05118c87063a5dd3120  ./run_tests.h
+f78c21899d82bfcf0eedae208fbcdca5  ./scheduler.c
+621140a6884a581a7e896c056efe717e  ./scheduler.h
+3195ae9768831b925bbe2045b8cd4c99  ./simple_sm.c
+2a521c524bcdc6a4e301e9a923dc136d  ./simple_sm.h
+d8e47dc8188b5b96afde359fbdc306e2  ./stdio.c
+2ac1166e171b2ed1dea1e1667313c1e1  ./stdio.h
+137c17fe3caba47c40e94bd7bbbec34f  ./stdlib.c
+c1ff97f3805e8d7dbbf1cb33b015e34b  ./stdlib.h
+0077ca5ad3b96616b9d58756ba4bb89a  ./string.c
+8873c1a40c39ee31376a9b9fc12c70b9  ./string.h
+792ad97b51eece81a637452da6056674  ./strings.c
+7a1b1692e08413e0632172e8bab8cd11  ./strings.h
+e8f18c3bf7a41896193f4b88ff5b7776  ./syscall.c
+92dd1bcc7759c1cabeb6c3857d512d2a  ./syscall.h
+45dbbbd7dc17c05a54fc2004028fcf77  ./task.c
+8b9de320b012d017b7db5f384e7fd399  ./task.h
+cb2aca3d1a4b7eb834acb7a3095702ac  ./test_helpers.c
+cd42684f05820c5322c424f711652b5f  ./test_helpers.h
+db212207fd1f822e6eac0e12504a74aa  ./tests/assignment_1_test.c
+411e9b47d5dc508dff42812ff9f5a4fc  ./tests/assignment_3_test.c
+81f4f7f81935b93a59c81d89d469b0fa  ./tests/assignment_4_test.c
+36f8e02155a2ec078a6b9f39c7fa84c6  ./tests/basic_test.c
+55d83782fdbdbd446d40150475e99a64  ./tests/clockserver_test.c
+70ba721afbb029c5f5fd274610cd04e5  ./tests/hwi_test.c
+bcb10795dece42854f1afdfeba58abc3  ./tests/message_passing_test.c
+fb8849e3daee133a6dbd8d46aae51841  ./tests/multiple_priorities_test.c
+e84e447e74452e7a0e121584432b0101  ./tests/nameserver_test.c
+5b8c9bea1aa4bc89e901d3e804716727  ./tests/rps_server_test.c
+a034d2695ffcb6bab511bc351d2c4787  ./tests/scheduler_speed_test.c
+2c82682f782d8288a790d0873ee3fd99  ./tests/srr_speed_test.c
+202c88f7b9170f8ca2eff1fa057737e8  ./tests/syscall_speed_test.c
+0a009e1c2cf45b3a2e4fe54aa323bf7a  ./tests/task_creation_errors_test.c
+d190d2b8da8936e79eb1b4d0cdd81903  ./tests/train_test.c
+c83a8c9eb4d8bfd8ce93024e85e90615  ./tests/uart1_intr_test.c
+3cd62f7995e4d59b66f0bc66a750a743  ./timer.c
+077b0816d3b8542fd64497f05d360c41  ./timer.h
+7553044ad445f2d963e97ccd87e8f965  ./train.c
+9762ef219ec6f5854ef07a56cca470fb  ./train.h
+473d468b5c307bb6eeaeca7d35acec54  ./ts7200.h
+e9d1033301a81ab2d09fe477d7e69008  ./uart.c
+04e5789e07fb586a1b6b101acf73a96b  ./uart.h
+5626c0ebb1f29d24414bbd9cf9bb18ab  ./unittests/all_tests.c
+a29718fd71b276fa65c0d946c5a5cd02  ./unittests/bitmask_tests.c
+6fe66e343f638b7b2910da75028b113d  ./unittests/heap_tests.c
+fe0a9d5b709dcd146c0c93875bf4a248  ./unittests/linked_array_tests.c
+7c943438d2b499acbc3de149af0c2a6f  ./unittests/strings_tests.c
+f068e72416d05f20660390bb1e50a4ef  ./unittests/test_helpers.c
+24bc70d54528b73d8d7eb23f573921bc  ./unittests/test_helpers.h
 \end{verbatim}
 
 \subsection{Header Files}
@@ -103,18 +121,29 @@ d211d736533cb05c730a78b5150773bf  tests/hwi_test.c
 \verb!debug.h! - Macros wrapping debugging functions that can compile away.\\
 \verb!events.h! - Constants for interacting with AwaitEvent.\\
 \verb!heap.h! - Function definitions for heap.\\
+\verb!icu.h! - All methods for interacting with the interrupt control unit.\\
 \verb!idle_task.h! - Kernel API for initializing idle task.\\
+\verb!interrupt_handler.h! - Processing of interrupts.\\
+\verb!ioserver.h! - Header for kernel talking to the ioserver.\\
+\verb!kernel.h! - Methods to initialize and run the kernel.\\
+\verb!linked_array.h! - An array with double pointers between inserted elements.\\
 \verb!messenger.h! - Function definitions for messenger.\\
 \verb!nameserver.h! - Function definitions for starting the nameserver.\\
-\verb!queue.h! - Function definitions for our queue implementation.\\
 \verb!priorities.h! - Scheduling priorities.\\
+\verb!queue.h! - Function definitions for our queue implementation.\\
 \verb!rps_server.h! - Functions definitions for starting and using the rock, paper, scissors server. \\
 \verb!scheduler.h! - Function definitions for scheduler.\\
-\verb!string.h! - Functions definitions for string library.\\
+\verb!simple_sm.h! - Simple state machines that tracks whether certain events have occured.\\
+\verb!stdio.h! - All methods to print to terminal, includes regular printf as well as bwprintf.\\
 \verb!stdlib.h! - Function definitions for commonly used functions.\\
+\verb!string.h! - Functions definitions for string structure.\\
+\verb!strings.h! - Functions definitions for string library.\\
 \verb!syscall.h! - Function definitions for syscalls.\\
 \verb!task.h! - Contains Task structure and function definitions.\\
 \verb!timer.h! - Function definitions for timer.\\
+\verb!train.h! - Function definitions for sending commands to the train set.\\
+\verb!ts7200.h! - Macros for important memory locations.\\
+\verb!uart.h! - Function definitions for methods talking to the uarts.\\
 
 \subsection{Source Files}
 \verb!bitmask.c! - Generic bitmask functions. Used in faster scheduler.\\
@@ -126,7 +155,9 @@ d211d736533cb05c730a78b5150773bf  tests/hwi_test.c
 \verb!icu.c! - Abstractions over the ICU.\\
 \verb!idle_task.c! - Idle task.\\
 \verb!interrupt_handler.c! - Processes hardware-trigger interrupts.\\
+\verb!ioserver.c! - ioserver implementation along with syscalls that talk to the ioserver.\\
 \verb!kernel.c! - The infinite kernel loop. Interrupts are processed here and tasks and scheduled.\\
+\verb!linked_array.c! - Implementation of our linked array. Was once used in the scheduler. \\
 \verb!main.c! - Beginning of execution, described below.\\
 \verb!messenger.c! - Coordinates message passing.\\
 \verb!Makefile! - Our makefile.\\
@@ -135,11 +166,15 @@ d211d736533cb05c730a78b5150773bf  tests/hwi_test.c
 \verb!queue.c! - A simple queue implementation.\\
 \verb!rps_server.c! - Implementation of the rock, paper, scissors server and wrappers for Send that clients can use to talk to the rps server..\\
 \verb!scheduler.c! - Our scheduler.\\
+\verb!stdio.c! - Output to the terminal.\\
 \verb!stdlib.c! - Common functions. Not actually a standard library.\\
+\verb!string.c! - String structure implementation.\\
 \verb!strings.c! - String library.\\
 \verb!syscall.c! - System calls.\\
 \verb!task.c! - Creating and managing tasks.\\
 \verb!timer.c! - Timing functions.\\
+\verb!train.c! - Sending commands to the train set.\\
+\verb!uart.c! - Methods talking to the uarts.\\
 
 \subsection{Test Files}
 \verb!tests/basic_test.c! - Creates tasks of different priorities.\\
@@ -158,11 +193,18 @@ d211d736533cb05c730a78b5150773bf  tests/hwi_test.c
 \verb!test_helpers.h! - Header for test\_helpers.c. Different types of asserts and such.\\
 \verb!test_helpers.c! - Test helpers. Asserts and other things.
 
-\section{Program Description}
+\section{Kernel Description}
 
-\subsection{Main}
+\subsection{Initialization}
 
-This is where the kernel's execution begins. We first set a known address ($0x28$) to point to our interrupt handler. Because Create() can only be called in user-mode (causing a system interrupt), we manually call kernel methods to create the first user-task and stick it into the scheduler in main. For the purposes of the assignment, this is done in assignment\_1\_test.c.
+To initialize the kernel we do many things:
+\begin{itemize}
+  \item Enable caches
+  \item Set software interrupt handler address to our function k\_enter
+  \item Set hardware interrupt handler address to out function hwi\_enter;
+  \item Initialize timers, uarts, interrupts and kernel data structures.
+  \item Create a first user task that creates all our servers.
+\end{itemize}
 
 \subsection{Context Switch}
 
@@ -196,15 +238,19 @@ In summary, when blocking, tasks will write their addresses to their own INBOX, 
 
 \subsection{Nameserver}
 
-The nameserver is a user space task that is started by the kernel. It uses a simple queue of strings, int pairs to hold each registration it is given. This results in an $O(n)$ (in number of registrations) runtime for both RegisterAs and WhoIs. This was considered acceptable because $n$ will usually be small and these syscalls tend to be called during initialization, where performance isn't as critical. \\
+The nameserver is a user space task that is started by the kernel. It uses a simple queue of strings, int pairs to hold each registration it is given. This results in an $O(n)$ (in number of registrations) runtime for both RegisterAs and WhoIs. This was considered acceptable because $n$ will usually be small and these syscalls tend to be called during initialization, where performance isn't as critical.
 
-The nameserver's task id is stored in a static variable that is visible only to the nameserver. The nameserver exposes a function, {\tt get\_nameserver\_tid()} that provides access to the nameserver's tid. This way we can ensure that the nameserver only writes to this variable once during startup to avoid race conditions. \\
+The nameserver's task id is stored in a static variable that is visible only to the nameserver. The nameserver exposes a function, {\tt get\_nameserver\_tid()} that provides access to the nameserver's tid. This way we can ensure that the nameserver only writes to this variable once during startup to avoid race conditions.
 
 If a non-existent registration is passed to WhoIs, it will return -1. This was the simplest implementation for now and if a blocking version of WhoIs is needed in the future a separate syscall, WhoIs\_Blck, will be written to provide synchronization methods for tasks needing to wait on other tasks to start.
 
 \subsection{AwaitEvent}
 
-Our AwaitEvent implementation takes in an abstract event id whose value has no correspondence with interrupt addresses or offset numbers. A user task passes in an event id, defined in events.h and the kernel will queue up the task in the appropriate event queue. This will put the user task in a new state, EVENT\_BLOCK. We only expect an event queue to need to contain 1 Task so our structure of all queues is a simple array \verb!Task* event_queues[NUM_EVENTS]!. We enable all hardware interrupts our kernel is interested in on boot. When an interrupt occurs, the kernel checks each active interrupt bit (sorted by priority) and handles the highest one. This unblocks the user task. Our AwaitEvent does not return values.
+Our AwaitEvent implementation takes in an abstract event id whose value has no correspondence with interrupt addresses or offset numbers. A user task passes in an event id, defined in events.h and the kernel will queue up the task in the appropriate event queue. This will put the user task in a new state, EVENT\_BLOCK. We only expect an event queue to need to contain 1 Task so our structure of all queues is a simple array \verb!Task* event_queues[NUM_EVENTS]!.
+
+We enable the hardware interrupts corresponding to a specific event the first time a user task calls AwaitEvent on that event. This way interrupts (such as UART\_TX) that get asserted right away won't get missed. It also has the added benefit that if a user program doesn't use a specific event, we won't needlessly track it.
+
+When an interrupt occurs, the kernel checks each active interrupt bit (sorted by priority) and handles the highest one. This unblocks the user task. If the specific event being waited on requires a return value, we put it in the \verb!retval! field in the \verb!Task! structure, so that the user task will see it as a return value.
 
 \subsection{Clock Server}
 
@@ -220,6 +266,19 @@ To handle all input/output to and from the terminal and and the train controller
 
 \subsubsection{When are we ready to transmit to the train?}
 
-Our notifiers are kept simple and listen to only a single abstract event each such as CAN\_TRANSMIT\_TO\_TRAIN. In order to surface such an event, we much wait for both the CTS and TIS interrupts before we can guarantee this. Thus we've placed a simple state machine in the interrupt handler. Each interrupt sets a bit and we check that both bits are set before firing the event. 
+Our notifiers are kept simple and listen to only a single abstract event each such as CAN\_TRANSMIT\_TO\_TRAIN. In order to surface such an event, we must wait for both the CTS and TIS interrupts before we can guarantee this. Thus we've placed a simple state machine in the interrupt handler. Each interrupt sets a bit and we check that both bits are set before firing the event.
+
+\subsection{Terminal I/O}
+
+Now that we have an ioserver, we rewrote the bwio library to send requests to the ioserver instead. This lead to 2 complications:
+
+\begin{enumerate}
+  \item Kernel code calls printf and the kernel can't send requests to the ioserver.
+  \item bwio relied on sending chars one at a time, but now that tasks can get interrupted, messages can get intermixed with one another.
+\end{enumerate}
+
+To solve 1), we created a function \verb!in_userspace! that checks the CPSR to see if the current code is running in user mode. If it is, it calls the ioserver, otherwise it calls bwputc. This isn't optimal as the kernel printing might crash the ioserver. However, this is ok for now as we just need the kernel to print when a fatal error occurs.
+
+To solve 2), we added a new syscall, \verb!Putstr!, that allows user tasks to send an entire string to the ioserver. Then, we modified our stdio to build up a string instead of sending one character at a time.
 
 \end{document}
