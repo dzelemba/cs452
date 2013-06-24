@@ -21,4 +21,6 @@ int is_queue_empty(queue *q);
 
 int is_queue_full(queue *q);
 
+int queue_size(queue *q);
+
 #endif

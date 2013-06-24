@@ -34,3 +34,7 @@ int is_queue_empty(queue *q) {
 int is_queue_full(queue *q) {
   return _queue_increment(q->end) == q->start;
 }
+
+int queue_size(queue *q) {
+  return q->end - q->start;
+}

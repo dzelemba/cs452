@@ -2,8 +2,6 @@
 #include "nameserver.h"
 #include "task.h"
 
-static Request request;
-
 int syscall(Request* req) {
   asm("swi");
   register int retval asm("r0");
@@ -11,6 +9,8 @@ int syscall(Request* req) {
 }
 
 int Create(int priority, void (*code)) {
+  Request request;
+
   request.syscall = CALLID_CREATE;
   request.args[0] = priority;
   request.args[1] = (int)code;
@@ -19,18 +19,21 @@ int Create(int priority, void (*code)) {
 }
 
 int MyTid() {
+  Request request;
   request.syscall = CALLID_MYTID;
 
   return syscall(&request);
 }
 
 int MyParentTid() {
+  Request request;
   request.syscall = CALLID_MYPARENTTID;
 
   return syscall(&request);
 }
 
 void Pass() {
+  Request request;
   request.syscall = CALLID_PASS;
 
   syscall(&request);
@@ -38,6 +41,7 @@ void Pass() {
 
 
 void Exit() {
+  Request request;
   request.syscall = CALLID_EXIT;
 
   syscall(&request);
@@ -48,6 +52,7 @@ int Send(int tid, char *msg, int msglen, char *reply, int replylen) {
     return -1;
   }
 
+  Request request;
   request.syscall = CALLID_SEND;
   request.args[0] = tid;
   request.args[1] = (int)msg;
@@ -59,6 +64,7 @@ int Send(int tid, char *msg, int msglen, char *reply, int replylen) {
 }
 
 int Receive(int *tid, char *msg, int msglen) {
+  Request request;
   request.syscall = CALLID_RECEIVE;
   request.args[0] = (int)tid;
   request.args[1] = (int)msg;
@@ -72,6 +78,7 @@ int Reply(int tid, char *reply, int replylen) {
     return -1;
   }
 
+  Request request;
   request.syscall = CALLID_REPLY;
   request.args[0] = tid;
   request.args[1] = (int)reply;
@@ -81,6 +88,7 @@ int Reply(int tid, char *reply, int replylen) {
 }
 
 int AwaitEvent(int eventid) {
+  Request request;
   request.syscall = CALLID_AWAITEVENT;
   request.args[0] = eventid;
 
