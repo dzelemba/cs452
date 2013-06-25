@@ -13,6 +13,10 @@
 static unsigned int current_prompt_pos;
 static int shutdown;
 
+void return_cursor() {
+  printf(COM2, "\033[2;%uH", current_prompt_pos + 2);
+}
+
 void draw_switch_state(int switch_num, char direction) {
   int row, col;
   if (switch_num >= 0x99) {
@@ -26,9 +30,8 @@ void draw_switch_state(int switch_num, char direction) {
 }
 
 void draw_initial() {
-  printf(COM2, "\033[2J\033[1;1H");
-  printf(COM2, "\033[2;1HBUSY\r");
-  printf(COM2, "Switch Table:");
+  printf(COM2, "\033[2J");
+  printf(COM2, "\033[3;1HSwitch Table:");
   printf(COM2, "\033[13;1HMost Recently Hit Sensors:");
 
   int sw;
@@ -52,6 +55,7 @@ void draw_initial() {
   for (sw = 0x99; sw <= 0x9c; sw++) {
     draw_switch_state(sw, 'S');
   }
+  return_cursor();
 }
 
 // USER PROMPT TASK
@@ -123,9 +127,6 @@ void timer_display_task() {
   int ticks_per_minute = 10 * 10 * 60;
 
   // Block until screen is initialized
-  int shell_tid;
-  Receive(&shell_tid, (char *)0, 0);
-  Reply(shell_tid, (char *)0, 0);
 
   while (1) {
     if (shutdown) {
@@ -140,6 +141,7 @@ void timer_display_task() {
     int display_tenths = ticks / ticks_per_tenth;
 
     printf(COM2, "\033[1;1H%d:%2d.%u", display_minutes, display_seconds, display_tenths);
+    return_cursor();
     Delay(ticks_per_tenth);
   }
 
@@ -199,6 +201,7 @@ void sensor_task() {
     for (i = 0; i < HITS_TRACKED && _last_seen_hits[i].sensor != '0'; i++) {
       printf(COM2, "\033[%d;1H%c%d\033[K\n", 14 + i, _last_seen_hits[i].sensor, _last_seen_hits[i].socket);
     }
+    return_cursor();
   }
 
   Exit();
@@ -211,10 +214,9 @@ void shell_task() {
 
   draw_initial();
 
-  int timer_display_tid = Create(MED_PRI, &timer_display_task);
-  Send(timer_display_tid, (char*)0, 0, (char *)0, 0); // No longer necessary because of priority hacks
-  int user_prompt_tid = Create(MED_PRI, &user_prompt_task);
-  int sensor_tid = Create(MED_PRI, &sensor_task);
+  Create(MED_PRI, &timer_display_task);
+  Create(MED_PRI, &user_prompt_task);
+  Create(MED_PRI, &sensor_task);
 
   Exit();
 }
