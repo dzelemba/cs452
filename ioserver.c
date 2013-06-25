@@ -115,6 +115,7 @@ void ioserver_run() {
   int tid;
   ioserver_request req;
   char train_can_put = 0, term_can_put = 0;
+  int receive_data_from_train = 0;
 
   // Gross. A bunch of local variables used across our switch statement
   int i;
@@ -129,6 +130,7 @@ void ioserver_run() {
         if (!is_queue_empty(&train_putc_queue)) {
           ch = pop(&train_putc_queue);
           ua_putc(COM1, ch);
+          receive_data_from_train = 1;
         } else {
           train_can_put = 1;
         }
@@ -137,13 +139,14 @@ void ioserver_run() {
 
       case NOTIF_TRAIN_HASDATA:
         Reply(tid, (void *)0, 0);
-        if (!is_queue_empty(&train_getc_queue)) {
-          qgetc_tid = pop(&train_getc_queue);
-          Reply(qgetc_tid, &req.msg, sizeof(char));
-        } else {
-          push(&train_data_queue, req.msg);
+        if (receive_data_from_train) {
+          if (!is_queue_empty(&train_getc_queue)) {
+            qgetc_tid = pop(&train_getc_queue);
+            Reply(qgetc_tid, &req.msg, sizeof(char));
+          } else {
+            push(&train_data_queue, req.msg);
+          }
         }
-
         break;
 
       case REQUEST_TRAIN_GETC:
@@ -158,6 +161,7 @@ void ioserver_run() {
       case REQUEST_TRAIN_PUTC:
         if (train_can_put) {
           ua_putc(COM1, req.msg);
+          receive_data_from_train = 1;
           train_can_put = 0;
         } else {
           push(&train_putc_queue, req.msg);
@@ -170,6 +174,7 @@ void ioserver_run() {
         i = 0;
         if (train_can_put) {
           ua_putc(COM1, req.str[0]);
+          receive_data_from_train = 1;
           train_can_put = 0;
           i++;
         }

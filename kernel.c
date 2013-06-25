@@ -103,7 +103,6 @@ void init_kernel() {
   init_scheduler();
   init_messenger();
 
-  init_trains();
   init_interrupts();
 
   // Create task that will intialize servers.

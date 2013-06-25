@@ -40,6 +40,9 @@ void init_trains() {
   ua_setspeed(COM1, 2400);
   ua_setstopbits(COM1, ON);
   ua_setfifo(COM1, OFF);
+
+  /* Tell the sensors to reset after dumping data */
+  Putc(COM1, 192);
 }
 
 /* Train Methods */
