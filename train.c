@@ -8,6 +8,7 @@
 static int train_speeds[NUM_TRAINS + 1];
 static int switch_directions[NUM_SWITCHES + 1];
 static int sensor_data[NUM_SENSORS][SOCKETS_PER_SENSOR];
+static int reverse_server_tid;
 
 #define NUM_SENSOR_BYTES (NUM_SENSORS * 2)
 static char sensor_bytes[NUM_SENSOR_BYTES];
@@ -19,6 +20,28 @@ static char sensor_bytes[NUM_SENSOR_BYTES];
 void fill_set_speed(char*cmd, int speed, int train) {
   cmd[0] = speed;
   cmd[1] = train;
+}
+
+void tr_reverse_task() {
+  int tid;
+  int train_info[2];
+  while (1) {
+    Receive(&tid, (char *)train_info, 2*sizeof(int));
+    Reply(tid, (void *)0, 0);
+
+    int train = train_info[0];
+    int speed = train_info[1];
+
+    char cmd[4];
+    fill_set_speed(cmd, 0, train);
+    putbytes(COM1, cmd, 2);
+
+    Delay(300);
+    fill_set_speed(cmd, 15, train);
+    fill_set_speed(cmd + 2, speed, train);
+    putbytes(COM1, cmd, 4);
+  }
+  Exit();
 }
 
 /*
@@ -43,6 +66,8 @@ void init_trains() {
 
   /* Tell the sensors to reset after dumping data */
   Putc(COM1, 192);
+
+  reverse_server_tid = Create(MED_PRI_K, &tr_reverse_task);
 }
 
 /* Train Methods */
@@ -58,30 +83,6 @@ void tr_set_speed(int speed, int train) {
   train_speeds[train] = speed;
 }
 
-void tr_reverse_task() {
-  int tid;
-  int train_info[2];
-  Receive(&tid, (char *)train_info, 2*sizeof(int));
-  Reply(tid, (void *)0, 0);
-
-  int train = train_info[0];
-  int speed = train_info[1];
-
-  char cmd[2];
-  fill_set_speed(cmd, 0, train);
-  putbytes(COM1, cmd, 2);
-  Delay(300);
-
-  fill_set_speed(cmd, 15, train);
-  putbytes(COM1, cmd, 2);
-
-  Delay(100);
-
-  fill_set_speed(cmd, speed, train);
-  putbytes(COM1, cmd, 2);
-
-  Exit();
-}
 
 void tr_reverse(int train) {
   ASSERT(train > 0 && train <= NUM_TRAINS, "train.c: tr_reverse: Invalid train number");
@@ -90,8 +91,7 @@ void tr_reverse(int train) {
   train_info[0] = train;
   train_info[1] = train_speeds[train];
 
-  int child_tid = Create(MED_PRI, &tr_reverse_task);
-  Send(child_tid, (char *)train_info, 2*sizeof(int), (void *)0, 0);
+  Send(reverse_server_tid, (char *)train_info, 2*sizeof(int), (void *)0, 0);
 }
 
 /* Sensor Methods */

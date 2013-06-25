@@ -60,6 +60,11 @@ void init_interrupts() {
   sm_create(&UART1_txReadySM, 2);
 
   set_all_intr_to_irq();
+
+  // We don't get an interrupt for CTS at startup
+  if (ua_get_cts_status(COM1)) {
+    sm_report_event(&UART1_txReadySM, 0);
+  }
 }
 
 void reset_interrupts() {
@@ -104,12 +109,6 @@ void process_interrupt() {
 
       // Turn off transmit interrupt
       ua_disableinterrupts(COM1, TIEN_MASK);
-
-      // We don't get an interrupt for CTS at startup
-      if (ua_ready_to_send(COM1)) {
-        sm_report_event(&UART1_txReadySM, 0);
-        ua_clearCTSintr(COM1);
-      }
     }
     if (intStatus & RIS_MASK) {
       send_event(EVENT_UART1_RCV_READY, ua_getc(COM1));

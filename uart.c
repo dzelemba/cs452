@@ -115,8 +115,7 @@ int ua_ready_to_send(int channel) {
 }
 
 void ua_putc(int channel, char c) {
-  // TODO(dzelemba): This is going off when it shouldn't, investigate this.
-  //ASSERT(ua_ready_to_send(channel), "uart.c: ua_putc: not ready to send");
+  ASSERT(ua_ready_to_send(channel), "uart.c: ua_putc: not ready to send");
 
   *get_line(channel, UART_DATA_OFFSET) = c;
   ua_enableinterrupts(channel, TIEN_MASK);

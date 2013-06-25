@@ -30,7 +30,7 @@
 
 #ifdef DEBUG_1
   #define ASSERT(exp, description) do { assert((exp), #exp, description); } while(0)
-  #define ERROR(...) do { print_debug("ERROR: "); print_debug(__VA_ARGS__); } while (0)
+  #define ERROR(...) do { error(__VA_ARGS__); } while (0)
 #else
   #define ASSERT(exp, description) do { } while (0)
   #define ERROR(...) do { } while (0)
@@ -40,5 +40,6 @@ void print_debug(char* format, ...);
 void method_entry(char* format, ...);
 void method_exit(char* format, ...);
 void assert(int exp, char* exp_str, char* msg);
+void error(char* format, ...);
 
 #endif

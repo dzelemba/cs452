@@ -50,3 +50,14 @@ void assert(int exp, char* exp_str, char* msg) {
     bwprintf(COM2, "Assertion Failed! (%s) , %s\n", exp_str, msg);
   }
 }
+
+void error(char* format, ...) {
+  reset_interrupts();
+
+  bwprintf(COM2, "ERROR: ");
+
+  va_list args;
+  va_start(args, format);
+  bwformat(COM2, format, args);
+  va_end(args);
+}

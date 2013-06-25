@@ -43,7 +43,7 @@ void draw_initial() {
   }
 
   for (sw = 1; sw <= 18; sw++) {
-    draw_switch_state(sw, 'S');
+    draw_switch_state(sw, '?');
   }
 
   // bottom row
@@ -53,7 +53,7 @@ void draw_initial() {
   }
 
   for (sw = 0x99; sw <= 0x9c; sw++) {
-    draw_switch_state(sw, 'S');
+    draw_switch_state(sw, '?');
   }
   return_cursor();
 }
@@ -222,10 +222,8 @@ void shell_task() {
 }
 
 void run_assignment_4_test() {
-  char* name = "Assignment 4 Test";
-  start_test(name);
+  init_kernel();
 
   kernel_add_task(VLOW_PRI, &shell_task);
   kernel_run();
-  end_test(name);
 }
