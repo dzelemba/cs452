@@ -105,7 +105,7 @@ install: stuff
 
 # Unit Tests
 
-TESTFLAGS = -g -Wall
+TESTFLAGS = -g -Wall -DUNIT
 
 unit: test.out
 	./test.out

@@ -41,8 +41,10 @@ char* kmalloc(int size) {
   return ret;
 }
 
+#ifndef UNIT
 int in_userspace() {
   asm("mrs r3, cpsr");
   register int cpsr asm("r3");
   return (cpsr & 0x1f) == 0x10;
 }
+#endif

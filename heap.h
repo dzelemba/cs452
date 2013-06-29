@@ -9,11 +9,11 @@ typedef struct _heap_node {
 } heap_node;
 
 typedef struct _heap {
-  heap_node buf[MAX_TASKS];
+  heap_node* buf;
   unsigned char size;
 } heap;
 
-void init_heap(heap* hp);
+void init_heap(heap* hp, heap_node* buf, int size);
 
 void* heap_min_value(heap* hp);
 

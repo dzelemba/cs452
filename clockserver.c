@@ -9,6 +9,7 @@
 // We can make the clockserver faster by never actually implementing the user-task.
 // This is a lot more work, but we can get rid of 2-3 context switches every 10ms.
 
+static heap_node listeners_mem[MAX_TASKS];
 static heap listeners;
 static int ticks;
 static int clockserver_tid;
@@ -23,7 +24,7 @@ void notifier_run() {
 }
 
 void clockserver_run() {
-  init_heap(&listeners);
+  init_heap(&listeners, listeners_mem, MAX_TASKS);
   ticks = 0;
 
   int notifier_tid = Create(MAX_PRI, &notifier_run);

@@ -6,7 +6,8 @@ static void simple_heap_test() {
   printf("Simple Heap\n");
 
   heap hp;
-  init_heap(&hp);
+  heap_node mem[64];
+  init_heap(&hp, mem, 64);
 
   char a = 'a', b = 'b', c = 'c', d = 'd';
   heap_insert(&hp, 1, &b);
@@ -37,7 +38,8 @@ static void easy_heap_test() {
   printf("Easy Heap\n");
 
   heap hp;
-  init_heap(&hp);
+  heap_node mem[64];
+  init_heap(&hp, mem, 64);
 
   char f = 'f', g = 'g', h = 'h', i = 'i';
   heap_insert(&hp, 12, &i);
@@ -61,7 +63,8 @@ static void emptying_heap_test() {
   printf("Emptying Heap\n");
 
   heap hp;
-  init_heap(&hp);
+  heap_node mem[64];
+  init_heap(&hp, mem, 64);
 
   char a = 'a', b = 'b';
   heap_insert(&hp, 1, &a);
@@ -80,7 +83,8 @@ static void same_priority_test() {
   char a = 'a', b = 'b', c = 'c';
 
   heap hp;
-  init_heap(&hp);
+  heap_node mem[64];
+  init_heap(&hp, mem, 64);
 
   heap_insert(&hp, 1, &a);
   heap_insert(&hp, 1, &b);

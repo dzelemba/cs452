@@ -4,8 +4,9 @@
 
 // TODO: Better SWAP
 
-void init_heap(heap* hp) {
+void init_heap(heap* hp, heap_node* buf, int size) {
   hp->size = 0;
+  hp->buf = buf;
 }
 
 int heap_min_pri(heap* hp) {
