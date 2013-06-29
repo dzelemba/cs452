@@ -17,6 +17,11 @@ ASFLAGS	= -mcpu=arm920t -mapcs-32
 
 LDFLAGS = -init main -Map main.map -N  -T orex.ld -L/u/wbcowan/gnuarm-4.0.2/lib/gcc/arm-elf/4.0.2 -L../lib
 
+ifdef TEST
+  CFLAGS += -DTEST
+  CFLAGS += -DDEBUG_1
+  OBJECT_DIR = test
+else
 ifdef DBG
   CFLAGS += -DDEBUG
   OBJECT_DIR = dbg
@@ -38,13 +43,14 @@ endif
 endif
 endif
 endif
+endif
 
 TEST_SRC_FILES = $(wildcard tests/*.c)
 TEST_OBJ_FILES = $(addprefix $(OBJECT_DIR)/,$(TEST_SRC_FILES:.c=.o))
 KERNEL_SRC_FILES = $(wildcard *.c)
 KERNEL_OBJ_FILES = $(addprefix $(OBJECT_DIR)/,$(KERNEL_SRC_FILES:.c=.o) context_switch.o tests.o)
 
-.PHONY: dbg dbg1 dbg2 dbg3 clean
+.PHONY: dbg dbg1 dbg2 dbg3 test clean
 
 all: stuff
 
@@ -52,7 +58,7 @@ stuff: export RTOS_COMPILER=/u/wbcowan/gnuarm-4.0.2/arm-elf/bin/gcc
 stuff: directories main.elf
 
 directories:
-	mkdir -p obj/tests dbg/tests dbg1/tests dbg2/tests dbg3/tests
+	mkdir -p obj/tests dbg/tests dbg1/tests dbg2/tests dbg3/tests test/tests
 
 dbg:
 	$(MAKE) install DBG=1
@@ -65,6 +71,9 @@ dbg2:
 
 dbg3:
 	$(MAKE) install DBG3=1
+
+test:
+	$(MAKE) install TEST=1
 
 obj: install
 
@@ -106,4 +115,4 @@ test.out: unittests/* strings.* linked_array.* stdlib.* bitmask.* heap.*
 	$(XCC) $(TESTFLAGS) unittests/all_tests.c unittests/test_helpers.c strings.c linked_array.c stdlib.c heap.c bitmask.c -o test.out
 
 clean:
-	rm -rf obj dbg dbg1 dbg2 dbg3 test.out
+	rm -rf obj dbg dbg1 dbg2 dbg3 test test.out

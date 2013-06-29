@@ -1,3 +1,8 @@
+#include "project.h"
+
+/*
+ * Private Methods
+ */
 #include "all_tests.h"
 #include "kernel.h"
 #include "priorities.h"
@@ -198,8 +203,6 @@ void sensor_task() {
   Exit();
 }
 
-// SHELL TASK
-
 void shell_task() {
   draw_initial();
 
@@ -210,9 +213,10 @@ void shell_task() {
   Exit();
 }
 
-void run_assignment_4_test() {
-  init_kernel();
+/*
+ * Public Methods
+ */
 
-  kernel_add_task(VLOW_PRI, &shell_task);
-  kernel_run();
+void run_project() {
+  Create(VLOW_PRI, &shell_task);
 }

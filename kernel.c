@@ -125,9 +125,11 @@ void kernel_run() {
   Task* next_task;
   while (1) {
     next_task = scheduler_get_next_task();
+#ifdef TEST
     if (get_num_user_tasks() == 0) {
       break;
     }
+#endif
 
     Request* request = k_exit(next_task->retval, &next_task->stack_position);
     next_task->retval = process_request(next_task, request);

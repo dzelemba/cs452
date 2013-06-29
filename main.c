@@ -1,11 +1,14 @@
 #include "kernel.h"
 #include "run_tests.h"
-#include "stdio.h"
 
 int main(int argc, char** argv) {
-  run_tests();
 
-  printf(COM2, "Main Exiting... \n");
+#ifndef TEST
+  init_kernel();
+  kernel_run();
+#else
+  run_tests();
+#endif
 
   return 0;
 }
