@@ -11,7 +11,6 @@
 
 // DRAWING LIBRARY
 static unsigned int current_prompt_pos;
-static int shutdown;
 
 void return_cursor() {
   printf(COM2, "\033[2;%uH", current_prompt_pos + 2);
@@ -93,7 +92,7 @@ void user_prompt_task() {
           int train_number = atoi(tokens[1]);
           tr_reverse(train_number);
         } else if (string_equal(tokens[0], "q")) {
-          shutdown = 1;
+          Shutdown();
           break;
         } else {
           // bad command
@@ -129,10 +128,6 @@ void timer_display_task() {
   // Block until screen is initialized
 
   while (1) {
-    if (shutdown) {
-      break;
-    }
-
     int ticks = Time();
     int display_minutes = ticks / ticks_per_minute;
     ticks = ticks % ticks_per_minute;
@@ -182,10 +177,6 @@ void sensor_task() {
   }
 
   while (1) {
-    if (shutdown) {
-      break;
-    }
-
     update_sensors();
     char sensor;
     int socket;
@@ -210,8 +201,6 @@ void sensor_task() {
 // SHELL TASK
 
 void shell_task() {
-  shutdown = 0;
-
   draw_initial();
 
   Create(MED_PRI, &timer_display_task);

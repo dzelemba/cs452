@@ -39,10 +39,16 @@ void Pass() {
   syscall(&request);
 }
 
-
 void Exit() {
   Request request;
   request.syscall = CALLID_EXIT;
+
+  syscall(&request);
+}
+
+void Shutdown() {
+  Request request;
+  request.syscall = CALLID_SHUTDOWN;
 
   syscall(&request);
 }

@@ -10,6 +10,7 @@
 #define CALLID_RECEIVE      6
 #define CALLID_REPLY        7
 #define CALLID_AWAITEVENT   8
+#define CALLID_SHUTDOWN     9
 
 typedef struct Request {
   int syscall;
@@ -25,6 +26,8 @@ int MyParentTid();
 void Pass();
 
 void Exit();
+
+void Shutdown();
 
 int Send(int tid, char *msg, int msglen, char *reply, int replylen);
 

@@ -12,6 +12,8 @@
 #include "debug.h"
 #include "train.h"
 
+static int shutdown;
+
 int process_request(Task* task, Request* request) {
   if (request == 0) {
     process_interrupt();
@@ -67,6 +69,9 @@ int process_request(Task* task, Request* request) {
     case CALLID_AWAITEVENT:
       await_event(task, (int) request->args[0]);
       break;
+    case CALLID_SHUTDOWN:
+      shutdown = 1;
+      break;
     default:
       ERROR("Illegal syscall number: %d\n", request->syscall);
   }
@@ -89,6 +94,8 @@ void init_cache() {
 #define DEVICE_CONFIG_ADDR 0x80930080
 
 void init_kernel() {
+  shutdown = 0;
+
   init_cache();
   *(int *)(0x28) = (int)&k_enter;
   *(int *)(0x38) = (int)&hwi_enter;
@@ -124,6 +131,9 @@ void kernel_run() {
 
     Request* request = k_exit(next_task->retval, &next_task->stack_position);
     next_task->retval = process_request(next_task, request);
+    if (shutdown) {
+      break;
+    }
 
     // Must happen after process_request.
     // TODO: This is pretty hacky. Some syscalls will remove the current task from the
