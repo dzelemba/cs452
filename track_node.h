@@ -1,6 +1,8 @@
 #ifndef __TRACK_NODE_H__
 #define __TRACK_NODE_H__
 
+#include "sensor.h"
+
 typedef enum {
   NODE_NONE,
   NODE_SENSOR,
@@ -32,5 +34,15 @@ struct track_node {
   track_node *reverse;  /* same location, but opposite direction */
   track_edge edge[2];
 };
+
+int get_num_neighbours(node_type type);
+
+int sensor2idx(char sensor, int socket);
+
+int node2idx(track_node* track, track_node* node);
+
+void node2sensor(track_node* track, track_node* node, sensor* s);
+
+void get_next_sensors(track_node* track, track_node* node, sensor* sensors, int* num_sensors);
 
 #endif

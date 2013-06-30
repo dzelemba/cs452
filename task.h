@@ -1,7 +1,7 @@
 #ifndef __TASK_H__
 #define __TASK_H__
 
-#define STACK_SIZE (1024)
+#define STACK_SIZE (64 * 1024)
 #define MAX_TASKS 127
 
 #define UNUSED -1

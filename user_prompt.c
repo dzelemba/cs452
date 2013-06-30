@@ -7,6 +7,8 @@
 #include "priorities.h"
 #include "sensor.h"
 #include "sensor_server.h"
+#include "track_data.h"
+#include "location_server.h"
 
 #define MAX_LINE_LENGTH 64
 
@@ -32,6 +34,7 @@ void draw_initial() {
   printf(COM2, "\033[2J");
   printf(COM2, "\033[3;1HSwitch Table:");
   printf(COM2, "\033[13;1HMost Recently Hit Sensors:");
+  printf(COM2, "\033[20;1HTrain Locations:");
 
   int sw;
 
@@ -59,12 +62,14 @@ void draw_initial() {
 
 // Maintain invariant that before every printf, we are at the cursor prompt pos
 void user_prompt_task() {
-  current_prompt_pos = 0;
   char line[64];
 
-  char static_tokens[3][8];
-  char* tokens[3];
-  create_string_array((const char*)static_tokens, 3, 8, (const char**)tokens);
+  int max_tokens = 4;
+  int max_token_size = 8;
+
+  char static_tokens[max_tokens][max_token_size];
+  char* tokens[max_tokens];
+  create_string_array((const char*)static_tokens, max_tokens, max_token_size, (const char**)tokens);
 
   printf(COM2, "\033[2;1H>\033[K");
   while (1) {
@@ -73,7 +78,7 @@ void user_prompt_task() {
       line[current_prompt_pos] = '\0'; // null-terminate line
 
       char* error = 0;
-      int ret = string_split(line, ' ', 3, 8, (char**)tokens, &error);
+      int ret = string_split(line, ' ', max_tokens, max_token_size, (char**)tokens, &error);
       if (ret != -1) {
         if (string_equal(tokens[0], "tr")) {
           int train_number = atoi(tokens[1]);
@@ -89,6 +94,26 @@ void user_prompt_task() {
           tr_reverse(train_number);
         } else if (string_equal(tokens[0], "q")) {
           Shutdown();
+        } else if (string_equal(tokens[0], "init")) {
+          if (tokens[1][0] == 'A') {
+            init_tracka(get_track());
+          } else if (tokens[1][0] == 'B') {
+            init_trackb(get_track());
+          }
+        } else if (string_equal(tokens[0], "track")) {
+          location loc;
+          int train = atoi(tokens[1]);
+
+          loc.s.group = tokens[2][0];
+          loc.s.socket = atoi(&tokens[2][1]);
+
+          if (tokens[3][0] == 'F') {
+            loc.d = FORWARD;
+          } else if (tokens[3][0] == 'B') {
+            loc.d = BACKWARD;
+          }
+
+          track_train(train, &loc);
         } else {
           // bad command
         }
@@ -183,13 +208,35 @@ void timer_display_task() {
 }
 
 /*
+ * Displaying Train Locations
+ */
+
+void display_train_locations() {
+  location_array loc_array;
+  int i;
+  while (1) {
+    get_location_updates(&loc_array);
+    for (i = 0; i < loc_array.size; i++) {
+      location* loc = &loc_array.locations[i];
+      printf(COM2, "\033[%d;1HTrain %d, Sensor: %c%2d, Distance: %d Direction: %s\033[K\n",
+             21 + i, loc->train, loc->s.group, loc->s.socket, loc->cm_past_sensor,
+             direction_to_string(loc->d));
+    }
+  }
+
+  Exit();
+}
+
+/*
  * Public Methods
  */
 
 void start_user_prompt() {
+  current_prompt_pos = 0;
   draw_initial();
   Create(MED_PRI, &timer_display_task);
   Create(MED_PRI, &user_prompt_task);
   Create(MED_PRI, &display_sensor_data);
+  Create(MED_PRI, &display_train_locations);
 }
 

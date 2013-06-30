@@ -1,7 +1,7 @@
 #include "track_data.h"
 #include "track_node.h"
 
-static track_node track[TRACK_MAX];
+static track_node _track[TRACK_MAX];
 
 static void *memset(void *s, int c, unsigned int n) {
   unsigned char *p = s;
@@ -10,7 +10,7 @@ static void *memset(void *s, int c, unsigned int n) {
 }
 
 track_node* get_track() {
-  return track;
+  return _track;
 }
 
 void init_tracka(track_node *track) {

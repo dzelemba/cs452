@@ -11,12 +11,14 @@
 #include "train.h"
 #include "sensor_server.h"
 #include "user_prompt.h"
-
+#include "location_server.h"
 
 // SHELL TASK
 
 void shell_task() {
   start_sensor_server();
+  start_location_server();
+
   start_user_prompt();
 
   Exit();

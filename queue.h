@@ -22,4 +22,16 @@ int is_queue_full(queue *q);
 
 int queue_size(queue *q);
 
+// For iterating over the queue.
+
+typedef struct queue_iterator {
+  int pos;
+} queue_iterator;
+
+void init_queue_iterator(queue* q, queue_iterator* q_it);
+
+int qit_has_next(queue* q, queue_iterator* q_it);
+
+int qit_get_next(queue* q, queue_iterator* q_it);
+
 #endif

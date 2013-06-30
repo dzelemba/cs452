@@ -18,8 +18,17 @@ typedef struct sensor {
   int socket;
 } sensor;
 
+typedef struct sensor_array {
+  sensor sensors[MAX_NEW_SENSORS];
+  int num_sensors;
+} sensor_array;
+
 int sensor_to_int(sensor* s);
 
 void int_to_sensor(int i, sensor* s);
+
+int sensor_equal(sensor* s1, sensor* s2);
+
+void sensor_copy(sensor* destination, sensor* source);
 
 #endif

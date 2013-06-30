@@ -3,4 +3,6 @@
 
 void start_user_prompt();
 
+void return_cursor();
+
 #endif

@@ -111,8 +111,8 @@ unit: test.out
 	./test.out
 
 test.out: export RTOS_COMPILER=/usr/bin/gcc
-test.out: unittests/* strings.* linked_array.* stdlib.* bitmask.* heap.*
-	$(XCC) $(TESTFLAGS) unittests/all_tests.c unittests/test_helpers.c strings.c linked_array.c stdlib.c heap.c heapplus.c bitmask.c dijkstra.c track_data.c -o test.out
+test.out: unittests/* strings.* linked_array.* stdlib.* bitmask.* heap.* track_node.*
+	$(XCC) $(TESTFLAGS) unittests/all_tests.c unittests/test_helpers.c strings.c linked_array.c stdlib.c heap.c heapplus.c bitmask.c dijkstra.c track_data.c track_node.c -o test.out
 
 clean:
 	rm -rf obj dbg dbg1 dbg2 dbg3 test test.out

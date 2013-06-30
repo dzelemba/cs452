@@ -1,7 +1,7 @@
 #include "stdlib.h"
 #include "debug.h"
 
-#define HEAP_SIZE 1024 * 1024
+#define HEAP_SIZE 16 * 1024 * 1024
 
 static char heap[HEAP_SIZE];
 static char* free_ptr;

@@ -10,25 +10,12 @@
 // TODO: Come up with a better path cost model
 #define REVERSE_COST 500
 
-// We redefine this so we can run this code in a unittest
-#define SOCKETS_PER_SENSOR 16
-
-static int NUM_NEIGHBOURS[NUM_NODE_TYPES] = { 0, 1, 2, 1, 1, 0 };
-
 static heap_node dijkstra_mem[TRACK_MAX];
 static int dijkstra_dict[TRACK_MAX];
 static heapplus path_heap;
 
 static sequence path[TRACK_MAX];
 static char visited[TRACK_MAX];
-
-int sensor2idx(char sensor, int socket) {
-  return (sensor - 'A') * SOCKETS_PER_SENSOR + (socket - 1);
-}
-
-int node2idx(track_node* track, track_node* node) {
-  return (node - track);
-}
 
 // Perfectly thread unsafe
 void get_path_debug(track_node* track, char src_sensor, int src_socket,
@@ -61,7 +48,7 @@ void get_path(track_node* track, int src, int dest, sequence* out_path, int* out
     }
 
     track_node* node = &(track[v]);
-    int num_neighbours = NUM_NEIGHBOURS[node->type];
+    int num_neighbours = get_num_neighbours(node->type);
 
     i = 0;
     for (i = 0; i < num_neighbours; i++) {

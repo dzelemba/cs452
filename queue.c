@@ -40,3 +40,18 @@ int is_queue_full(queue *q) {
 int queue_size(queue *q) {
   return q->end - q->start;
 }
+
+// For iterating over the queue.
+
+void init_queue_iterator(queue* q, queue_iterator* q_it) {
+  q_it->pos = q->start;
+}
+
+int qit_has_next(queue* q, queue_iterator* q_it) {
+  return q->end != q_it->pos;
+}
+
+int qit_get_next(queue* q, queue_iterator* q_it) {
+  ASSERT(qit_has_next(q, q_it), "queue.c: qit_has_next");
+  return q->buf[q_it->pos++];
+}
