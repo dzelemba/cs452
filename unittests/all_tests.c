@@ -7,6 +7,7 @@
 #include "linked_array_tests.c"
 #include "bitmask_tests.c"
 #include "heap_tests.c"
+#include "dijkstra_tests.c"
 
 int main(int argc, char** argv) {
   init_stdlib();
@@ -15,6 +16,7 @@ int main(int argc, char** argv) {
   linked_array_tests();
   bitmask_tests();
   heap_tests();
+  dijkstra_tests();
 
   printf("******* All Test Passed! ********\n\n");
 
