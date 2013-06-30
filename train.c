@@ -7,11 +7,7 @@
 
 static int train_speeds[NUM_TRAINS + 1];
 static int switch_directions[NUM_SWITCHES + 1];
-static int sensor_data[NUM_SENSORS][SOCKETS_PER_SENSOR];
 static int reverse_server_tid;
-
-#define NUM_SENSOR_BYTES (NUM_SENSORS * 2)
-static char sensor_bytes[NUM_SENSOR_BYTES];
 
 /*
  * Helpers
@@ -57,15 +53,11 @@ void init_trains() {
   for (i = 1; i < NUM_SWITCHES + 1; i++) {
     switch_directions[i] = '?';
   }
-  clear_sensor_data();
 
   /* Required settings */
   ua_setspeed(COM1, 2400);
   ua_setstopbits(COM1, ON);
   ua_setfifo(COM1, OFF);
-
-  /* Tell the sensors to reset after dumping data */
-  Putc(COM1, 192);
 
   reverse_server_tid = Create(MED_PRI_K, &tr_reverse_task);
 }
@@ -92,56 +84,6 @@ void tr_reverse(int train) {
   train_info[1] = train_speeds[train];
 
   Send(reverse_server_tid, (char *)train_info, 2*sizeof(int), (void *)0, 0);
-}
-
-/* Sensor Methods */
-
-void clear_sensor_data() {
-  int i,j;
-  for (i = 0; i < NUM_SENSORS; i++) {
-    for (j = 0; j < SOCKETS_PER_SENSOR; j++) {
-      sensor_data[i][j] = 0;
-    }
-  }
-}
-
-void prepare_sensors_for_read() {
-  putc(COM1, 128 + NUM_SENSORS);
-}
-
-void process_sensor_bytes() {
-  int i,j;
-  for (i = 0; i< NUM_SENSOR_BYTES; i++) {
-    int mask = 1;
-    int offset = (i % 2) * 8;
-    int max = 8 + offset;
-    int sensor = i / 2;
-    for (j = max - 1; j >= offset; j--) {
-      if (sensor_bytes[i] & mask) {
-        sensor_data[sensor][j] = 1;
-      }
-      mask *= 2;
-    }
-  }
-}
-
-void update_sensors() {
-  clear_sensor_data();
-  prepare_sensors_for_read();
-
-  int i;
-  for (i = 0; i < NUM_SENSOR_BYTES; i++) {
-    char c = Getc(COM1);
-    sensor_bytes[i] = c;
-  }
-  process_sensor_bytes();
-}
-
-int get_sensor_data(char sensor, int socket) {
-  ASSERT(sensor >= 'A' && sensor < 'A' + NUM_SENSORS, "train.c: get_sensor_data: invalid sensor");
-  ASSERT(socket > 0 && socket <= SOCKETS_PER_SENSOR, "train.c:get_sensor_data: invalid socket");
-
-  return sensor_data[sensor - 'A'][socket - 1];
 }
 
 /* Switch Methods */
