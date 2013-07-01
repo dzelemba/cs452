@@ -101,19 +101,8 @@ void user_prompt_task() {
             init_trackb(get_track());
           }
         } else if (string_equal(tokens[0], "track")) {
-          location loc;
           int train = atoi(tokens[1]);
-
-          loc.s.group = tokens[2][0];
-          loc.s.socket = atoi(&tokens[2][1]);
-
-          if (tokens[3][0] == 'F') {
-            loc.d = FORWARD;
-          } else if (tokens[3][0] == 'B') {
-            loc.d = BACKWARD;
-          }
-
-          track_train(train, &loc);
+          tr_track(train);
         } else {
           // bad command
         }

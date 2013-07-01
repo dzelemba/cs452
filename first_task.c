@@ -18,9 +18,6 @@ void first_user_task() {
   Delay(50);
 #endif
 
-  // Calls Putc so it needs to be here.
-  init_trains();
-
 #ifndef TEST
   run_project();
 #endif

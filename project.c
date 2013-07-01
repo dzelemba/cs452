@@ -18,6 +18,7 @@
 void shell_task() {
   start_sensor_server();
   start_location_server();
+  init_trains();
 
   start_user_prompt();
 

@@ -13,6 +13,9 @@ void init_trains();
 
 /* Train Methods */
 
+// Pre Condition: No other trains can be moving.
+void tr_track(int train);
+
 void tr_set_speed(int speed, int train);
 
 void tr_reverse(int train);
@@ -20,7 +23,5 @@ void tr_reverse(int train);
 /* Switch Methods */
 
 void tr_sw(int switch_number, char switch_direction);
-
-char get_switch_direction(int switch_number);
 
 #endif
