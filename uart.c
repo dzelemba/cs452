@@ -1,7 +1,7 @@
 #include "uart.h"
 #include "ts7200.h"
 #include "debug.h"
-#include "stdio.h"
+#include "ourio.h"
 
 /*
  * The UARTs are initialized by RedBoot to the following state

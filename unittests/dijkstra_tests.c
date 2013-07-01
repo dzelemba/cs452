@@ -1,6 +1,6 @@
-#include "../dijkstra.h"
-#include "../track_data.h"
-#include "../track_node.h"
+#include "dijkstra.h"
+#include "track_data.h"
+#include "track_node.h"
 
 #include <stdio.h>
 

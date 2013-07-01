@@ -3,7 +3,7 @@
 #include "priorities.h"
 #include "syscall.h"
 #include "test_helpers.h"
-#include "stdio.h"
+#include "ourio.h"
 
 static void priority_3() {
   int tid = MyTid();

@@ -1,7 +1,7 @@
 #include "train.h"
 #include "syscall.h"
 #include "uart.h"
-#include "stdio.h"
+#include "ourio.h"
 #include "debug.h"
 #include "priorities.h"
 

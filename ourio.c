@@ -1,7 +1,7 @@
-#include "stdio.h"
+#include "ourio.h"
 #include "syscall.h"
 #include "ts7200.h"
-#include "stdlib.h"
+#include "ourlib.h"
 #include "string.h"
 #include "debug.h"
 

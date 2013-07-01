@@ -1,4 +1,4 @@
-#include "../heap.h"
+#include "heap.h"
 #include "test_helpers.h"
 #include <stdio.h>
 

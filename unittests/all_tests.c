@@ -2,7 +2,7 @@
  * Main runner for tests.
  */
 
-#include "../stdlib.h"
+#include "ourlib.h"
 #include "strings_tests.c"
 #include "linked_array_tests.c"
 #include "bitmask_tests.c"

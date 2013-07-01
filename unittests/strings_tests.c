@@ -1,4 +1,4 @@
-#include "../strings.h"
+#include "strings.h"
 #include "test_helpers.h"
 #include <stdio.h>
 

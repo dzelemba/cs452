@@ -3,7 +3,7 @@
 #include "syscall.h"
 #include "test_helpers.h"
 #include "priorities.h"
-#include "stdio.h"
+#include "ourio.h"
 
 static void second_user_task() {
   int tid = MyTid();

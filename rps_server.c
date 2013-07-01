@@ -3,7 +3,7 @@
 #include "syscall.h"
 #include "priorities.h"
 #include "debug.h"
-#include "stdio.h"
+#include "ourio.h"
 
 /* Private Methods */
 

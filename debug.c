@@ -1,5 +1,5 @@
 #include "debug.h"
-#include "stdio.h"
+#include "ourio.h"
 #include "interrupt_handler.h"
 
 static int method_depth = 0;

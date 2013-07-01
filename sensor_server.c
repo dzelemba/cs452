@@ -1,6 +1,6 @@
 #include "sensor_server.h"
 #include "train.h"
-#include "stdio.h"
+#include "ourio.h"
 #include "priorities.h"
 #include "syscall.h"
 #include "debug.h"

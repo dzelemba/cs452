@@ -1,4 +1,4 @@
-#include "../bitmask.h"
+#include "bitmask.h"
 #include "test_helpers.h"
 #include <stdio.h>
 

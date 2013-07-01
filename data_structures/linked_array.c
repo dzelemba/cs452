@@ -1,5 +1,5 @@
 #include "linked_array.h"
-#include "stdlib.h"
+#include "ourlib.h"
 #include "debug.h"
 
 struct node {

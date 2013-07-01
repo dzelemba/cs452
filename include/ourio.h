@@ -1,5 +1,5 @@
-#ifndef __STDIO_H__
-#define __STDIO_H__
+#ifndef __CHANNELIO_H__
+#define __CHANNELIO_H__
 
 typedef char *va_list;
 
