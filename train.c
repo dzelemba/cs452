@@ -6,7 +6,7 @@
 #include "priorities.h"
 #include "location_server.h"
 #include "sensor_server.h"
-#include "stdlib.h"
+#include "ourlib.h"
 
 static int train_speeds[NUM_TRAINS + 1];
 static int switch_directions[NUM_SWITCHES + 1];
