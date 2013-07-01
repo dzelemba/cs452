@@ -1,4 +1,4 @@
-#include "../linked_array.h"
+#include "linked_array.h"
 #include "test_helpers.h"
 #include <stdio.h>
 

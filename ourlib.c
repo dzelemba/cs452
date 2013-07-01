@@ -1,4 +1,4 @@
-#include "stdlib.h"
+#include "ourlib.h"
 #include "debug.h"
 
 #define HEAP_SIZE 16 * 1024 * 1024

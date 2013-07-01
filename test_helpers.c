@@ -1,7 +1,7 @@
 #include "test_helpers.h"
 #include "syscall.h"
 #include "strings.h"
-#include "stdio.h"
+#include "ourio.h"
 #include "kernel.h"
 
 static int failure;

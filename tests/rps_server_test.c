@@ -4,7 +4,7 @@
 #include "test_helpers.h"
 #include "rps_server.h"
 #include "priorities.h"
-#include "stdio.h"
+#include "ourio.h"
 
 #define NUM_ROUNDS 5
 

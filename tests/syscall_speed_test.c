@@ -5,7 +5,7 @@
 #include "test_helpers.h"
 #include "timer.h"
 #include "priorities.h"
-#include "stdio.h"
+#include "ourio.h"
 
 #define ITERATIONS 1000
 

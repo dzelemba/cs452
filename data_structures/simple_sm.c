@@ -1,5 +1,5 @@
 #include "simple_sm.h"
-#include "stdlib.h"
+#include "ourlib.h"
 #include "debug.h"
 
 void sm_create(simple_sm* sm, int numEvents) {

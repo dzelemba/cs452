@@ -4,7 +4,7 @@
 XCC = ./colorgcc
 AS = /u/wbcowan/gnuarm-4.0.2/arm-elf/bin/as
 LD = /u/wbcowan/gnuarm-4.0.2/arm-elf/bin/ld
-CFLAGS  = -O2 -c -fPIC -Wall -I. -mcpu=arm920t -msoft-float -fno-builtin
+CFLAGS  = -O2 -c -fPIC -Wall -I./include -mcpu=arm920t -msoft-float -fno-builtin
 
 # -g: include hooks for gdb
 # -c: only compile
@@ -45,10 +45,9 @@ endif
 endif
 endif
 
-TEST_SRC_FILES = $(wildcard tests/*.c)
-TEST_OBJ_FILES = $(addprefix $(OBJECT_DIR)/,$(TEST_SRC_FILES:.c=.o))
-KERNEL_SRC_FILES = $(wildcard *.c)
-KERNEL_OBJ_FILES = $(addprefix $(OBJECT_DIR)/,$(KERNEL_SRC_FILES:.c=.o) context_switch.o tests.o)
+VPATH = kernel/ data_structures/ tests/
+KERNEL_SRC_FILES = $(wildcard *.c) $(wildcard $(addsuffix *.c,$(VPATH)))
+KERNEL_OBJ_FILES = $(addprefix $(OBJECT_DIR)/,$(notdir $(KERNEL_SRC_FILES:.c=.o)) context_switch.o)
 
 .PHONY: dbg dbg1 dbg2 dbg3 test clean
 
@@ -85,17 +84,8 @@ $(OBJECT_DIR)/context_switch.o: context_switch.s
 # Kernel Sources
 
 $(OBJECT_DIR)/%.o: %.c
-	$(XCC) -S $(CFLAGS) $< -o $(OBJECT_DIR)/$(<:.c=.s)
-	$(AS) $(ASFLAGS) -o $@ $(OBJECT_DIR)/$(<:.c=.s)
-
-# Test Sources
-
-$(OBJECT_DIR)/tests.o: $(TEST_OBJ_FILES)
-	$(LD) -r $(LDFLAGS) -o $@ $^
-
-tests/%.o: tests/%.c
-	$(XCC) -S $(CFLAGS) $< -o $(OBJECT_DIR)/$(<:.c=.s)
-	$(AS) $(ASFLAGS) -o $(OBJECT_DIR)/$@ $(OBJECT_DIR)/$(<:.c=.s)
+	$(XCC) -S $(CFLAGS) $< -o $(OBJECT_DIR)/$(notdir $(@:.o=.s))
+	$(AS) $(ASFLAGS) -o $@ $(OBJECT_DIR)/$(notdir $(@:.o=.s))
 
 main.elf: $(KERNEL_OBJ_FILES)
 	$(LD) $(LDFLAGS) -o $(OBJECT_DIR)/$@ $(KERNEL_OBJ_FILES) -lgcc
@@ -105,14 +95,15 @@ install: stuff
 
 # Unit Tests
 
-TESTFLAGS = -g -Wall -DUNIT
+TESTFLAGS = -g -Wall -I./include -DUNIT
+#TESTFLAGS = -g -Wall -DUNIT
 
 unit: test.out
 	./test.out
 
 test.out: export RTOS_COMPILER=/usr/bin/gcc
-test.out: unittests/* strings.* linked_array.* stdlib.* bitmask.* heap.* track_node.*
-	$(XCC) $(TESTFLAGS) unittests/all_tests.c unittests/test_helpers.c strings.c linked_array.c stdlib.c heap.c heapplus.c bitmask.c dijkstra.c track_data.c track_node.c -o test.out
+test.out: unittests/* strings.* linked_array.* ourlib.* bitmask.* heap.* track_node.*
+	$(XCC) $(TESTFLAGS) unittests/all_tests.c unittests/test_helpers.c strings.c linked_array.c ourlib.c heap.c heapplus.c bitmask.c dijkstra.c track_data.c track_node.c -o test.out
 
 clean:
 	rm -rf obj dbg dbg1 dbg2 dbg3 test test.out

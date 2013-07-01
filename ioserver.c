@@ -7,7 +7,7 @@
 #include "task.h"
 #include "uart.h"
 #include "debug.h"
-#include "stdio.h"
+#include "ourio.h"
 
 #define REQUEST_TRAIN_GETC  0
 #define REQUEST_TRAIN_PUTC  1
