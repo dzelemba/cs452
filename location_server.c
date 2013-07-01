@@ -11,6 +11,7 @@
 #include "debug.h"
 #include "ourio.h"
 #include "task.h"
+#include "distance_server.h"
 
 /*
  * Private Methods
@@ -22,6 +23,7 @@ typedef enum location_server_message_type {
   TRACK_TRAIN,
   GET_UPDATES,
   SENSOR_UPDATE,
+  DISTANCE_UPDATE
 } location_server_message_type;
 
 typedef struct location_server_message {
@@ -29,16 +31,26 @@ typedef struct location_server_message {
   union {
     sensor_array sensors;
     location loc;
+    int train;
   };
 } location_server_message;
 
 void location_sensor_notifier() {
-  location_server_tid = MyParentTid();
-
   location_server_message msg;
   msg.type = SENSOR_UPDATE;
   while (1) {
     msg.sensors.num_sensors = get_sensor_data(msg.sensors.sensors, MAX_NEW_SENSORS);
+    Send(location_server_tid, (char *)&msg, sizeof(location_server_message), (void *)0, 0);
+  }
+
+  Exit();
+}
+
+void location_distance_notifier() {
+  location_server_message msg;
+  msg.type = DISTANCE_UPDATE;
+  while (1) {
+    ds_get_update(&msg.train);
     Send(location_server_tid, (char *)&msg, sizeof(location_server_message), (void *)0, 0);
   }
 
@@ -89,8 +101,6 @@ void reply_to_tasks(queue* waiting_tasks, location_array* loc_array) {
 }
 
 void location_server() {
-  Create(MED_PRI, &location_sensor_notifier);
-
   queue waiting_tasks;
   int q_mem2[MAX_TASKS];
   init_queue(&waiting_tasks, q_mem2, MAX_TASKS);
@@ -102,6 +112,7 @@ void location_server() {
   t_data_array.size = 0;
 
   int tid, train, i, j, k, sensor_found, locations_changed;
+  location* loc;
   location_server_message msg;
 
   while (1) {
@@ -111,6 +122,9 @@ void location_server() {
       case TRACK_TRAIN:
         Reply(tid, (void *)0, 0);
         ASSERT(loc_array.size < MAX_TRAINS, "location_server.c: track train request");
+
+        // Notify distance server.
+        ds_track_train(msg.loc.train);
 
         // Copy location data into location array
         memcpy((char *)&loc_array.locations[loc_array.size], (const char *)&msg.loc, sizeof(location));
@@ -125,6 +139,12 @@ void location_server() {
         break;
       case GET_UPDATES:
         push(&waiting_tasks, tid);
+        break;
+      case DISTANCE_UPDATE:
+        Reply(tid, (void *)0, 0);
+        loc = get_train_location(&loc_array, msg.train);
+        loc->cm_past_sensor++;
+        reply_to_tasks(&waiting_tasks, &loc_array);
         break;
       case SENSOR_UPDATE: {
         Reply(tid, (void *)0, 0);
@@ -175,8 +195,21 @@ void location_server() {
  * Public Methods
  */
 
+location* get_train_location(location_array* loc_array, int train) {
+  int i;
+  for (i = 0; i < loc_array->size; i++) {
+    if (train == loc_array->locations[i].train) {
+      return &loc_array->locations[i];
+    }
+  }
+  ERROR("train.c: get_train_location: Not tracking train %d\n", train);
+  return 0;
+}
+
 void start_location_server() {
   location_server_tid = Create(MED_PRI, &location_server);
+  Create(MED_PRI, &location_sensor_notifier);
+  Create(MED_PRI, &location_distance_notifier);
 }
 
 void track_train(int train, location* loc) {

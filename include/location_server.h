@@ -23,6 +23,13 @@ typedef struct location_array {
   int size;
 } location_array;
 
+
+location* get_train_location(location_array* loc_array, int train);
+
+/*
+ * Location Server
+ */
+
 void start_location_server();
 
 void track_train(int train, location* loc);
@@ -30,5 +37,6 @@ void track_train(int train, location* loc);
 void get_location_updates(location_array* loc_array);
 
 char* direction_to_string(direction d);
+
 
 #endif

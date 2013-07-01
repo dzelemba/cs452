@@ -7,10 +7,18 @@
 #include "location_server.h"
 #include "sensor_server.h"
 #include "ourlib.h"
+#include "distance_server.h"
 
+/*
+ * Note: Some of this global memory might be problematic as the reverse
+ * server is also using it...
+ * But it should be ok, since we shouldn't be talking to the same train from
+ * two different places.
+ */
 static int train_speeds[NUM_TRAINS + 1];
 static int switch_directions[NUM_SWITCHES + 1];
 static int reverse_server_tid;
+static int tracked_trains[NUM_TRAINS + 1];
 
 /*
  * Helpers for sending commands to the train
@@ -19,6 +27,27 @@ static int reverse_server_tid;
 void fill_set_speed(char*cmd, int speed, int train) {
   cmd[0] = speed;
   cmd[1] = train;
+}
+
+void send_reverse_command(int train) {
+  char cmd[2];
+  fill_set_speed(cmd, 15, train);
+  putbytes(COM1, cmd, 2);
+}
+
+void set_speed(int speed, int train) {
+  ASSERT(train > 0 && train <= NUM_TRAINS, "train.c: tr_set_speed: Invalid train number");
+  ASSERT(speed >= 0 && speed <= NUM_SPEEDS, "train.c: tr_set_speed: Invalid speed");
+
+  char cmd[2];
+  fill_set_speed(cmd, speed, train);
+
+  putbytes(COM1, cmd, 2);
+  train_speeds[train] = speed;
+
+  if (tracked_trains[train]) {
+    ds_update_speed(train, speed);
+  }
 }
 
 void tr_reverse_task() {
@@ -31,29 +60,14 @@ void tr_reverse_task() {
     int train = train_info[0];
     int speed = train_info[1];
 
-    char cmd[4];
-    fill_set_speed(cmd, 0, train);
-    putbytes(COM1, cmd, 2);
+    set_speed(0, train);
 
     Delay(300);
-    fill_set_speed(cmd, 15, train);
-    fill_set_speed(cmd + 2, speed, train);
-    putbytes(COM1, cmd, 4);
+    send_reverse_command(train);
+    set_speed(speed, train);
   }
   Exit();
 }
-
-void set_speed(int speed, int train) {
-  ASSERT(train > 0 && train <= NUM_TRAINS, "train.c: tr_set_speed: Invalid train number");
-  ASSERT(speed >= 0 && speed <= NUM_SPEEDS, "train.c: tr_set_speed: Invalid speed");
-
-  char cmd[2];
-  fill_set_speed(cmd, speed, train);
-
-  putbytes(COM1, cmd, 2);
-  train_speeds[train] = speed;
-}
-
 
 void reverse(int train) {
   ASSERT(train > 0 && train <= NUM_TRAINS, "train.c: tr_reverse: Invalid train number");
@@ -146,17 +160,6 @@ void location_notifier() {
   }
 }
 
-location* get_train_location(location_array* loc_array, int train) {
-  int i;
-  for (i = 0; i < loc_array->size; i++) {
-    if (train == loc_array->locations[i].train) {
-      return &loc_array->locations[i];
-    }
-  }
-  ERROR("train.c: get_train_location: Not tracking train %d\n", train);
-  return 0;
-}
-
 void train_controller() {
   location_array train_locations;
 
@@ -183,6 +186,7 @@ void train_controller() {
           loc.d = FORWARD;
           track_train(msg.user_cmd.train, &loc);
         }
+        tracked_trains[msg.user_cmd.train] = 1;
         break;
       }
       case SET_ROUTE:
@@ -219,6 +223,7 @@ void init_trains() {
   int i;
   for (i = 1; i < NUM_TRAINS + 1; i++) {
     train_speeds[i] = 0;
+    tracked_trains[i] = 0;
   }
 
   for (i = 1; i < NUM_SWITCHES + 1; i++) {
