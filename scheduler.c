@@ -15,6 +15,7 @@ void init_scheduler() {
   int i;
   for (i = 0; i < NUM_PRIORITY_TYPES; i++) {
     init_queue(&task_queues[i], task_queues_mem[i], MAX_TASKS + 1);
+    q_set_name(&task_queues[i], "Some Scheduler Queue");
   }
 
   bm_create(&bm);

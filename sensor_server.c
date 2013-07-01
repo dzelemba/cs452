@@ -47,7 +47,7 @@ void process_sensor_bytes(char* bytes, sensor_server_message* msg) {
     int group = i / 2;
     for (j = max - 1; j >= offset; j--) {
       if (bytes[i] & mask) {
-        ASSERT(next_sensor < MAX_NEW_SENSORS, "sensor_server.c : process_sensor_bytes");
+        ASSERT(next_sensor < MAX_NEW_SENSORS, "sensor_server.c : process_sensor_bytes" );
         msg->data[next_sensor++] = (sensor) { group + 'A', j + 1 };
       }
       mask *= 2;
@@ -79,6 +79,7 @@ void sensor_server() {
   queue waiting_tasks;
   int q_mem[MAX_TASKS];
   init_queue(&waiting_tasks, q_mem, MAX_TASKS);
+  q_set_name(&waiting_tasks, "Sensor Server Waiting Tasks");
 
   sensor_server_message msg;
   int tid;

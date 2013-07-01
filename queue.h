@@ -2,6 +2,7 @@
 #define __QUEUE_H__
 
 typedef struct _queue {
+  char* name;
   int start;
   int end;
   int* buf;
@@ -9,6 +10,8 @@ typedef struct _queue {
 } queue;
 
 void init_queue(queue *q, int* buf, int size);
+
+void q_set_name(queue *q, char * name);
 
 void push(queue *q, int val);
 

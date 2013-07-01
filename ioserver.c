@@ -107,6 +107,15 @@ void ioserver_run() {
   init_queue(&term_putc_queue, term_putc_mem, TERM_PUTC_MEM_SIZE); // char
   init_queue(&flush_queue, flush_mem, FLUSH_MEM_SIZE); // tid
 
+  // Give them names.
+  q_set_name(&train_data_queue, "Train Data Queue");
+  q_set_name(&train_getc_queue, "Train Getc Queue");
+  q_set_name(&train_putc_queue, "Train Putc Queue");
+  q_set_name(&term_data_queue, "Term Data Queue");
+  q_set_name(&term_getc_queue, "Term Getc Queue");
+  q_set_name(&term_putc_queue, "Term Putc Queue");
+  q_set_name(&flush_queue, "Flush Queue");
+
   Create(MAX_PRI, &uart1_write_notifier_run);
   Create(MAX_PRI, &uart1_read_notifier_run);
   Create(MAX_PRI, &uart2_write_notifier_run);

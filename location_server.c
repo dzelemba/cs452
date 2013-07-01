@@ -94,6 +94,7 @@ void location_server() {
   queue waiting_tasks;
   int q_mem2[MAX_TASKS];
   init_queue(&waiting_tasks, q_mem2, MAX_TASKS);
+  q_set_name(&waiting_tasks, "Location Server Waiting Tasks");
 
   location_array loc_array;
   loc_array.size = 0;
