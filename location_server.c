@@ -70,7 +70,7 @@ typedef struct tracking_data_array {
 } tracking_data_array;
 
 void fill_next_possible_sensors(tracking_data* t_data) {
-  track_node* node = &get_track()[sensor2idx(t_data->loc->s.group, t_data->loc->s.socket)];
+  track_node* node = t_data->loc->node;
 
   node2sensor(get_track(), node->reverse, &t_data->reverse_sensor);
 
@@ -82,10 +82,36 @@ void flip_direction(direction* d) {
   *d = (*d == FORWARD ? BACKWARD : FORWARD);
 }
 
+track_edge* get_next_edge(location* loc) {
+  if (loc->node->type == NODE_BRANCH) {
+    if (get_switch_direction(loc->node->num) == 'C') {
+      return &loc->node->edge[DIR_CURVED];
+    } else {
+      return &loc->node->edge[DIR_STRAIGHT];
+    }
+  } else {
+    return &loc->node->edge[DIR_AHEAD];
+  }
+}
+
+void update_tracking_data_for_distance(location* loc) {
+  if (loc->node->type == NODE_EXIT) {
+    return;
+  }
+
+  track_edge* edge = get_next_edge(loc);
+  if (loc->mm_past_node > edge->dist && edge->dest->type != NODE_SENSOR) {
+    loc->mm_past_node -= edge->dist;
+    loc->node = edge->dest;
+  }
+}
+
 int update_sensor_if_equal(location* loc, sensor* cur, sensor* new, int reversed) {
   if (sensor_equal(cur, new)) {
-    sensor_copy(&loc->s, new);
-    loc->cm_past_sensor = 0;
+    track_edge* edge = get_next_edge(loc);
+    loc->prev_sensor_error = loc->mm_past_node - edge->dist;
+    loc->node = get_track_node(get_track(), sensor2idx(new->group, new->socket));
+    loc->mm_past_node = 0;
     if (reversed) {
       flip_direction(&loc->d);
     }
@@ -143,7 +169,8 @@ void location_server() {
       case DISTANCE_UPDATE:
         Reply(tid, (void *)0, 0);
         loc = get_train_location(&loc_array, msg.train);
-        loc->cm_past_sensor++;
+        loc->mm_past_node += 10;
+        update_tracking_data_for_distance(get_train_location(&loc_array, msg.train));
         reply_to_tasks(&waiting_tasks, &loc_array);
         break;
       case SENSOR_UPDATE: {
@@ -216,7 +243,8 @@ void track_train(int train, location* loc) {
   location_server_message msg;
   msg.type = TRACK_TRAIN;
   loc->train = train;
-  loc->cm_past_sensor = 0;
+  loc->mm_past_node = 0;
+  loc->prev_sensor_error = 0;
   memcpy((char *)&msg.loc, (const char*)loc, sizeof(location));
 
   Send(location_server_tid, (char *)&msg, sizeof(location_server_message), (void *)0, 0);

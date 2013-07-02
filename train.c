@@ -8,6 +8,8 @@
 #include "sensor_server.h"
 #include "ourlib.h"
 #include "distance_server.h"
+#include "track_node.h"
+#include "track_data.h"
 
 /*
  * Note: Some of this global memory might be problematic as the reverse
@@ -96,6 +98,23 @@ int convert_switch_number(int switch_number) {
   return 0;
 }
 
+int switch_number_from_index(int index) {
+  if (index < 19) return index;
+
+  switch (index) {
+  case 19:
+    return 0x99;
+  case 20:
+    return 0x9A;
+  case 21:
+    return 0x9B;
+  case 22:
+    return 0x9C;
+  }
+
+  return 0;
+}
+
 void sw(int switch_number, char switch_direction) {
   int switch_direction_code;
   switch (switch_direction) {
@@ -179,8 +198,9 @@ void train_controller() {
         for (i = 0; i < s_array.num_sensors; i++) {
           // TODO(dzelemba): Check for another train stopped on a sensor.
           location loc;
+          sensor* s = &s_array.sensors[i];
           loc.train = msg.user_cmd.train;
-          sensor_copy(&loc.s, &s_array.sensors[i]);
+          loc.node = get_track_node(get_track(), sensor2idx(s->group, s->socket));
 
           // TODO(dzelemba): Figure out why we need a direction.
           loc.d = FORWARD;
@@ -227,7 +247,7 @@ void init_trains() {
   }
 
   for (i = 1; i < NUM_SWITCHES + 1; i++) {
-    switch_directions[i] = '?';
+    sw(switch_number_from_index(i), 'S');
   }
 
   reverse_server_tid = Create(MED_PRI_K, &tr_reverse_task);
@@ -267,4 +287,8 @@ void tr_sw(int switch_number, char switch_direction) {
   msg.user_cmd.switch_direction = switch_direction;
   msg.user_cmd.switch_number = switch_number;
   Send(train_controller_tid, (char *)&msg, sizeof(train_controller_message), (void *)0, 0);
+}
+
+char get_switch_direction(int switch_number) {
+  return switch_directions[convert_switch_number(switch_number)];
 }

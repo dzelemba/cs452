@@ -6,6 +6,10 @@
 
 static int NUM_NEIGHBOURS[NUM_NODE_TYPES] = { 0, 1, 2, 1, 1, 0 };
 
+track_node* get_track_node(track_node* track, int idx) {
+  return &track[idx];
+}
+
 int get_num_neighbours(node_type type) {
   return NUM_NEIGHBOURS[type];
 }

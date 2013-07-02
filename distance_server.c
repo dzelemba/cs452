@@ -53,7 +53,7 @@ void ds_reply_to_tasks(queue* waiting_tasks, int* train) {
 
 int get_delay(int train, int speed) {
   // TODO(dzelemba): Implement this once we have configuration data.
-  return 10;
+  return 2;
 }
 
 void reply_to_notifier(int tid, int train, int speed) {

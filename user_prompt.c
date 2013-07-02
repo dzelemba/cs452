@@ -178,7 +178,7 @@ void timer_display_task() {
   int ticks_per_second = 10 * 10;
   int ticks_per_minute = 10 * 10 * 60;
 
-  // Block until screen is initialized
+    // Block until screen is initialized
 
   while (1) {
     int ticks = Time();
@@ -207,9 +207,10 @@ void display_train_locations() {
     get_location_updates(&loc_array);
     for (i = 0; i < loc_array.size; i++) {
       location* loc = &loc_array.locations[i];
-      printf(COM2, "\033[%d;1HTrain %d, Sensor: %c%2d, Distance: %d Direction: %s\033[K\n",
-             21 + i, loc->train, loc->s.group, loc->s.socket, loc->cm_past_sensor,
-             direction_to_string(loc->d));
+      printf(COM2, "\033[%d;1HTrain %d, Landmark: %s, Distance: %d Direction: %s Prev Sensor Error: %d\033[K\n",
+             21 + i, loc->train, loc->node->name, loc->mm_past_node / 10, direction_to_string(loc->d),
+             loc->prev_sensor_error);
+      return_cursor();
     }
   }
 
