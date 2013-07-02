@@ -1,16 +1,28 @@
-#include "user_prompt.h"
+#include "location_server.h"
 #include "ourio.h"
-#include "syscall.h"
-#include "strings.h"
 #include "ourlib.h"
-#include "train.h"
 #include "priorities.h"
+#include "queue.h"
 #include "sensor.h"
 #include "sensor_server.h"
+#include "strings.h"
+#include "syscall.h"
 #include "track_data.h"
-#include "location_server.h"
+#include "train.h"
+#include "user_prompt.h"
 
 #define MAX_LINE_LENGTH 64
+#define MAX_TOKENS 4
+#define MAX_TOKEN_SIZE 8
+
+#define DRAW_ROW_RECENT_HIT 9
+#define DRAW_ROW_TRAIN_LOC 16
+#define DRAW_ROW_PROMPT 30
+
+#define DRAW_ROW_LOG 20
+#define LOG_LENGTH 10
+static char log_mem[LOG_LENGTH][80];
+static int log_ring;
 
 static unsigned int current_prompt_pos;
 
@@ -27,14 +39,14 @@ void draw_switch_state(int switch_num, char direction) {
 }
 
 void return_cursor() {
-  printf(COM2, "\033[2;%uH", current_prompt_pos + 2);
+  printf(COM2, "\033[%d;%uH", DRAW_ROW_PROMPT, current_prompt_pos + 2);
 }
 
 void draw_initial() {
   printf(COM2, "\033[2J");
   printf(COM2, "\033[3;1HSwitch Table:");
-  printf(COM2, "\033[13;1HMost Recently Hit Sensors:");
-  printf(COM2, "\033[20;1HTrain Locations:");
+  printf(COM2, "\033[%d;1HMost Recently Hit Sensors:", DRAW_ROW_RECENT_HIT);
+  printf(COM2, "\033[%d;1HTrain Locations:", DRAW_ROW_TRAIN_LOC);
 
   int sw;
 
@@ -60,66 +72,104 @@ void draw_initial() {
   return_cursor();
 }
 
-// Maintain invariant that before every printf, we are at the cursor prompt pos
+int process_line(char* line) {
+  char static_tokens[MAX_TOKENS][MAX_TOKEN_SIZE];
+  char* tokens[MAX_TOKENS];
+  create_string_array((const char*)static_tokens, MAX_TOKENS, MAX_TOKEN_SIZE, (const char**)tokens);
+
+  char* error = 0;
+  int ret = string_split(line, ' ', MAX_TOKENS, MAX_TOKEN_SIZE, (char**)tokens, &error);
+  if (ret == -1) {
+    return 1;
+  }
+
+  if (string_equal(tokens[0], "tr")) {
+    int train_number = atoi(tokens[1]);
+    int train_speed = atoi(tokens[2]);
+    tr_set_speed(train_speed, train_number);
+  } else if (string_equal(tokens[0], "sw")) {
+    int switch_number = atoi(tokens[1]);
+    char direction = tokens[2][0];
+    if (direction != 'C' && direction != 'S') {
+      return 1;
+    }
+
+    if (!((switch_number >= 1 && switch_number <= 18) || (switch_number >= 153 && switch_number <= 156))) {
+      return 1;
+    }
+    tr_sw(switch_number, direction);
+    draw_switch_state(switch_number, direction);
+  } else if (string_equal(tokens[0], "rv")) {
+    int train_number = atoi(tokens[1]);
+    tr_reverse(train_number);
+  } else if (string_equal(tokens[0], "q")) {
+    Shutdown();
+  } else if (string_equal(tokens[0], "init")) {
+    if (tokens[1][0] == 'A') {
+      init_tracka(get_track());
+    } else if (tokens[1][0] == 'B') {
+      init_trackb(get_track());
+    }
+  } else if (string_equal(tokens[0], "track")) {
+    int train = atoi(tokens[1]);
+    tr_track(train);
+  } else {
+    return 1;
+  }
+
+  return 0;
+}
+
 void user_prompt_task() {
   char line[64];
 
-  int max_tokens = 4;
-  int max_token_size = 8;
+  // Initialize log
+  log_ring = 0;
+  int i, j;
+  for (i = 0; i < LOG_LENGTH; i++) {
+    for (j = 0; j < 80; j++) {
+      log_mem[i][j] = '\0';
+    }
+  }
 
-  char static_tokens[max_tokens][max_token_size];
-  char* tokens[max_tokens];
-  create_string_array((const char*)static_tokens, max_tokens, max_token_size, (const char**)tokens);
+  printf(COM2, "\033[%d;1H>\033[K", DRAW_ROW_PROMPT);
 
-  printf(COM2, "\033[2;1H>\033[K");
   while (1) {
     char ch = Getc(COM2);
     if (ch == '\r') {
       line[current_prompt_pos] = '\0'; // null-terminate line
+      memcpy(log_mem[log_ring] + 5, line, current_prompt_pos);
+      log_mem[log_ring][current_prompt_pos + 5 + 0] = '\033';
+      log_mem[log_ring][current_prompt_pos + 5 + 1] = '[';
+      log_mem[log_ring][current_prompt_pos + 5 + 2] = '0';
+      log_mem[log_ring][current_prompt_pos + 5 + 3] = 'm';
+      log_mem[log_ring][current_prompt_pos + 5 + 4] = '\0';
 
-      char* error = 0;
-      int ret = string_split(line, ' ', max_tokens, max_token_size, (char**)tokens, &error);
-      if (ret != -1) {
-        if (string_equal(tokens[0], "tr")) {
-          int train_number = atoi(tokens[1]);
-          int train_speed = atoi(tokens[2]);
-          tr_set_speed(train_speed, train_number);
-        } else if (string_equal(tokens[0], "sw")) {
-          int switch_number = atoi(tokens[1]);
-          char direction = tokens[2][0];
-          tr_sw(switch_number, direction);
-          draw_switch_state(switch_number, direction);
-        } else if (string_equal(tokens[0], "rv")) {
-          int train_number = atoi(tokens[1]);
-          tr_reverse(train_number);
-        } else if (string_equal(tokens[0], "q")) {
-          Shutdown();
-        } else if (string_equal(tokens[0], "init")) {
-          if (tokens[1][0] == 'A') {
-            init_tracka(get_track());
-          } else if (tokens[1][0] == 'B') {
-            init_trackb(get_track());
-          }
-        } else if (string_equal(tokens[0], "track")) {
-          int train = atoi(tokens[1]);
-          tr_track(train);
-        } else {
-          // bad command
-        }
+      int is_bad_command = process_line(line);
+      if (is_bad_command) {
+        memcpy(log_mem[log_ring], "\033[31m", 5);
+      } else {
+        memcpy(log_mem[log_ring], "\033[32m", 5);
       }
 
+      // Update log
+      for (i = 0; i < LOG_LENGTH; i++) {
+        printf(COM2, "\033[%d;1H%s\033[K", DRAW_ROW_LOG + i, log_mem[(log_ring + i + 1) % LOG_LENGTH]);
+      }
+      log_ring = (log_ring + 1) % LOG_LENGTH;
+
       current_prompt_pos = 0;
-      printf(COM2, "\033[2;%uH\033[K", current_prompt_pos + 2);
+      printf(COM2, "\033[%d;%uH\033[K", DRAW_ROW_PROMPT, current_prompt_pos + 2);
     } else if (ch == 8) { // Backspace
       if (current_prompt_pos > 0) {
         current_prompt_pos--;
-        printf(COM2, "\033[2;%uH\033[K", current_prompt_pos + 2);
+        printf(COM2, "\033[%d;%uH\033[K", DRAW_ROW_PROMPT, current_prompt_pos + 2);
       }
     } else {
       if (current_prompt_pos < MAX_LINE_LENGTH - 1) {
         line[current_prompt_pos] = ch;
         current_prompt_pos++;
-        printf(COM2, "\033[2;%uH%c", current_prompt_pos + 1, ch);
+        printf(COM2, "\033[%d;%uH%c", DRAW_ROW_PROMPT, current_prompt_pos + 1, ch);
       }
     }
   }
@@ -165,7 +215,7 @@ void display_sensor_data() {
       _add_hit(sensors[i].group, sensors[i].socket);
     }
     for (i = 0; i < HITS_TRACKED && _last_seen_hits[i].group != '0'; i++) {
-      printf(COM2, "\033[%d;1H%c%d\033[K\n", 14 + i, _last_seen_hits[i].group, _last_seen_hits[i].socket);
+      printf(COM2, "\033[%d;1H%c%d\033[K\n", DRAW_ROW_RECENT_HIT + 1 + i, _last_seen_hits[i].group, _last_seen_hits[i].socket);
     }
     return_cursor();
   }
@@ -208,7 +258,7 @@ void display_train_locations() {
     for (i = 0; i < loc_array.size; i++) {
       location* loc = &loc_array.locations[i];
       printf(COM2, "\033[%d;1HTrain %d, Landmark: %s, Distance: %d Direction: %s Prev Sensor Error: %d\033[K\n",
-             21 + i, loc->train, loc->node->name, loc->mm_past_node / 10, direction_to_string(loc->d),
+             DRAW_ROW_TRAIN_LOC + 1 + i, loc->train, loc->node->name, loc->mm_past_node / 10, direction_to_string(loc->d),
              loc->prev_sensor_error);
       return_cursor();
     }
@@ -229,4 +279,3 @@ void start_user_prompt() {
   Create(MED_PRI, &display_sensor_data);
   Create(MED_PRI, &display_train_locations);
 }
-
