@@ -230,11 +230,6 @@ void init_trains() {
     switch_directions[i] = '?';
   }
 
-  /* Required settings */
-  ua_setspeed(COM1, 2400);
-  ua_setstopbits(COM1, ON);
-  ua_setfifo(COM1, OFF);
-
   reverse_server_tid = Create(MED_PRI_K, &tr_reverse_task);
   train_controller_tid = Create(MED_PRI, &train_controller);
   Create(MED_PRI, &location_notifier);

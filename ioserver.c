@@ -273,7 +273,12 @@ void ioserver_run() {
 /* Public Methods */
 
 void start_ioserver() {
+  ua_setspeed(COM1, 2400);
+  ua_setstopbits(COM1, ON);
+  ua_setfifo(COM1, OFF);
+
   ua_setfifo(COM2, OFF);
+
   ioserver_tid = Create(HI_PRI_K, &ioserver_run);
 }
 
