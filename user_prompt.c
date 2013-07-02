@@ -57,7 +57,7 @@ void draw_initial() {
   }
 
   for (sw = 1; sw <= 18; sw++) {
-    draw_switch_state(sw, '?');
+    draw_switch_state(sw, 'S');
   }
 
   // bottom row
@@ -67,7 +67,7 @@ void draw_initial() {
   }
 
   for (sw = 0x99; sw <= 0x9c; sw++) {
-    draw_switch_state(sw, '?');
+    draw_switch_state(sw, 'S');
   }
   return_cursor();
 }

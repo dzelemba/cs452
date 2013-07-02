@@ -19,7 +19,9 @@ void first_user_task() {
 #endif
 
 #ifndef TEST
+#ifndef CALIB
   run_project();
+#endif
 #endif
 
   Exit();

@@ -39,13 +39,16 @@ ifdef DBG1
   OBJECT_DIR = dbg1
 else
   OBJECT_DIR = obj
+ifdef CALIB
+  CFLAGS += -DCALIB
+endif
 endif
 endif
 endif
 endif
 endif
 
-VPATH = kernel/ data_structures/ tests/
+VPATH = kernel/ data_structures/ project/ tests/
 KERNEL_SRC_FILES = $(wildcard *.c) $(wildcard $(addsuffix *.c,$(VPATH)))
 KERNEL_OBJ_FILES = $(addprefix $(OBJECT_DIR)/,$(notdir $(KERNEL_SRC_FILES:.c=.o)) context_switch.o)
 
@@ -73,6 +76,9 @@ dbg3:
 
 test:
 	$(MAKE) install TEST=1
+
+calib:
+	$(MAKE) install CALIB=1
 
 obj: install
 
@@ -102,8 +108,8 @@ unit: test.out
 	./test.out
 
 test.out: export RTOS_COMPILER=/usr/bin/gcc
-test.out: unittests/* strings.* linked_array.* ourlib.* bitmask.* heap.* track_node.*
-	$(XCC) $(TESTFLAGS) unittests/all_tests.c unittests/test_helpers.c strings.c linked_array.c ourlib.c heap.c heapplus.c bitmask.c dijkstra.c track_data.c track_node.c -o test.out
+test.out: unittests/* strings.* data_structures/* ourlib.* track_node.*
+	$(XCC) $(TESTFLAGS) unittests/all_tests.c unittests/test_helpers.c strings.c data_structures/* ourlib.c dijkstra.c track_data.c track_node.c -o test.out
 
 clean:
 	rm -rf obj dbg dbg1 dbg2 dbg3 test test.out

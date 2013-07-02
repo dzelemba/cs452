@@ -15,8 +15,8 @@ typedef struct sequence {
   sequence_action action;
 } sequence;
 
-void get_path(track_node* track, int src, int dest, sequence* out_path, int* out_size);
+int get_path(track_node* track, int src, int dest, sequence* out_path, int* out_size);
 
-void get_path_debug(track_node* track, char src_sensor, int src_socket, char dest_sensor, int dest_socket, sequence* out_path, int* out_size);
+int get_path_debug(track_node* track, char src_sensor, int src_socket, char dest_sensor, int dest_socket, sequence* out_path, int* out_size);
 
 #endif

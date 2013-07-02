@@ -18,15 +18,15 @@ static sequence path[TRACK_MAX];
 static char visited[TRACK_MAX];
 
 // Perfectly thread unsafe
-void get_path_debug(track_node* track, char src_sensor, int src_socket,
+int get_path_debug(track_node* track, char src_sensor, int src_socket,
                     char dest_sensor, int dest_socket, sequence* out_path,
                     int* out_size) {
   int src = sensor2idx(src_sensor, src_socket);
   int dest = sensor2idx(dest_sensor, dest_socket);
-  get_path(track, src, dest, out_path, out_size);
+  return get_path(track, src, dest, out_path, out_size);
 }
 
-void get_path(track_node* track, int src, int dest, sequence* out_path, int* out_size) {
+int get_path(track_node* track, int src, int dest, sequence* out_path, int* out_size) {
   init_heapplus(&path_heap, dijkstra_mem, dijkstra_dict, TRACK_MAX);
 
   int i;
@@ -37,6 +37,7 @@ void get_path(track_node* track, int src, int dest, sequence* out_path, int* out
   path[src] = (sequence) { src, DO_NOTHING };
   heapplus_insert(&path_heap, 0, src);
 
+  int ret = 0;
   while (heapplus_size(&path_heap) > 0) {
     int c = heapplus_min_pri(&path_heap);
     int v = heapplus_delete_min(&path_heap);
@@ -44,6 +45,7 @@ void get_path(track_node* track, int src, int dest, sequence* out_path, int* out
 
     visited[v] = 1;
     if (v == dest) {
+      ret = c;
       break;
     }
 
@@ -90,4 +92,6 @@ void get_path(track_node* track, int src, int dest, sequence* out_path, int* out
     out_path[i] = out_path[pathlen - i - 1];
     out_path[pathlen - i - 1] = swap;
   }
+
+  return ret;
 }
