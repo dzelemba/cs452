@@ -31,7 +31,10 @@ typedef struct location_server_message {
   union {
     sensor_array sensors;
     location loc;
-    int train;
+    struct {
+      int train;
+      int dx;
+    } ds_update;
   };
 } location_server_message;
 
@@ -50,7 +53,7 @@ void location_distance_notifier() {
   location_server_message msg;
   msg.type = DISTANCE_UPDATE;
   while (1) {
-    ds_get_update(&msg.train);
+    ds_get_update(&msg.ds_update.train, &msg.ds_update.dx);
     Send(location_server_tid, (char *)&msg, sizeof(location_server_message), (void *)0, 0);
   }
 
@@ -100,8 +103,8 @@ void update_tracking_data_for_distance(location* loc) {
   }
 
   track_edge* edge = get_next_edge(loc);
-  if (loc->mm_past_node > edge->dist && edge->dest->type != NODE_SENSOR) {
-    loc->mm_past_node -= edge->dist;
+  if (loc->um_past_node / 1000 > edge->dist && edge->dest->type != NODE_SENSOR) {
+    loc->um_past_node -= edge->dist * 1000;
     loc->node = edge->dest;
   }
 }
@@ -109,9 +112,9 @@ void update_tracking_data_for_distance(location* loc) {
 int update_sensor_if_equal(location* loc, sensor* cur, sensor* new, int reversed) {
   if (sensor_equal(cur, new)) {
     track_edge* edge = get_next_edge(loc);
-    loc->prev_sensor_error = loc->mm_past_node - edge->dist;
+    loc->prev_sensor_error = loc->um_past_node / 1000 - edge->dist;
     loc->node = get_track_node(get_track(), sensor2idx(new->group, new->socket));
-    loc->mm_past_node = 0;
+    loc->um_past_node = 0;
     if (reversed) {
       flip_direction(&loc->d);
     }
@@ -168,9 +171,9 @@ void location_server() {
         break;
       case DISTANCE_UPDATE:
         Reply(tid, (void *)0, 0);
-        loc = get_train_location(&loc_array, msg.train);
-        loc->mm_past_node += 10;
-        update_tracking_data_for_distance(get_train_location(&loc_array, msg.train));
+        loc = get_train_location(&loc_array, msg.ds_update.train);
+        loc->um_past_node += msg.ds_update.dx;
+        update_tracking_data_for_distance(get_train_location(&loc_array, msg.ds_update.train));
         reply_to_tasks(&waiting_tasks, &loc_array);
         break;
       case SENSOR_UPDATE: {
@@ -243,7 +246,7 @@ void track_train(int train, location* loc) {
   location_server_message msg;
   msg.type = TRACK_TRAIN;
   loc->train = train;
-  loc->mm_past_node = 0;
+  loc->um_past_node = 0;
   loc->prev_sensor_error = 0;
   memcpy((char *)&msg.loc, (const char*)loc, sizeof(location));
 

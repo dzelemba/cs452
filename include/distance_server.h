@@ -12,6 +12,6 @@ void ds_update_speed(int train, int speed);
  * is tracking has moved 1cm. The train that has moved
  * will be in 'train'.
  */
-void ds_get_update(int* train);
+void ds_get_update(int* train, int* dx);
 
 #endif

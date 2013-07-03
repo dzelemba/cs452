@@ -14,7 +14,7 @@ typedef enum direction {
 typedef struct location {
   int train;
   track_node* node;
-  int mm_past_node;
+  int um_past_node;
   direction d;
   int prev_sensor_error;
 } location;

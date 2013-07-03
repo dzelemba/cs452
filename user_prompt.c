@@ -257,8 +257,8 @@ void display_train_locations() {
     get_location_updates(&loc_array);
     for (i = 0; i < loc_array.size; i++) {
       location* loc = &loc_array.locations[i];
-      printf(COM2, "\033[%d;1HTrain %d, Landmark: %s, Distance: %d Direction: %s Prev Sensor Error: %d\033[K\n",
-             DRAW_ROW_TRAIN_LOC + 1 + i, loc->train, loc->node->name, loc->mm_past_node / 10, direction_to_string(loc->d),
+      printf(COM2, "\033[%d;1HTrain %d, Landmark: %s, Distance: %dmm Direction: %s Prev Sensor Error: %dmm\033[K\n",
+             DRAW_ROW_TRAIN_LOC + 1 + i, loc->train, loc->node->name, loc->um_past_node / 1000, direction_to_string(loc->d),
              loc->prev_sensor_error);
       return_cursor();
     }
