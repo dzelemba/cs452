@@ -189,6 +189,8 @@ void location_notifier() {
     get_location_updates(&msg.loc_array);
     Send(train_controller_tid, (char *)&msg, sizeof(train_controller_message), (void* )0, 0);
   }
+
+  Exit();
 }
 
 #define STOPPING_DISTANCE 700
@@ -261,6 +263,7 @@ int handle_path(int train, sequence* path, int* path_index, int path_size, locat
 
 void train_controller() {
   location_array train_locations;
+  train_locations.size = 0;
 
   // Paths. We will use kmalloc to allocate paths,
   // so we don't have to pre-allocate a ton of memory.

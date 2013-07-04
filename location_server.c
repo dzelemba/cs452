@@ -228,7 +228,7 @@ location* get_train_location(location_array* loc_array, int train) {
       return &loc_array->locations[i];
     }
   }
-  ERROR("train.c: get_train_location: Not tracking train %d\n", train);
+  /*ERROR("train.c: get_train_location: Not tracking train %d\n", train);*/
   return 0;
 }
 
