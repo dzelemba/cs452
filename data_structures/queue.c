@@ -57,5 +57,7 @@ int qit_has_next(queue* q, queue_iterator* q_it) {
 
 int qit_get_next(queue* q, queue_iterator* q_it) {
   ASSERT(qit_has_next(q, q_it), "queue.c: queue: %s qit_has_next", q->name);
-  return q->buf[q_it->pos++];
+  int ret_val = q->buf[q_it->pos];
+  q_it->pos = _queue_increment(q, q_it->pos);
+  return ret_val;
 }

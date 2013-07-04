@@ -5,6 +5,8 @@
 #define NUM_SWITCHES 22
 #define NUM_SPEEDS 15
 
+#include "location_server.h"
+
 /*
  * Methods for controlling the trains.
  */
@@ -19,6 +21,8 @@ void tr_track(int train);
 void tr_set_speed(int speed, int train);
 
 void tr_reverse(int train);
+
+void tr_set_route(int train, int speed, location* loc);
 
 /* Switch Methods */
 

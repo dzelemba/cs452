@@ -12,6 +12,7 @@
 #include "ourio.h"
 #include "task.h"
 #include "distance_server.h"
+#include "track_node.h"
 
 /*
  * Private Methods
@@ -234,6 +235,10 @@ location* get_train_location(location_array* loc_array, int train) {
   }
   ERROR("train.c: get_train_location: Not tracking train %d\n", train);
   return 0;
+}
+
+int get_track_index(track_node* track, location* loc) {
+  return node2idx(track, loc->node);
 }
 
 void start_location_server() {

@@ -17,16 +17,20 @@ static heapplus path_heap;
 static sequence path[TRACK_MAX];
 static char visited[TRACK_MAX];
 
+int get_path(track_node* track, location* src, location* dest, sequence* out_path, int* out_size) {
+  return get_path_from_idx(track, node2idx(track, src->node), node2idx(track, dest->node), out_path, out_size);
+}
+
 // Perfectly thread unsafe
 int get_path_debug(track_node* track, char src_sensor, int src_socket,
                     char dest_sensor, int dest_socket, sequence* out_path,
                     int* out_size) {
   int src = sensor2idx(src_sensor, src_socket);
   int dest = sensor2idx(dest_sensor, dest_socket);
-  return get_path(track, src, dest, out_path, out_size);
+  return get_path_from_idx(track, src, dest, out_path, out_size);
 }
 
-int get_path(track_node* track, int src, int dest, sequence* out_path, int* out_size) {
+int get_path_from_idx(track_node* track, int src, int dest, sequence* out_path, int* out_size) {
   init_heapplus(&path_heap, dijkstra_mem, dijkstra_dict, TRACK_MAX);
 
   int i;

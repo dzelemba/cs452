@@ -39,6 +39,14 @@ track_node* get_track_node(track_node* track, int idx);
 
 int get_num_neighbours(node_type type);
 
+int enter2idx(int num);
+
+int exit2idx(int num);
+
+int merge2idx(int num);
+
+int branch2idx(int num);
+
 int sensor2idx(char sensor, int socket);
 
 int node2idx(track_node* track, track_node* node);

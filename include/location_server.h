@@ -24,6 +24,7 @@ typedef struct location_array {
   int size;
 } location_array;
 
+int get_track_index(track_node* track, location* loc);
 
 location* get_train_location(location_array* loc_array, int train);
 

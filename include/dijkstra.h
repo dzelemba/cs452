@@ -2,6 +2,7 @@
 #define __DIJKSTRA_H__
 
 #include "track_node.h"
+#include "location_server.h"
 
 typedef enum {
   DO_NOTHING,
@@ -15,8 +16,10 @@ typedef struct sequence {
   sequence_action action;
 } sequence;
 
-int get_path(track_node* track, int src, int dest, sequence* out_path, int* out_size);
+int get_path(track_node* track, location* src, location* dest, sequence* out_path, int* out_size);
 
 int get_path_debug(track_node* track, char src_sensor, int src_socket, char dest_sensor, int dest_socket, sequence* out_path, int* out_size);
+
+int get_path_from_idx(track_node* track, int src, int dest, sequence* out_path, int* out_size);
 
 #endif

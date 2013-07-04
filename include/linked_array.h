@@ -46,4 +46,16 @@ void la_remove(linked_array* la, int pos);
  */
 int la_is_empty(linked_array* la);
 
+// ITERATOR
+
+typedef struct linked_array_iterator {
+ node* pos;
+} linked_array_iterator;
+
+void la_it_create(linked_array* la, linked_array_iterator* la_it);
+
+int la_it_has_next(linked_array* la, linked_array_iterator* la_it);
+
+void* la_it_get_next(linked_array* la, linked_array_iterator* la_it);
+
 #endif

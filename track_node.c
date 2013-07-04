@@ -3,6 +3,8 @@
 
 // We redefine this so we can run this code in a unittest
 #define SOCKETS_PER_SENSOR 16
+#define BRANCH_BASE 80
+#define ENDS_BASE 124
 
 static int NUM_NEIGHBOURS[NUM_NODE_TYPES] = { 0, 1, 2, 1, 1, 0 };
 
@@ -12,6 +14,22 @@ track_node* get_track_node(track_node* track, int idx) {
 
 int get_num_neighbours(node_type type) {
   return NUM_NEIGHBOURS[type];
+}
+
+int enter2idx(int num) {
+  return ENDS_BASE + 2*(num - 1);
+}
+
+int exit2idx(int num) {
+  return ENDS_BASE + 2*(num - 1) + 1;
+}
+
+int merge2idx(int num) {
+  return BRANCH_BASE + 2*(num - 1) + 1;
+}
+
+int branch2idx(int num) {
+  return BRANCH_BASE + 2*(num - 1);
 }
 
 int sensor2idx(char sensor, int socket) {

@@ -118,3 +118,24 @@ int la_is_empty(linked_array* la) {
   return la->head == 0;
 }
 
+/*
+ * Itertators
+ */
+
+void la_it_create(linked_array* la, linked_array_iterator* la_it) {
+  la_it->pos = la->head;
+}
+
+int la_it_has_next(linked_array* la, linked_array_iterator* la_it) {
+  (void)la; // Ignore compiler warnings.
+
+  return la_it->pos != 0;
+}
+
+void* la_it_get_next(linked_array* la, linked_array_iterator* la_it) {
+  (void)la;
+
+  void* retval = la_it->pos->data;
+  la_it->pos = la_it->pos->next;
+  return retval;
+}
