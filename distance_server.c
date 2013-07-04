@@ -1,4 +1,6 @@
+#include "debug.h"
 #include "distance_server.h"
+#include "ourio.h"
 #include "physics.h"
 #include "priorities.h"
 #include "queue.h"
@@ -40,7 +42,7 @@ void distance_notifier() {
   int now = Time();
   while (1) {
     // Use DelayUntil to reduce to constant factor drifting
-    DelayUntil(now + 1); // Ugh. I'm scared we'll fall behind
+    DelayUntil(now + 1);
     now++;
     Send(distance_server_tid, (char *)&msg, sizeof(distance_server_message), (void *)0, 0);
   }
@@ -48,25 +50,17 @@ void distance_notifier() {
   Exit();
 }
 
-// TODO(f2fung): This is a terrible name
-void ds_reply_to_tasks(queue* waiting_tasks, int train, int dx) {
-  int ret[2] = { train, dx };
-
-  while (!is_queue_empty(waiting_tasks)) {
-    Reply(pop(waiting_tasks), (char *)ret, sizeof(int) * 2);
-  }
-}
-
 void distance_server() {
-  queue waiting_tasks;
-  int q_mem[MAX_TASKS];
-  init_queue(&waiting_tasks, q_mem, MAX_TASKS);
+  int waiting_tid = 0;
 
   int cur_speeds[NUM_TRAINS + 1];
   int notifier_tids[NUM_TRAINS + 1];
+  int accumulated_dx[NUM_TRAINS + 1];
 
   int tid;
   int dx;
+  int ret[2];
+
   distance_server_message msg;
   while (1) {
     Receive(&tid, (char *)&msg, sizeof(distance_server_message));
@@ -74,6 +68,7 @@ void distance_server() {
       case DS_TRACK_TRAIN:
         Reply(tid, (void *)0, 0);
         cur_speeds[msg.train] = 0;
+        accumulated_dx[msg.train] = 0;
 
         // Create notifier
         // TODO(f2fung): If we used only one notifier, our error would be at most a hundreth
@@ -87,9 +82,11 @@ void distance_server() {
         cur_speeds[msg.train] = msg.speed;
         break;
       case DS_GET_UPDATE:
-        push(&waiting_tasks, tid);
+        waiting_tid = tid;
         break;
       case DS_NOTIFIER:
+        Reply(tid, (void *)0, 0);
+
         // TODO(f2fung): Acceleration/Decceleration modelling
         if (cur_speeds[msg.train] == 0) {
           dx = 0;
@@ -97,9 +94,17 @@ void distance_server() {
           dx = VMAX_MICROMETERS_PER_TICK;
         }
 
-        // XXX: Why would multiple tasks be waiting for *some* update
-        ds_reply_to_tasks(&waiting_tasks, msg.train, dx);
-        Reply(notifier_tids[msg.train], (void *)0, 0);
+        accumulated_dx[msg.train] += dx;
+
+        if (waiting_tid == 0) { // This is bad
+        } else {
+          ret[0] = msg.train;
+          ret[1] = accumulated_dx[msg.train];
+          Reply(waiting_tid, (char *)ret, sizeof(int) * 2);
+          waiting_tid = 0;
+          accumulated_dx[msg.train] = 0;
+        }
+
         break;
     }
   }
