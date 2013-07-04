@@ -37,6 +37,9 @@ void send_reverse_command(int train) {
   char cmd[2];
   fill_set_speed(cmd, 15, train);
   putbytes(COM1, cmd, 2);
+  if (tracked_trains[train]) {
+    ls_train_reversed(train);
+  }
 }
 
 void set_speed(int speed, int train) {

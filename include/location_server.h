@@ -38,6 +38,8 @@ void track_train(int train, location* loc);
 
 void get_location_updates(location_array* loc_array);
 
+void ls_train_reversed(int train);
+
 char* direction_to_string(direction d);
 
 

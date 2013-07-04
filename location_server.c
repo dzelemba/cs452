@@ -24,7 +24,8 @@ typedef enum location_server_message_type {
   TRACK_TRAIN,
   GET_UPDATES,
   SENSOR_UPDATE,
-  DISTANCE_UPDATE
+  DISTANCE_UPDATE,
+  LS_TRAIN_REVERSE
 } location_server_message_type;
 
 typedef struct location_server_message {
@@ -36,6 +37,7 @@ typedef struct location_server_message {
       int train;
       int dx;
     } ds_update;
+    int train;
   };
 } location_server_message;
 
@@ -63,24 +65,13 @@ void location_distance_notifier() {
 
 typedef struct tracking_data {
   location* loc;
-  sensor reverse_sensor;
-  sensor next_possible_sensors[2];
-  int num_next_possible_sensors;
+  track_edge* cur_edge;
 } tracking_data;
 
 typedef struct tracking_data_array {
   tracking_data t_data[MAX_TRAINS];
   int size;
 } tracking_data_array;
-
-void fill_next_possible_sensors(tracking_data* t_data) {
-  track_node* node = t_data->loc->node;
-
-  node2sensor(get_track(), node->reverse, &t_data->reverse_sensor);
-
-  t_data->num_next_possible_sensors = 0;
-  get_next_sensors(get_track(), node, t_data->next_possible_sensors, &t_data->num_next_possible_sensors);
-}
 
 void flip_direction(direction* d) {
   *d = (*d == FORWARD ? BACKWARD : FORWARD);
@@ -98,36 +89,61 @@ track_edge* get_next_edge(location* loc) {
   }
 }
 
-void update_tracking_data_for_distance(location* loc) {
-  if (loc->node->type == NODE_EXIT) {
+void fill_in_tracking_data(tracking_data* t_data) {
+  t_data->cur_edge = get_next_edge(t_data->loc);
+}
+
+void increment_location(tracking_data* t_data) {
+  t_data->loc->node = t_data->cur_edge->dest;
+  fill_in_tracking_data(t_data);
+}
+
+void update_tracking_data_for_distance(tracking_data* t_data) {
+  if (t_data->loc->node->type == NODE_EXIT) {
     return;
   }
 
-  track_edge* edge = get_next_edge(loc);
-  if (loc->um_past_node / 1000 > edge->dist && edge->dest->type != NODE_SENSOR) {
-    loc->um_past_node -= edge->dist * 1000;
-    loc->node = edge->dest;
+  track_edge* edge = t_data->cur_edge;
+  if (t_data->loc->um_past_node / 1000 > edge->dist && edge->dest->type != NODE_SENSOR) {
+    t_data->loc->um_past_node -= edge->dist * 1000;
+    increment_location(t_data);
   }
 }
 
-int update_sensor_if_equal(location* loc, sensor* cur, sensor* new, int reversed) {
-  if (sensor_equal(cur, new)) {
-    track_edge* edge = get_next_edge(loc);
-    loc->prev_sensor_error = loc->um_past_node / 1000 - edge->dist;
-    loc->node = get_track_node(get_track(), sensor2idx(new->group, new->socket));
-    loc->um_past_node = 0;
-    if (reversed) {
-      flip_direction(&loc->d);
-    }
+int update_tracking_data_for_sensor(tracking_data* t_data, sensor* s) {
+  track_edge* edge = t_data->cur_edge;
+  if (t_data->cur_edge->dest == get_track_node(get_track(), sensor2idx(s->group, s->socket))) {
+    increment_location(t_data);
+    t_data->loc->prev_sensor_error = t_data->loc->um_past_node / 1000 - edge->dist;
+    t_data->loc->um_past_node = 0;
     return 1;
   }
+
   return 0;
+}
+
+void update_tracking_data_for_reverse(tracking_data* t_data, int train) {
+  t_data->loc->node = t_data->cur_edge->dest->reverse;
+  flip_direction(&t_data->loc->d);
+  t_data->loc->um_past_node = t_data->cur_edge->dist - t_data->loc->um_past_node;
+  fill_in_tracking_data(t_data);
 }
 
 void reply_to_tasks(queue* waiting_tasks, location_array* loc_array) {
   while (!is_queue_empty(waiting_tasks)) {
     Reply(pop(waiting_tasks), (char *)loc_array, sizeof(location_array));
   }
+}
+
+tracking_data* get_tracking_data(tracking_data_array* t_data_array, int train) {
+  int i;
+  for (i = 0; i < t_data_array->size; i++) {
+    if (t_data_array->t_data[i].loc->train == train) {
+      return &t_data_array->t_data[i];
+    }
+  }
+  ERROR("location_server.c: tracking_data not found for train %d", train);
+  return 0;
 }
 
 void location_server() {
@@ -141,7 +157,7 @@ void location_server() {
   tracking_data_array t_data_array;
   t_data_array.size = 0;
 
-  int tid, train, i, j, k, sensor_found, locations_changed;
+  int tid, train, i, k, locations_changed;
   location* loc;
   location_server_message msg;
 
@@ -162,7 +178,7 @@ void location_server() {
 
         // Create tracking data.
         t_data_array.t_data[t_data_array.size].loc = &loc_array.locations[loc_array.size - 1];
-        fill_next_possible_sensors(&t_data_array.t_data[t_data_array.size]);
+        fill_in_tracking_data(&t_data_array.t_data[t_data_array.size]);
         t_data_array.size++;
 
         reply_to_tasks(&waiting_tasks, &loc_array);
@@ -170,48 +186,27 @@ void location_server() {
       case GET_UPDATES:
         push(&waiting_tasks, tid);
         break;
+      case LS_TRAIN_REVERSE:
+        Reply(tid, (void *)0, 0);
+        update_tracking_data_for_reverse(get_tracking_data(&t_data_array, msg.train), msg.train);
+        reply_to_tasks(&waiting_tasks, &loc_array);
+        break;
       case DISTANCE_UPDATE:
         Reply(tid, (void *)0, 0);
         loc = get_train_location(&loc_array, msg.ds_update.train);
         loc->um_past_node += msg.ds_update.dx;
-        update_tracking_data_for_distance(get_train_location(&loc_array, msg.ds_update.train));
+        update_tracking_data_for_distance(get_tracking_data(&t_data_array, msg.ds_update.train));
         reply_to_tasks(&waiting_tasks, &loc_array);
         break;
       case SENSOR_UPDATE: {
         Reply(tid, (void *)0, 0);
-        locations_changed = 0;
+        locations_changed = 0; // Required so we don't send multiple updates for multiple sensor triggers
         for (k = 0; k < t_data_array.size; k++) {
-          sensor_found = 0;
           tracking_data* t_data = &t_data_array.t_data[k];
           for (i = 0; i < msg.sensors.num_sensors; i++) {
-            // Check if we've reversed.
-            // TODO(dzelemba): Sometimes the reverse switch gets fired when it shouldn't.
-            // Find a way to handle this.
-            sensor_found = update_sensor_if_equal(t_data->loc,
-                                                  &t_data->reverse_sensor,
-                                                  &msg.sensors.sensors[i],
-                                                  1 /* Reversed */);
-            if (!sensor_found) {
-              // Check if we've hit one of the next possible sensors.
-              for (j = 0; j < t_data->num_next_possible_sensors; j++) {
-                if (update_sensor_if_equal(t_data->loc,
-                                           &t_data->next_possible_sensors[j],
-                                           &msg.sensors.sensors[i],
-                                           0  /* Reversed */)) {
-                  sensor_found = 1;
-                }
-              }
-            }
-            // Update the next sensors we're looking for and send out updates.
-            if (sensor_found) {
-              locations_changed = 1;
-              fill_next_possible_sensors(t_data);
-              break;
-            }
+            locations_changed |= update_tracking_data_for_sensor(t_data, &msg.sensors.sensors[i]);
           }
         }
-
-        // Send out updates if locations have changed.
         if (locations_changed) {
           reply_to_tasks(&waiting_tasks, &loc_array);
         }
@@ -264,6 +259,13 @@ void get_location_updates(location_array* loc_array) {
 
   Send(location_server_tid, (char *)&msg, sizeof(location_server_message),
                             (char *)loc_array, sizeof(location_array));
+}
+
+void ls_train_reversed(int train) {
+  location_server_message msg;
+  msg.type = LS_TRAIN_REVERSE;
+  msg.train = train;
+  Send(location_server_tid, (char *)&msg, sizeof(location_server_message), (void *)0, 0);
 }
 
 char* direction_to_string(direction d) {
