@@ -38,9 +38,7 @@ int variance(int src, int dest, int mean) {
   return sum / NUM_SAMPLES;
 }
 
-void calibration_task() {
-  printf(COM2, "Starting Calibration\n");
-
+void velocity_calibration() {
   track_node* track = get_track();
   init_tracka(track);
 
@@ -127,6 +125,70 @@ void calibration_task() {
 
       last_sensor = sensors[i];
     }
+  }
+}
+
+void acceleration_calibration() {
+  track_node* track = get_track();
+  init_tracka(track);
+
+  // Run the train
+  int our_train = 47;
+  int our_speed = 11;
+  int i, a;
+
+  sensor sensors[MAX_NEW_SENSORS];
+  start_sensor_server();
+  start_distance_server();
+  start_location_server();
+  init_trains();
+
+  tr_set_speed(2, our_train);
+  printf(COM2, "Reverse train direction? (Y/N): ");
+  char ch = Getc(COM2);
+  printf(COM2, "%c\n", ch);
+
+  tr_set_speed(0, our_train);
+  if (ch == 'Y' || ch == 'y') {
+    tr_reverse(our_train);
+  }
+
+  sensor target_sensor = (sensor) { 'E', 14 };
+
+  for (;;) {
+    printf(COM2, "Put train Xcm from E14, then press any key: ");
+    ch = Getc(COM2);
+    printf(COM2, "%c\n", ch);
+
+    int start = Time();
+    tr_set_speed(our_speed, our_train);
+    int hit_target = 0;
+    while (hit_target < 2) {
+      int num_sensors = get_sensor_data(sensors, MAX_NEW_SENSORS);
+      for (i = 0; i < num_sensors; i++) {
+        if (sensors[i].group == target_sensor.group && sensors[i].socket == target_sensor.socket) {
+          hit_target++;
+          break;
+        }
+      }
+    }
+
+    int end = Time();
+    printf(COM2, "(Xcm) tX: %d\n", end - start);
+    tr_set_speed(0, our_train);
+  }
+}
+
+void calibration_task() {
+  printf(COM2, "Starting Calibration\n");
+  printf(COM2, "Acceleration Calibration (A) or Velocity Calibration (V)?: ");
+  char ch = Getc(COM2);
+  printf(COM2, "%c\n", ch);
+
+  if (ch == 'A') {
+    acceleration_calibration();
+  } else if (ch == 'V') {
+    velocity_calibration();
   }
 
   Exit();
