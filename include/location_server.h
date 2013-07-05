@@ -1,23 +1,9 @@
 #ifndef __LOCATION_SERVER_H__
 #define __LOCATION_SERVER_H__
 
+#include "location.h"
 #include "track_node.h"
-
-// Max number of trains we are tracking.
-#define MAX_TRAINS 2
-
-typedef enum direction {
-  FORWARD,
-  BACKWARD
-} direction;
-
-typedef struct location {
-  int train;
-  track_node* node;
-  int um_past_node;
-  direction d;
-  int prev_sensor_error;
-} location;
+#include "train.h"
 
 typedef struct location_array {
   location locations[MAX_TRAINS];

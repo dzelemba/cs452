@@ -1,17 +1,17 @@
-#include "train.h"
-#include "syscall.h"
-#include "uart.h"
-#include "ourio.h"
 #include "debug.h"
-#include "priorities.h"
-#include "location_server.h"
-#include "sensor_server.h"
-#include "ourlib.h"
-#include "distance_server.h"
-#include "track_node.h"
 #include "dijkstra.h"
+#include "distance_server.h"
 #include "linked_array.h"
+#include "location_server.h"
+#include "ourio.h"
+#include "ourlib.h"
+#include "priorities.h"
+#include "sensor_server.h"
+#include "syscall.h"
 #include "track_data.h"
+#include "track_node.h"
+#include "train.h"
+#include "uart.h"
 
 /*
  * Note: Some of this global memory might be problematic as the reverse
@@ -19,10 +19,27 @@
  * But it should be ok, since we shouldn't be talking to the same train from
  * two different places.
  */
-static int train_speeds[NUM_TRAINS + 1];
+static int _train_num_to_idx[NUM_TRAINS];
+static int _train_idx_to_num[MAX_TRAINS];
+
+static int train_speeds[MAX_TRAINS];
+static int tracked_trains[MAX_TRAINS];
 static int switch_directions[NUM_SWITCHES + 1];
+
 static int reverse_server_tid;
-static int tracked_trains[NUM_TRAINS + 1];
+
+void assign_train_to_idx(int train, int idx) {
+  _train_num_to_idx[train] = idx;
+  _train_idx_to_num[idx] = train;
+}
+
+int tr_num_to_idx(int train) {
+  return _train_num_to_idx[train];
+}
+
+int tr_idx_to_num(int idx) {
+  return _train_idx_to_num[idx];
+}
 
 /*
  * Helpers for sending commands to the train
@@ -34,10 +51,12 @@ void fill_set_speed(char*cmd, int speed, int train) {
 }
 
 void send_reverse_command(int train) {
+  int train_idx = tr_num_to_idx(train);
+
   char cmd[2];
   fill_set_speed(cmd, 15, train);
   putbytes(COM1, cmd, 2);
-  if (tracked_trains[train]) {
+  if (tracked_trains[train_idx]) {
     ls_train_reversed(train);
   }
 }
@@ -46,13 +65,14 @@ void set_speed(int speed, int train) {
   ASSERT(train > 0 && train <= NUM_TRAINS, "train.c: tr_set_speed: Invalid train number");
   ASSERT(speed >= 0 && speed <= NUM_SPEEDS, "train.c: tr_set_speed: Invalid speed");
 
+  int train_idx = tr_num_to_idx(train);
+
   char cmd[2];
   fill_set_speed(cmd, speed, train);
+  train_speeds[train_idx] = speed;
 
   putbytes(COM1, cmd, 2);
-  train_speeds[train] = speed;
-
-  if (tracked_trains[train]) {
+  if (tracked_trains[train_idx]) {
     ds_update_speed(train, speed);
   }
 }
@@ -81,7 +101,7 @@ void reverse(int train) {
 
   int train_info[2];
   train_info[0] = train;
-  train_info[1] = train_speeds[train];
+  train_info[1] = train_speeds[tr_num_to_idx(train)];
 
   Send(reverse_server_tid, (char *)train_info, 2*sizeof(int), (void *)0, 0);
 }
@@ -267,20 +287,21 @@ void train_controller() {
 
   // Paths. We will use kmalloc to allocate paths,
   // so we don't have to pre-allocate a ton of memory.
-  int path_sizes[NUM_TRAINS + 1];
-  int path_indexes[NUM_TRAINS + 1];
-  sequence* paths[NUM_TRAINS+ 1];
+  int path_sizes[MAX_TRAINS];
+  int path_indexes[MAX_TRAINS];
+  sequence* paths[MAX_TRAINS];
+
   int i = 0;
-  for (i = 0; i < NUM_TRAINS + 1; i++) {
+  for (i = 0; i < MAX_TRAINS; i++) {
     paths[i] = 0;
     path_sizes[i] = 0;
   }
 
   linked_array trains_on_route;
-  la_create(&trains_on_route, NUM_TRAINS);
+  la_create(&trains_on_route, MAX_TRAINS);
   linked_array_iterator la_it;
 
-  int tid, train;
+  int tid, train, train_idx;
   location* cur_loc;
   train_controller_message msg;
   while (1) {
@@ -288,6 +309,7 @@ void train_controller() {
     switch (msg.type) {
       case TRACK_TRAIN: {
         Reply(tid, (void *)0, 0);
+        train_idx = tr_num_to_idx(msg.user_cmd.train);
         set_speed(FINDING_LOCATION_SPEED, msg.user_cmd.train);
 
         // Find location of train.
@@ -305,24 +327,25 @@ void train_controller() {
           loc.d = FORWARD;
           track_train(msg.user_cmd.train, &loc);
         }
-        tracked_trains[msg.user_cmd.train] = 1;
+        tracked_trains[train_idx] = 1;
 
         // Allocate memory for future routes.
-        paths[msg.user_cmd.train] = (sequence *)kmalloc(TRACK_MAX * sizeof(sequence));
+        paths[train_idx] = (sequence *)kmalloc(TRACK_MAX * sizeof(sequence));
         break;
       }
       case SET_ROUTE:
         train = msg.set_route_data.train;
-        ASSERT(paths[train] != 0, "train.c: set_route on non-tracked train");
+        train_idx = tr_num_to_idx(train);
+        ASSERT(paths[train_idx] != 0, "train.c: set_route on non-tracked train");
         Reply(tid, (void *)0, 0);
 
         cur_loc = get_train_location(&train_locations, train);
         la_insert(&trains_on_route, train, (void*)train);
 
-        path_indexes[train] = 0;
-        get_path(get_track(), cur_loc, &msg.set_route_data.dest, paths[train], &path_sizes[train]);
+        path_indexes[train_idx] = 0;
+        get_path(get_track(), cur_loc, &msg.set_route_data.dest, paths[train_idx], &path_sizes[train_idx]);
         set_speed(msg.set_route_data.speed, train);
-        handle_path(train, paths[train], &path_indexes[train], path_sizes[train], cur_loc);
+        handle_path(train, paths[train_idx], &path_indexes[train_idx], path_sizes[train_idx], cur_loc);
         break;
       case CHANGE_SPEED:
         Reply(tid, (void *)0, 0);
@@ -343,8 +366,8 @@ void train_controller() {
         la_it_create(&trains_on_route, &la_it);
         while (la_it_has_next(&trains_on_route, &la_it)) {
           train = (int)la_it_get_next(&trains_on_route, &la_it);
-          if (handle_path(train, paths[train], &path_indexes[train],
-                          path_sizes[train], get_train_location(&train_locations, train))) {
+          if (handle_path(train, paths[train_idx], &path_indexes[train_idx],
+                          path_sizes[train_idx], get_train_location(&train_locations, train))) {
             la_remove(&trains_on_route, train);
           }
         }
@@ -361,8 +384,17 @@ void train_controller() {
  */
 
 void init_trains() {
+  assign_train_to_idx(35, 0);
+  assign_train_to_idx(43, 1);
+  assign_train_to_idx(45, 2);
+  assign_train_to_idx(47, 3);
+  assign_train_to_idx(48, 4);
+  assign_train_to_idx(49, 5);
+  assign_train_to_idx(50, 6);
+  assign_train_to_idx(51, 7);
+
   int i;
-  for (i = 1; i < NUM_TRAINS + 1; i++) {
+  for (i = 1; i < MAX_TRAINS; i++) {
     train_speeds[i] = 0;
     tracked_trains[i] = 0;
   }
