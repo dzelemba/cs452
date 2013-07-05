@@ -14,6 +14,14 @@ int min(int a, int b) {
   return a < b ? a : b;
 }
 
+int max(int a, int b) {
+  return a > b ? a : b;
+}
+
+int abs(int a) {
+  return a < 0 ? -1 * a : a;
+}
+
 int atoi(char* src) {
   int num = 0;
   while ((*src) != 0) {

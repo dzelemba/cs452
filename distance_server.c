@@ -11,11 +11,18 @@
 #include "track_data.h"
 #include "train.h"
 
+#define NOT_ACCELERATING -1
+
 /*
  * Private Methods
  */
 
 static int distance_server_tid;
+
+static int acceleration_start_time[MAX_TRAINS];
+static unsigned int current_velocities[MAX_TRAINS];
+static unsigned int accumulated_dx[MAX_TRAINS];
+static int current_speeds[MAX_TRAINS];
 
 typedef enum distance_server_message_type {
   DS_TRACK_TRAIN,
@@ -33,6 +40,13 @@ typedef struct distance_server_message {
   location_array loc_array;
 } distance_server_message;
 
+typedef struct distance_update_message {
+  char train;
+  int dx;
+  int stopping_distance;
+  int stopping_time;
+} distance_update_message;
+
 void distance_notifier() {
   // First we get what train we're a notifier for.
   int train, tid;
@@ -44,7 +58,6 @@ void distance_notifier() {
   msg.type = DS_NOTIFIER;
   msg.train = train;
 
-  // TODO(f2fung): There's currently only one train to model
   int now = Time();
   while (1) {
     // Use DelayUntil to reduce to constant factor drifting
@@ -69,73 +82,80 @@ void distance_location_courier() {
   Exit();
 }
 
-typedef struct distance_update_message {
-  char train;
-  int dx;
-} distance_update_message;
-
 void distance_server() {
   int waiting_tid = 0;
 
-  int cur_speeds[NUM_TRAINS + 1];
-  int notifier_tids[NUM_TRAINS + 1];
-  int accumulated_dx[NUM_TRAINS + 1];
+  int notifier_tids[MAX_TRAINS];
 
-  int tid;
-  int dx;
   distance_update_message dum;
-
   distance_server_message msg;
+
   location_array train_locations;
   train_locations.size = 0;
   location* loc;
+
+  int tid, train_id, dx, dt, target_velocity;
 
   while (1) {
     Receive(&tid, (char *)&msg, sizeof(distance_server_message));
     switch (msg.type) {
       case DS_TRACK_TRAIN:
         Reply(tid, (void *)0, 0);
-        cur_speeds[msg.train] = 0;
-        accumulated_dx[msg.train] = 0;
+        train_id = tr_num_to_idx(msg.train);
+
+        current_speeds[train_id] = 0;
+        accumulated_dx[train_id] = 0;
+        current_velocities[train_id] = 0;
+        acceleration_start_time[train_id] = NOT_ACCELERATING;
 
         // Create notifier
         // TODO(f2fung): If we used only one notifier, our error would be at most a hundreth
         // of a second which is about 5.33mm versus whatever delays we're getting for more notifiers
-        notifier_tids[msg.train] = Create(MED_PRI, &distance_notifier);
-        Send(notifier_tids[msg.train], (char *)&msg.train, sizeof(int), (void *)0, 0);
+        notifier_tids[train_id] = Create(MED_PRI, &distance_notifier);
+        Send(notifier_tids[train_id], (char *)&msg.train, sizeof(int), (void *)0, 0);
         break;
       case DS_UPDATE_SPEED:
         Reply(tid, (void *)0, 0);
-        // TODO(f2fung): Acceleration/Decceleration/Stopping
-        cur_speeds[msg.train] = msg.speed;
+        train_id = tr_num_to_idx(msg.train);
+
+        current_speeds[train_id] = msg.speed;
+        acceleration_start_time[train_id] = Time();
         break;
       case DS_GET_UPDATE:
         waiting_tid = tid;
         break;
       case DS_NOTIFIER:
         Reply(tid, (void *)0, 0);
+        train_id = tr_num_to_idx(msg.train);
 
-        loc = get_train_location(&train_locations, msg.train);
-
-        // TODO(f2fung): Acceleration/Decceleration modelling
-        if (cur_speeds[msg.train] == 0) {
-          dx = 0;
-        } else if (cur_speeds[msg.train] == 11) {
-          if (loc == 0) {
-            dx = DEFAULT_UM_PER_TICK;
-          } else {
-            dx = get_exp_velocity_at_location(node2idx(get_track(), loc->node));
+        if (acceleration_start_time[train_id] != NOT_ACCELERATING) {
+          dt = Time() - acceleration_start_time[train_id];
+          target_velocity = mean_velocity(msg.train, current_speeds[train_id]);
+          current_velocities[train_id] = accelerate(msg.train, current_velocities[train_id], target_velocity, dt);
+          if (current_velocities[train_id] == target_velocity) {
+            acceleration_start_time[train_id] = NOT_ACCELERATING;
           }
         }
-        accumulated_dx[msg.train] += dx;
 
-        if (waiting_tid == 0) { // This is bad
+        if (acceleration_start_time[train_id] == NOT_ACCELERATING) {
+          loc = get_train_location(&train_locations, msg.train);
+          dx = piecewise_velocity(msg.train, current_speeds[train_id], loc) / 1000;
+        } else {
+          dx = current_velocities[train_id] / 1000;
+        }
+        accumulated_dx[train_id] += dx;
+
+        if (waiting_tid == 0) {
+          // No-one to notify, so we accumulate dx. This is a bad sign, we generally shouldn't be missing updates.
         } else {
           dum.train = msg.train;
-          dum.dx = accumulated_dx[msg.train];
+          dum.dx = accumulated_dx[train_id];
+          dum.stopping_distance = stopping_distance(msg.train, current_velocities[train_id]);
+          dum.stopping_time = stopping_time(msg.train, current_velocities[train_id]);
+
           Reply(waiting_tid, (char *)&dum, sizeof(distance_update_message));
           waiting_tid = 0;
-          accumulated_dx[msg.train] = 0;
+          accumulated_dx[train_id] = 0;
         }
 
         break;
@@ -172,7 +192,7 @@ void ds_update_speed(int train, int speed) {
   Send(distance_server_tid, (char *)&msg, sizeof(distance_server_message), (void *)0, 0);
 }
 
-void ds_get_update(int* train, int* dx) {
+void ds_get_update(int* train, int* dx, int* stopping_distance, int* stopping_time) {
   distance_server_message msg;
   distance_update_message dum;
   msg.type = DS_GET_UPDATE;
@@ -180,4 +200,6 @@ void ds_get_update(int* train, int* dx) {
 
   *train = dum.train;
   *dx = dum.dx;
+  *stopping_distance = dum.stopping_distance;
+  *stopping_time = dum.stopping_time;
 }

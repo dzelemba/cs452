@@ -213,8 +213,6 @@ void location_notifier() {
   Exit();
 }
 
-#define STOPPING_DISTANCE 700
-
 void check_switch_action(sequence* path_node) {
   if (path_node->action == TAKE_STRAIGHT) {
     sw(get_track_node(get_track(), path_node->location)->num, 'S');

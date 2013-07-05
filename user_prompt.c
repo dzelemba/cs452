@@ -108,10 +108,10 @@ int process_line(char* line) {
   } else if (string_equal(tokens[0], "init")) {
     if (tokens[1][0] == 'A') {
       init_tracka(get_track());
-      init_physicsa(get_exp_velocities());
+      init_physicsa();
     } else if (tokens[1][0] == 'B') {
       init_trackb(get_track());
-      init_physicsb(get_exp_velocities());
+      init_physicsb();
     } else {
       return 1;
     }

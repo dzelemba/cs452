@@ -5,6 +5,10 @@ void init_stdlib();
 
 int min(int a, int b);
 
+int max(int a, int b);
+
+int abs(int a);
+
 int atoi(char* src);
 
 int memcpy(char* destination, const char* source, int len);
