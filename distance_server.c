@@ -146,14 +146,14 @@ void distance_server() {
         }
 
         if (acceleration_start_time[train_id] == NOT_ACCELERATING) {
-          loc = get_train_location(&train_locations, msg.train);
-          if (loc) {
-            dx = piecewise_velocity(msg.train, current_speeds[train_id], loc) / 1000;
-          } else { // Bad initialization race. No location means train tracking isn't totally complete yet
-            dx = mean_velocity(msg.train, current_speeds[train_id]) / 1000;
-          }
+          dx = mean_velocity(msg.train, current_speeds[train_id]) / 1000;
         } else {
           dx = current_velocities[train_id] / 1000;
+        }
+
+        loc = get_train_location(&train_locations, msg.train);
+        if (loc) {
+          dx = (dx * piecewise_velocity(msg.train, current_speeds[train_id], loc)) / 100;
         }
         accumulated_dx[train_id] += dx;
 

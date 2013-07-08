@@ -31,7 +31,6 @@ unsigned int ticks_to_accelerate(unsigned int v0, unsigned int v1) {
 }
 
 unsigned int piecewise_velocity(int train, int speed, location* loc) {
-  // TODO: Scale by the train's performance as measured by mean velocities
   return _piecewise_velocities[speed][node2idx(get_track(), loc->node)];
 }
 
@@ -56,24 +55,24 @@ void init_physicsa() {
   }
 
   for (i = 0; i < TRACK_MAX; i++) {
-    _piecewise_velocities[0][i] = 0;
-    _piecewise_velocities[11][i] = DEFAULT_NM_PER_TICK;
+    _piecewise_velocities[0][i] = 100;
+    _piecewise_velocities[11][i] = 100;
   }
 
-  _piecewise_velocities[11][50] = 5430000;
-  _piecewise_velocities[11][52] = 5250000;
-  _piecewise_velocities[11][53] = 5240000;
-  _piecewise_velocities[11][68] = 5250000;
-  _piecewise_velocities[11][69] = 5430000;
-  _piecewise_velocities[11][72] = 5240000;
-  _piecewise_velocities[11][73] = 5160000;
-  _piecewise_velocities[11][77] = 5160000;
-  _piecewise_velocities[11][94] = 5240000;
-  _piecewise_velocities[11][95] = 5240000;
-  _piecewise_velocities[11][96] = 5240000;
-  _piecewise_velocities[11][97] = 5240000;
-  _piecewise_velocities[11][98] = 5430000;
-  _piecewise_velocities[11][99] = 5430000;
+  _piecewise_velocities[11][50] = 102;
+  _piecewise_velocities[11][52] = 98;
+  _piecewise_velocities[11][53] = 98;
+  _piecewise_velocities[11][68] = 98;
+  _piecewise_velocities[11][69] = 102;
+  _piecewise_velocities[11][72] = 98;
+  _piecewise_velocities[11][73] = 97;
+  _piecewise_velocities[11][77] = 97;
+  _piecewise_velocities[11][94] = 98;
+  _piecewise_velocities[11][95] = 98;
+  _piecewise_velocities[11][96] = 98;
+  _piecewise_velocities[11][97] = 98;
+  _piecewise_velocities[11][98] = 102;
+  _piecewise_velocities[11][99] = 102;
 }
 
 void init_physicsb() {
@@ -85,7 +84,7 @@ void init_physicsb() {
   }
 
   for (i = 0; i < TRACK_MAX; i++) {
-    _piecewise_velocities[0][i] = 0;
-    _piecewise_velocities[11][i] = DEFAULT_NM_PER_TICK;
+    _piecewise_velocities[0][i] = 100;
+    _piecewise_velocities[11][i] = 100;
   }
 }
