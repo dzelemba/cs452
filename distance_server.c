@@ -129,17 +129,29 @@ void distance_server() {
         train_id = tr_num_to_idx(msg.train);
 
         if (acceleration_start_time[train_id] != NOT_ACCELERATING) {
-          dt = Time() - acceleration_start_time[train_id];
-          target_velocity = mean_velocity(msg.train, current_speeds[train_id]);
-          current_velocities[train_id] = accelerate(msg.train, current_velocities[train_id], target_velocity, dt);
-          if (current_velocities[train_id] == target_velocity) {
-            acceleration_start_time[train_id] = NOT_ACCELERATING;
+          if (current_speeds[train_id] > 0) {
+            dt = Time() - acceleration_start_time[train_id];
+            target_velocity = mean_velocity(msg.train, current_speeds[train_id]);
+            current_velocities[train_id] = accelerate(msg.train, current_velocities[train_id], target_velocity, dt);
+            if (current_velocities[train_id] == target_velocity) {
+              acceleration_start_time[train_id] = NOT_ACCELERATING;
+            }
+          } else { // Stopping logic
+            dt = Time() - acceleration_start_time[train_id];
+            current_velocities[train_id] = stop(msg.train, current_velocities[train_id], dt);
+            if (current_velocities[train_id] == 0) {
+              acceleration_start_time[train_id] = NOT_ACCELERATING;
+            }
           }
         }
 
         if (acceleration_start_time[train_id] == NOT_ACCELERATING) {
           loc = get_train_location(&train_locations, msg.train);
-          dx = piecewise_velocity(msg.train, current_speeds[train_id], loc) / 1000;
+          if (loc) {
+            dx = piecewise_velocity(msg.train, current_speeds[train_id], loc) / 1000;
+          } else { // Bad initialization race. No location means train tracking isn't totally complete yet
+            dx = mean_velocity(msg.train, current_speeds[train_id]) / 1000;
+          }
         } else {
           dx = current_velocities[train_id] / 1000;
         }

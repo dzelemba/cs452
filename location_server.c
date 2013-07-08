@@ -55,8 +55,10 @@ void location_sensor_notifier() {
 void location_distance_notifier() {
   location_server_message msg;
   msg.type = DISTANCE_UPDATE;
+
+  int stopping_distance, stopping_time;
   while (1) {
-    ds_get_update(&msg.ds_update.train, &msg.ds_update.dx);
+    ds_get_update(&msg.ds_update.train, &msg.ds_update.dx, &stopping_distance, &stopping_time);
     Send(location_server_tid, (char *)&msg, sizeof(location_server_message), (void *)0, 0);
   }
 

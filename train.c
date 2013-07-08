@@ -2,9 +2,11 @@
 #include "dijkstra.h"
 #include "distance_server.h"
 #include "linked_array.h"
+#include "location.h"
 #include "location_server.h"
 #include "ourio.h"
 #include "ourlib.h"
+#include "physics.h"
 #include "priorities.h"
 #include "sensor_server.h"
 #include "syscall.h"
@@ -245,7 +247,7 @@ int perform_path_actions(int train, sequence* path_base, int path_size) {
   // Reverse and stop commands need to look out "stopping distance" ahead.
   // TODO(dzelemba): We're stopping too early here.
   int dist = 0, i;
-  for (i = 0; i < path_size && dist < STOPPING_DISTANCE; i++) {
+  for (i = 0; i < path_size && dist < DEFAULT_STOPPING_DISTANCE; i++) {
     if (path_base[i].action == REVERSE) {
       // Modify path so that we don't reverse twice
       path_base[i].action = DO_NOTHING;
@@ -259,7 +261,7 @@ int perform_path_actions(int train, sequence* path_base, int path_size) {
 
   // If there's less than STOPPING_DISTANCE left in the path STOP!
   // TODO(dzelemba): Use direction to improve accuracy.
-  if (dist < STOPPING_DISTANCE) {
+  if (dist < DEFAULT_STOPPING_DISTANCE) {
     set_speed(0, train);
     return 1;
   }
@@ -392,7 +394,7 @@ void init_trains() {
   assign_train_to_idx(51, 7);
 
   int i;
-  for (i = 1; i < MAX_TRAINS; i++) {
+  for (i = 0; i < MAX_TRAINS; i++) {
     train_speeds[i] = 0;
     tracked_trains[i] = 0;
   }

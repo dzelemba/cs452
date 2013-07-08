@@ -6,8 +6,10 @@
 #define DEFAULT_NM_PER_TICK 5330000
 #define DEFAULT_ACCELERATING_TICKS 428
 #define DEFAULT_STOPPING_DISTANCE 700
+#define DEFAULT_STOPPING_TICKS 200
 
 unsigned int accelerate(int train, unsigned int v0, unsigned int v1, int t);
+unsigned int stop(int train, unsigned int v, int t);
 unsigned int ticks_to_accelerate(unsigned int v0, unsigned int v1);
 unsigned int piecewise_velocity(int train, int speed, location* loc);
 unsigned int mean_velocity(int train, int speed);
