@@ -11,24 +11,145 @@
 
 \section{How To Run}
 \begin{verbatim}
-	> load -b 0x00218000 -h 10.15.167.4 "ARM/dzelemba/a4_final.elf
+	> load -b 0x00218000 -h 10.15.167.4 "ARM/dzelemba/p1_final.elf
+	> go
+\end{verbatim}
+
+For the version with reversing enabled:
+\begin{verbatim}
+	> load -b 0x00218000 -h 10.15.167.4 "ARM/dzelemba/p1_final_reverse.elf
 	> go
 \end{verbatim}
 
 \section{Submitted Files}
 
-Files listed here can be found under \verb!/u1/dzelembaba/cs452/frozen_a4/!
+Files listed here can be found under \verb!/u1/dzelembaba/cs452/frozen_p1/!
 
 \subsection{md5sums}
 \begin{verbatim}
-
+1ca0a61cc5c33c19657487267892fa48  ./Makefile
+4ac0a6f78cc9ebf5380fdd73943d0f37  ./clockserver.c
+940c64a85e0ce0be2e92cdec7a6c3186  ./colorgcc
+e6fe878a12d13ea01c7cdb38895772f8  ./context_switch.s
+296f7f84cfb2c088fad7b6a69268d00b  ./data_structures/bitmask.c
+d415610f8f5ef81be692cac926c23013  ./data_structures/heap.c
+ab8382c23eef47efff0eddaff12eed14  ./data_structures/heapplus.c
+89d74272f5d03eb54db03f8633cb2abb  ./data_structures/linked_array.c
+c576ad057d803614930f44e6573d5e79  ./data_structures/queue.c
+5a913deb0a153b5cd55bb5c52f27215e  ./data_structures/simple_sm.c
+075dbb55bee1549e0acdc826f2989342  ./debug.c
+36d69395cfd2a07ba534b76fa074bc1e  ./dijkstra.c
+d631cca86fd864d6e07c20e391af2947  ./distance_server.c
+3774f518f194d500c51de712c567e3d8  ./first_task.c
+3b096de077660480045b6f57a090e482  ./icu.c
+82a36ae15796491b9bed143f575f1dcd  ./idle_task.c
+f351ccf69b83adb1e2aa0ef559a11eb8  ./include/all_tests.h
+35bd0114e8113fbd214e3a389b4844c3  ./include/bitmask.h
+f703df970dc0bc8279d9e4ae5b5298f4  ./include/calibration.h
+4c86aadc2cca610cd67c7dd645371d33  ./include/clockserver.h
+f14b1bd18405e4a13aa29074b4d3c265  ./include/context_switch.h
+58fd0fc7dbc458a2553cbb2a27293a8c  ./include/debug.h
+ed00d569104da52e508868ca41a59f99  ./include/dijkstra.h
+1dd656a1bbde35c0dcc1f03015e899aa  ./include/distance_server.h
+9b124aeb5f84630af58c3abc2843c1a6  ./include/events.h
+f5d5f01a856e51feeefb0c672539e687  ./include/first_task.h
+e80eed468576da5be1cb04b8572681ae  ./include/heap.h
+9d32c0d251a4f75f201ce8ebe295eb32  ./include/heapplus.h
+60122cea48e43550bf96143b8310ab30  ./include/icu.h
+574e859de18cdbe722764e3230f226ca  ./include/idle_task.h
+c5b1026567dfc98fa4be22dde2163d98  ./include/interrupt_handler.h
+bbd1a58e9662dc9efab4ffbeb4655ab0  ./include/ioserver.h
+3ac7a3b2def34929bbd3198847a84c50  ./include/kernel.h
+1f1dbb640125c1ea0cf60f07910134b6  ./include/linked_array.h
+3c94c6a4adc8d2acbc119555ea901f5f  ./include/location.h
+b25cf9c81536c67386b283414016a44f  ./include/location_server.h
+d9fcdc742e0118ccfc12d5f5f5f3c043  ./include/messenger.h
+b2047a8021138c14fd7eea61641669d5  ./include/nameserver.h
+4530b5654a8caa43c16a11bd0daeecc7  ./include/ourio.h
+022be97a8b5a1cd0073568b4ef251e63  ./include/ourlib.h
+df69fc9d0cb6cba006ec87de69d2fec9  ./include/physics.h
+ad8404d6ff9b3cd23ab35da21a70037f  ./include/priorities.h
+e1b272be0185c041b8dcf2d5df968f7a  ./include/project.h
+f3a84d024389e2d29b86e6387137537f  ./include/queue.h
+f42681e19e3dc50960b701be52a53546  ./include/rps_server.h
+0e390e153530b05118c87063a5dd3120  ./include/run_tests.h
+621140a6884a581a7e896c056efe717e  ./include/scheduler.h
+d0a3e405c2b9edacbe2561ccd872b603  ./include/sensor.h
+04f3437f5e8c454f6be806b30a0f186a  ./include/sensor_server.h
+2a521c524bcdc6a4e301e9a923dc136d  ./include/simple_sm.h
+8873c1a40c39ee31376a9b9fc12c70b9  ./include/string.h
+7a1b1692e08413e0632172e8bab8cd11  ./include/strings.h
+79011f6df564aa67f67c8f9e90787a88  ./include/syscall.h
+759886dc2704a848c80bd82ead8d9b7d  ./include/task.h
+cd42684f05820c5322c424f711652b5f  ./include/test_helpers.h
+077b0816d3b8542fd64497f05d360c41  ./include/timer.h
+f7deebc969e0e47335d1e579cccbd1fc  ./include/track_data.h
+7b249412f0f4793fc5dc7b02f256d42a  ./include/track_node.h
+41f6038bc27320a33ce3732516880079  ./include/train.h
+473d468b5c307bb6eeaeca7d35acec54  ./include/ts7200.h
+04e5789e07fb586a1b6b101acf73a96b  ./include/uart.h
+9a074edfb207dbd4b50060fd7b6b9cb2  ./include/user_prompt.h
+f6bdabd7557ba8bf2f3263c953259049  ./ioserver.c
+bde87554c6753ab69679a0096a9f0eab  ./kernel/interrupt_handler.c
+9f7c2c9a277086cbfdea1d5226175cb6  ./kernel/kernel.c
+ab372eec3ca8c8429171c6ff462c23fa  ./kernel/main.c
+e9e1ac4c766842ccd536393e5915b901  ./kernel/messenger.c
+8108e4058969ac8a377ad7241006656c  ./kernel/scheduler.c
+a430d395867e1035e297c4dc137ca6ab  ./location_server.c
+c29551c6747135dc2869e0447f716627  ./nameserver.c
+1dc118c000601dc8accbed9bf54a2076  ./orex.ld
+5cc6f212993ea0f89c62ff6537a87191  ./ourio.c
+676d8e5607fe6e43ab4388d3069d9123  ./ourlib.c
+70c843306845194a31d0444eb6ba9fdc  ./physics.c
+d141a877fdf638c446d299532e5db186  ./priorities.c
+c69141c60c3e8913780e8668fdaf2040  ./project/calibration.c
+be9ef52c796a715ef6060438f2459478  ./project.c
+6ef4c4581e33ad9c58ab73a896fc1cb2  ./rps_server.c
+0044a9d5892b591929afcd304891ad7f  ./run_tests.c
+6ab741962f888c6557f4327b64840f28  ./scripts/spread.c
+eb4742a2a697b95c442ccedfb5fee408  ./sensor.c
+f63e82b20130ed2dfd954137d2de5cf5  ./sensor_server.c
+0077ca5ad3b96616b9d58756ba4bb89a  ./string.c
+792ad97b51eece81a637452da6056674  ./strings.c
+6006d09d2d94833c991897dda725e5df  ./syscall.c
+21dcdc6ab513c96b214e074b17836870  ./task.c
+d8e007eaadc6b69717224d34b4682969  ./test_helpers.c
+eee31a1660aeb081646807700f42916e  ./tests/assignment_1_test.c
+3efd35b657aae300b4c27610c3de0ed1  ./tests/assignment_3_test.c
+36f8e02155a2ec078a6b9f39c7fa84c6  ./tests/basic_test.c
+55d83782fdbdbd446d40150475e99a64  ./tests/clockserver_test.c
+70ba721afbb029c5f5fd274610cd04e5  ./tests/hwi_test.c
+bcb10795dece42854f1afdfeba58abc3  ./tests/message_passing_test.c
+fb8849e3daee133a6dbd8d46aae51841  ./tests/multiple_priorities_test.c
+e84e447e74452e7a0e121584432b0101  ./tests/nameserver_test.c
+9baef3b3aba60fa62a52f1fac6081ee5  ./tests/rps_server_test.c
+ca072ba530273c9f04902df45203a786  ./tests/scheduler_speed_test.c
+ba53b95ab3af146a4e579451899bba5b  ./tests/srr_speed_test.c
+6525c92955cc2dcefd59010920d3def1  ./tests/syscall_speed_test.c
+0a009e1c2cf45b3a2e4fe54aa323bf7a  ./tests/task_creation_errors_test.c
+beba7a70a2ef57ffef4c82ef69aeff34  ./tests/train_test.c
+c83a8c9eb4d8bfd8ce93024e85e90615  ./tests/uart1_intr_test.c
+3cd62f7995e4d59b66f0bc66a750a743  ./timer.c
+c238ace4d6ba13fd94a3520cf0673ee4  ./track_data.c
+6f378a6ad1b8953d79cdb125eaf3f17d  ./track_node.c
+ed374d461cc7efeefba929cacc9840be  ./train.c
+06c596f61b859cd9a572323c4d1b0ae1  ./uart.c
+687b6f5cbfbc589a272e0cb266e0ed0a  ./unittests/all_tests.c
+ad417e31447983fe13bab3ad5f7d4fac  ./unittests/bitmask_tests.c
+f34b6b11c6310ead7e7ff6b6c51950f4  ./unittests/dijkstra_tests.c
+1413c01a1b7694350c45058180c18a5b  ./unittests/heap_tests.c
+9e27f3bff6356af0d99ee24d6c7c2db9  ./unittests/linked_array_tests.c
+4b935cf081a780b986545df31445c30a  ./unittests/strings_tests.c
+f068e72416d05f20660390bb1e50a4ef  ./unittests/test_helpers.c
+24bc70d54528b73d8d7eb23f573921bc  ./unittests/test_helpers.h
+fe408865ea7fe6dd244d698237459d7b  ./user_prompt.c
 \end{verbatim}
 
 \section{Project Description}
 
 \subsection{Key Servers}
 
-There are 4 main servers used to track and control the trains: the sensor server, location server, distance server and train controller. There are two main points worth mentioning about how these servers communicate with one another. 
+There are 4 main servers used to track and control the trains: the sensor server, location server, distance server and train controller. There are two main points worth mentioning about how these servers communicate with one another.
 
 First, the servers talk to one another using couriers. Since we want our servers to be Receive blocked most of the time, we use couriers to perform blocking calls to other servers, so that the client server can perform other tasks while waiting for data.
 
@@ -58,9 +179,9 @@ The location server also receives updates from the distance server that tells it
 
 \subsubsection{Train Controller}
 
-The train controller is the top level server that controls all messages being sent to the trains. It accepts commands to change speed of the train, give a train a route, or begin tracking a train. 
+The train controller is the top level server that controls all messages being sent to the trains. It accepts commands to change speed of the train, give a train a route, or begin tracking a train.
 
-To track a train, the train controller needs to know where the train is located. To do this, is starts moving the train very slowly until it hits a trigger. Once it has this data it notifies the location server of the trains location. 
+To track a train, the train controller needs to know where the train is located. To do this, is starts moving the train very slowly until it hits a trigger. Once it has this data it notifies the location server of the trains location.
 
 To give a train a route, the train controller gets a shortest path using the path finding algorithm described below. Using the path, it subscribes to location updates from the location server to perform the necessary actions at each step in the path. The location server provides the train's stopping distance and direction that the train controller uses to calculate "lookahead" distances for turning switches, performing a reverse or stopping. If the nodes at which actions need to be performed at are less than "lookahed" distance away, the train controller performs the action. This relies on accurate mesurements, so a generous error buffer is used to ensure actions don't get performed too early or too late.
 
