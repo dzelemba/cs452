@@ -54,6 +54,9 @@ void init_physicsa() {
     _mean_velocities[11][i] = DEFAULT_NM_PER_TICK;
   }
 
+  _mean_velocities[11][tr_num_to_idx(47)] = 5311245;
+  _mean_velocities[11][tr_num_to_idx(50)] = 5192361;
+
   for (i = 0; i < TRACK_MAX; i++) {
     _piecewise_velocities[0][i] = 100;
     _piecewise_velocities[11][i] = 100;
@@ -76,15 +79,36 @@ void init_physicsa() {
 }
 
 void init_physicsb() {
-  // TODO(f2fung): I've literally done no experiments on Track B
   int i;
   for (i = 0; i < MAX_TRAINS; i++) {
     _mean_velocities[0][i] = 0;
     _mean_velocities[11][i] = DEFAULT_NM_PER_TICK;
   }
 
+  _mean_velocities[11][tr_num_to_idx(47)] = 5311245;
+  _mean_velocities[11][tr_num_to_idx(50)] = 5192361;
+
   for (i = 0; i < TRACK_MAX; i++) {
     _piecewise_velocities[0][i] = 100;
     _piecewise_velocities[11][i] = 100;
   }
+
+  _piecewise_velocities[11][20] = 97;
+  _piecewise_velocities[11][21] = 103;
+  _piecewise_velocities[11][31] = 98;
+  _piecewise_velocities[11][40] = 98;
+  _piecewise_velocities[11][42] = 103;
+  _piecewise_velocities[11][50] = 105;
+  _piecewise_velocities[11][51] = 97;
+  _piecewise_velocities[11][52] = 95;
+  _piecewise_velocities[11][68] = 95;
+  _piecewise_velocities[11][69] = 105;
+  _piecewise_velocities[11][73] = 98;
+  _piecewise_velocities[11][77] = 98;
+  _piecewise_velocities[11][98] = 105;
+  _piecewise_velocities[11][99] = 105;
+  _piecewise_velocities[11][104] = 103;
+  _piecewise_velocities[11][105] = 103;
+  _piecewise_velocities[11][108] = 98;
+  _piecewise_velocities[11][109] = 98;
 }
