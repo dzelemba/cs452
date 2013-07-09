@@ -73,6 +73,14 @@ void draw_initial() {
   return_cursor();
 }
 
+int check_train_number(int train) {
+  return train >=1 && train <= NUM_TRAINS;
+}
+
+int check_train_speed(int speed) {
+  return speed >= 0 && speed <= NUM_SPEEDS;
+}
+
 int process_line(char* line) {
   char static_tokens[MAX_TOKENS][MAX_TOKEN_SIZE];
   char* tokens[MAX_TOKENS];
@@ -85,10 +93,22 @@ int process_line(char* line) {
   }
 
   if (string_equal(tokens[0], "tr")) {
+    if (ret != 3) {
+      return 1;
+    }
+
     int train_number = atoi(tokens[1]);
     int train_speed = atoi(tokens[2]);
+    if (!check_train_number(train_number) || !check_train_speed(train_speed)) {
+      return 1;
+    }
+
     tr_set_speed(train_speed, train_number);
   } else if (string_equal(tokens[0], "sw")) {
+    if (ret != 3) {
+      return 1;
+    }
+
     int switch_number = atoi(tokens[1]);
     char direction = tokens[2][0];
     if (direction != 'C' && direction != 'S') {
@@ -101,11 +121,22 @@ int process_line(char* line) {
     tr_sw(switch_number, direction);
     draw_switch_state(switch_number, direction);
   } else if (string_equal(tokens[0], "rv")) {
+    if (ret != 2) {
+      return 1;
+    }
+
     int train_number = atoi(tokens[1]);
+    if (!check_train_number(train_number)) {
+      return 1;
+    }
     tr_reverse(train_number);
   } else if (string_equal(tokens[0], "q")) {
     Shutdown();
   } else if (string_equal(tokens[0], "init")) {
+    if (ret != 2) {
+      return 1;
+    }
+
     if (tokens[1][0] == 'A') {
       init_tracka(get_track());
       init_physicsa();
@@ -117,10 +148,20 @@ int process_line(char* line) {
     }
   } else if (string_equal(tokens[0], "track")) {
     int train = atoi(tokens[1]);
+    if (!check_train_number(train)) {
+      return 1;
+    }
     tr_track(train);
   } else if (string_equal(tokens[0], "goto")) {
+    if (ret != 4) {
+      return 1;
+    }
+
     int train = atoi(tokens[1]);
     int speed = atoi(tokens[3]);
+    if (!check_train_number(train) || !check_train_speed(speed)) {
+      return 1;
+    }
 
     location loc;
     if (tokens[2][0] == 'B') {
@@ -138,7 +179,14 @@ int process_line(char* line) {
     }
     tr_set_route(train, speed, &loc);
   } else if (string_equal(tokens[0], "set_dir")) {
+    if (ret != 3) {
+      return 1;
+    }
+
     int train = atoi(tokens[1]);
+    if (!check_train_number(train)) {
+      return 1;
+    }
 
     if (tokens[2][0] == 'F') {
       ls_set_direction(train, FORWARD);
