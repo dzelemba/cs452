@@ -15,20 +15,15 @@ unsigned int accelerate(int train, unsigned int v0, unsigned int v1, int t) {
   return (v0 < v1) ? v0 : v1;
 }
 
-unsigned int stop(int train, unsigned int v, int t) {
-  unsigned int dv = DEFAULT_NM_PER_TICK / DEFAULT_STOPPING_TICKS;
-  if (v < dv) {
-    return 0;
-  } else {
-    return v - dv;
-  }
-}
-
-unsigned int ticks_to_accelerate(unsigned int v0, unsigned int v1) {
-  unsigned int dv = (v0 < v1) ? v1 - v0 : v0 - v1;
-  // TODO(f2fung): This is simple scaling and isn't backed by any experimental data
-  return dv * DEFAULT_ACCELERATING_TICKS / DEFAULT_NM_PER_TICK;
-}
+// TODO(f2fung): Deceleration Model
+/*unsigned int stop(int train, unsigned int v, int t) {*/
+  /*unsigned int dv = DEFAULT_NM_PER_TICK / DEFAULT_STOPPING_TICKS;*/
+  /*if (v < dv) {*/
+    /*return 0;*/
+  /*} else {*/
+    /*return v - dv;*/
+  /*}*/
+/*}*/
 
 unsigned int piecewise_velocity(int train, int speed, location* loc) {
   return _piecewise_velocities[speed][node2idx(get_track(), loc->node)];
@@ -43,9 +38,10 @@ unsigned int stopping_distance(int train, unsigned int v) {
   return DEFAULT_STOPPING_DISTANCE * v / DEFAULT_NM_PER_TICK;
 }
 
-unsigned int stopping_time(int train, unsigned int v) {
-  return DEFAULT_ACCELERATING_TICKS * v / DEFAULT_NM_PER_TICK;
-}
+// TODO(f2fung): Deceleration Model
+/*unsigned int stopping_time(int train, unsigned int v) {*/
+  /*return DEFAULT_ACCELERATING_TICKS * v / DEFAULT_NM_PER_TICK;*/
+/*}*/
 
 void init_physicsa() {
   int i;
