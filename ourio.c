@@ -224,6 +224,18 @@ void io_format (int channel, char *fmt, va_list va) {
   wrapper(_io_format(&s, fmt, va));
 }
 
+void sprintf(string* s, char* format, ...) {
+  va_list va;
+
+  va_start(va,format);
+  _io_format(s, format, va);
+  va_end(va);
+}
+
+void s_format(string* s, char* fmt, va_list va) {
+  _io_format(s, fmt, va);
+}
+
 void printf(int channel, char *fmt, ...) {
   va_list va;
 

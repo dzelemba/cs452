@@ -18,6 +18,8 @@ typedef char *va_list;
 
 #define MAX_STRING_SIZE 127
 
+#include "string.h"
+
 void putc(int channel, char c);
 
 void putx(int channel, char c);
@@ -33,6 +35,10 @@ void putw(int channel, int n, char fc, char *bf);
 void printf(int channel, char *format, ...);
 
 void io_format(int channel, char *fmt, va_list va);
+
+void sprintf(string* s, char* format, ...);
+
+void s_format(string* s, char* fmt, va_list va);
 
 int bwputc( int channel, char c );
 

@@ -19,6 +19,8 @@
 #define DRAW_ROW_RECENT_HIT 9
 #define DRAW_ROW_TRAIN_LOC 16
 #define DRAW_ROW_PROMPT 30
+#define DRAW_DEBUG_OUTPUT 35
+#define DEBUG_OUTPUT_SIZE 10
 
 #define DRAW_ROW_LOG 20
 #define LOG_LENGTH 10
@@ -48,6 +50,11 @@ void draw_initial() {
   printf(COM2, "\033[3;1HSwitch Table:");
   printf(COM2, "\033[%d;1HMost Recently Hit Sensors:", DRAW_ROW_RECENT_HIT);
   printf(COM2, "\033[%d;1HTrain Locations:", DRAW_ROW_TRAIN_LOC);
+  printf(COM2, "\033[%d;1HTrain Locations:", DRAW_ROW_TRAIN_LOC);
+  printf(COM2, "\033[%d;1HDebug Output:", DRAW_DEBUG_OUTPUT);
+
+  // Set scrollable area for debug output.
+  printf(COM2, "\033[%d;%dr", DRAW_DEBUG_OUTPUT + 1, DRAW_DEBUG_OUTPUT + DEBUG_OUTPUT_SIZE);
 
   int sw;
 
@@ -349,9 +356,23 @@ void display_train_locations() {
   Exit();
 }
 
+
+
 /*
  * Public Methods
  */
+
+void print_debug_output(char* fmt, ...) {
+  string output;
+  STR_CREATE(output, MAX_DEBUG_LENGTH);
+
+  va_list va;
+  va_start(va,fmt);
+  s_format(&output, fmt, va);
+  va_end(va);
+
+  printf(COM2, "\033[%d;1H\n%s", DRAW_DEBUG_OUTPUT + DEBUG_OUTPUT_SIZE, str_get_chars(&output));
+}
 
 void start_user_prompt() {
   current_prompt_pos = 0;
