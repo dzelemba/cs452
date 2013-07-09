@@ -167,13 +167,17 @@ Currently, the only clients of the sensor server are the user prompt and the loc
 
 \subsubsection{Distance Server}
 
-TODO
+At every tick, the distance server tells subscribed listeners how much a train has travelled in the last tick as well as stopping distance serving as a means for the location server to interpolate/model the train's position at every point. The distance server contains all the calibration models developed through experimentation (e.g. acceleration curve and stopping distance) and maintains all state associated with stopping, accelerating or decelerating. This is a clear separation of concerns from the location server who does not interpolation and takes distance updates at face value, updating locations based on graph data only. Since we are essentially numerically integrating twice (from acceleration to distance), we maintain increasingly more precision. Velocity and dx are returned as micrometers per tick while acceleration is stored in nanometers per tick. This was necessary since we were introducing round-off error at every tick.
+
+Along with a mean velocity for every train and speed setting, we maintain a table of relative performances across different pieces of track. We do simple scaling for most things such as acceleration and current velocity by the performance rating (a percentage).
+
+Our calibration is manual. We have pre-programmed specific loops in each track and set the train off at a specified speed. We take the time difference at every pair of adjacent sensors and average the time differences over some large number of runs. In the future, we would like to integrate our calibration with our train control prompt rather than compiling a separate executable.
 
 \subsubsection{Location Server}
 
 The location server is responsible for keeping track of the locations of the trains. Clients ask the location server for updates to all train locations.
 
-The location server is given a train to track and the current location of that train by the train controller. After that, it can track the train going around the track assuming no sensors malfunction and our view of the switch states is correct. It does this by getting sensor updates from the sensor server and looking for the next sensor the train should hit. It also reveives a message from the train controller every time a train reverses, so it knows to change direction and look for a different sensor.
+The location server is given a train to track and the current location of that train by the train controller. After that, it can track the train going around the track assuming no sensors malfunction and our view of the switch states is correct. It does this by getting sensor updates from the sensor server and looking for the next sensor the train should hit. It also receives a message from the train controller every time a train reverses, so it knows to change direction and look for a different sensor.
 
 The location server also receives updates from the distance server that tells it how far a train has moved in micrometers and the current stopping distance of the train. It can then use this data to determine when a train is on a branch or merge node as well as provide error estimates at sensor nodes.
 
@@ -183,10 +187,12 @@ The train controller is the top level server that controls all messages being se
 
 To track a train, the train controller needs to know where the train is located. To do this, is starts moving the train very slowly until it hits a trigger. Once it has this data it notifies the location server of the trains location.
 
-To give a train a route, the train controller gets a shortest path using the path finding algorithm described below. Using the path, it subscribes to location updates from the location server to perform the necessary actions at each step in the path. The location server provides the train's stopping distance and direction that the train controller uses to calculate "lookahead" distances for turning switches, performing a reverse or stopping. If the nodes at which actions need to be performed at are less than "lookahed" distance away, the train controller performs the action. This relies on accurate mesurements, so a generous error buffer is used to ensure actions don't get performed too early or too late.
+To give a train a route, the train controller gets a shortest path using the path finding algorithm described below. Using the path, it subscribes to location updates from the location server to perform the necessary actions at each step in the path. The location server provides the train's stopping distance and direction that the train controller uses to calculate "lookahead" distances for turning switches, performing a reverse or stopping. If the nodes at which actions need to be performed at are less than "lookahead" distance away, the train controller performs the action. This relies on accurate measurements, so a generous error buffer is used to ensure actions don't get performed too early or too late.
 
 \subsection{Path Finding}
 
-TODO
+We use dijkstra's with a heap and use edge distances for edge distances. We can pre-allocate and reuse memory for our sequences because we should never visit a node more than once (true only because a node and it's reverse are distinct). We enable reversing, but add a large constant rate for it. In theory, our edge weights should be proportional to the time required to traverse it rather than the physical track distance. In our current model, this is correct but would be incorrect for more general models about speed required to traverse a track, say some n-order markov chain. Further more, reversing cost should be a function of speed rather than the constant we have now.
+
+We chose to use dijkstra because it allows us to modify our graph and reroute on demand with the expectation that this will be necessary once we have track reservations.
 
 \end{document}
