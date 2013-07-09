@@ -136,25 +136,19 @@ void distance_server() {
             if (current_velocities[train_id] == target_velocity) {
               acceleration_start_time[train_id] = NOT_ACCELERATING;
             }
+          } else { // Stopping logic
+            dt = Time() - acceleration_start_time[train_id];
+            current_velocities[train_id] = stop(msg.train, current_velocities[train_id], dt);
+            if (current_velocities[train_id] == 0) {
+              acceleration_start_time[train_id] = NOT_ACCELERATING;
+            }
           }
         }
 
         if (acceleration_start_time[train_id] == NOT_ACCELERATING) {
           dx = mean_velocity(msg.train, current_speeds[train_id]) / 1000;
         } else {
-          if (current_speeds[train_id] > 0) {
-            dx = current_velocities[train_id] / 1000;
-          } else {
-            // While stopping
-            dt = Time() - acceleration_start_time[train_id];
-            if (dt >= DEFAULT_STOPPING_TICKS) {
-              current_velocities[train_id] = 0;
-              acceleration_start_time[train_id] = NOT_ACCELERATING;
-              dx = DEFAULT_STOPPING_DISTANCE * 1000;
-            } else {
-              dx = 0;
-            }
-          }
+          dx = current_velocities[train_id] / 1000;
         }
 
         loc = get_train_location(&train_locations, msg.train);
@@ -169,8 +163,7 @@ void distance_server() {
           dum.train = msg.train;
           dum.dx = accumulated_dx[train_id];
           dum.stopping_distance = stopping_distance(msg.train, current_velocities[train_id]);
-          /*dum.stopping_time = stopping_time(msg.train, current_velocities[train_id]);*/
-          dum.stopping_time = -1; // XXX: DON'T USE THIS PARAM
+          dum.stopping_time = stopping_time(msg.train, current_velocities[train_id]);
 
           Reply(waiting_tid, (char *)&dum, sizeof(distance_update_message));
           waiting_tid = 0;

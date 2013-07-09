@@ -245,17 +245,17 @@ void acceleration_calibration() {
     tr_reverse(our_train);
   }
 
-  sensor target_sensor = (sensor) { 'D', 14 };
+  sensor target_sensor = (sensor) { 'E', 14 };
 
   for (;;) {
-    printf(COM2, "Put train Xcm from D14, then press any key: ");
+    printf(COM2, "Put train Xcm from E14, then press any key: ");
     ch = Getc(COM2);
     printf(COM2, "%c\n", ch);
 
     int start = Time();
     tr_set_speed(our_speed, our_train);
     int hit_target = 0;
-    while (hit_target < 1) {
+    while (hit_target < 2) {
       int num_sensors = get_sensor_data(sensors, MAX_NEW_SENSORS);
       for (i = 0; i < num_sensors; i++) {
         if (sensors[i].group == target_sensor.group && sensors[i].socket == target_sensor.socket) {
@@ -280,7 +280,7 @@ void calibration_task() {
   if (ch == 'A') {
     acceleration_calibration();
   } else if (ch == 'V') {
-    velocity_a_calibration();
+    velocity_b_calibration();
   }
 
   Exit();
