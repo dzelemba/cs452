@@ -14,6 +14,7 @@
 #include "track_node.h"
 #include "train.h"
 #include "uart.h"
+#include "physics.h"
 
 /*
  * Note: Some of this global memory might be problematic as the reverse
@@ -79,33 +80,37 @@ void set_speed(int speed, int train) {
   }
 }
 
+typedef struct reverse_command {
+  int train;
+  int speed;
+  int delay;
+} reverse_command;
+
 void tr_reverse_task() {
   int tid;
-  int train_info[2];
+  reverse_command msg;
   while (1) {
-    Receive(&tid, (char *)train_info, 2*sizeof(int));
+    Receive(&tid, (char *)&msg, sizeof(reverse_command));
     Reply(tid, (void *)0, 0);
 
-    int train = train_info[0];
-    int speed = train_info[1];
+    set_speed(0, msg.train);
 
-    set_speed(0, train);
-
-    Delay(300);
-    send_reverse_command(train);
-    set_speed(speed, train);
+    Delay(msg.delay);
+    send_reverse_command(msg.train);
+    set_speed(msg.speed, msg.train);
   }
   Exit();
 }
 
-void reverse(int train) {
+void reverse(int train, int delay) {
   ASSERT(train > 0 && train <= NUM_TRAINS, "train.c: tr_reverse: Invalid train number");
 
-  int train_info[2];
-  train_info[0] = train;
-  train_info[1] = train_speeds[tr_num_to_idx(train)];
+  reverse_command msg;
+  msg.train = train;
+  msg.speed = train_speeds[tr_num_to_idx(train)];
+  msg.delay = delay;
 
-  Send(reverse_server_tid, (char *)train_info, 2*sizeof(int), (void *)0, 0);
+  Send(reverse_server_tid, (char *)&msg, sizeof(reverse_command), (void *)0, 0);
 }
 
 int convert_switch_number(int switch_number) {
@@ -215,11 +220,24 @@ void location_notifier() {
   Exit();
 }
 
-void check_switch_action(sequence* path_node) {
-  if (path_node->action == TAKE_STRAIGHT) {
-    sw(get_track_node(get_track(), path_node->location)->num, 'S');
-  } else if (path_node->action == TAKE_CURVE) {
-    sw(get_track_node(get_track(), path_node->location)->num, 'C');
+void perform_switch_action(sequence* path_node) {
+  if (!path_node->performed_action) {
+    if (path_node->action == TAKE_STRAIGHT) {
+      sw(get_track_node(get_track(), path_node->location)->num, 'S');
+    } else if (path_node->action == TAKE_CURVE) {
+      sw(get_track_node(get_track(), path_node->location)->num, 'C');
+    } else {
+      ERROR("train.c: perform_switch_action: node doesn't have switch action");
+    }
+    path_node->performed_action = 1;
+  }
+}
+
+void perform_reverse_action(sequence* path_node, int train, int stopping_time) {
+  if (!path_node->performed_action) {
+    // TODO(dzelemba): Make this look one edge ahead once we get reverses at nodes.
+    reverse(train, stopping_time);
+    path_node->performed_action = 1;
   }
 }
 
@@ -237,32 +255,98 @@ track_edge* get_next_edge_in_path(sequence* path_node) {
   return &node->edge[DIR_AHEAD];
 }
 
-// TODO(dzelemba): This assumes our path allows us to reach top speed.
-int perform_path_actions(int train, sequence* path_base, int path_size) {
-  // We need to turn switches three nodes ahead.
-  check_switch_action(path_base);
-  if (path_size > 1) check_switch_action(path_base + 1);
-  if (path_size > 2) check_switch_action(path_base + 2);
+// Upper bound for how far ahead we need to lookahead to switch
+// a switch in mm. Determined by upper limit for train speed of
+// 50 cm/s and byte tranmission rate of 1 byte/ 4ms. This gives
+// 4mm lookahead distance. Considering each train might send
+// another command with the switch we get 2 * 4mm * MAX_TRAINS.
+// Round up 8mm to 1cm.
+#define SWITCH_LOOKAHEAD_DISTANCE (10 * MAX_TRAINS)
 
-  // Reverse and stop commands need to look out "stopping distance" ahead.
-  // TODO(dzelemba): We're stopping too early here.
-  int dist = 0, i;
-  for (i = 0; i < path_size && dist < DEFAULT_STOPPING_DISTANCE; i++) {
-    if (path_base[i].action == REVERSE) {
-      // Modify path so that we don't reverse twice
-      path_base[i].action = DO_NOTHING;
+// Maximum error in our distance measurements in mm.
+#define MAX_DISTANCE_ERROR 150
 
-      reverse(train);
-      return 0;
+/*
+ * Note: When talking about wheels of the train we will use
+ *   - Backward/Forward when referring to the direction the
+ *     train is moving.
+ *   - Back/Front when referring to the side of the train the
+ *     pickup is on.
+ */
+
+#define PICKUP_TO_FRONTWHEEL 0
+#define PICKUP_LENGTH 50
+#define PICKUP_TO_BACKWHEEL 120
+
+int get_distance_to_forwardwheel(direction d) {
+  switch (d) {
+    case FORWARD:
+      return PICKUP_TO_FRONTWHEEL;
+    case BACKWARD:
+      return PICKUP_TO_BACKWHEEL;
+  }
+  ERROR("train.c: Invalid distance given: %d\n", d);
+  return 0;
+}
+
+int get_distance_to_backwardwheel(direction d) {
+  switch (d) {
+    case FORWARD:
+      return PICKUP_TO_BACKWHEEL + PICKUP_LENGTH;
+    case BACKWARD:
+      return PICKUP_TO_FRONTWHEEL + PICKUP_LENGTH;
+  }
+  ERROR("train.c: Invalid distance given: %d\n", d);
+  return 0;
+}
+
+int get_reverse_lookahead(int stopping_distance, direction d) {
+  return stopping_distance - get_distance_to_backwardwheel(d) - MAX_DISTANCE_ERROR;
+}
+
+int get_switch_lookahead(direction d) {
+  return SWITCH_LOOKAHEAD_DISTANCE + get_distance_to_forwardwheel(d) + MAX_DISTANCE_ERROR;
+}
+
+int get_stop_lookahead(int stopping_distance, direction d) {
+  return stopping_distance + get_distance_to_forwardwheel(d);
+}
+
+void perform_all_path_actions(int train, sequence* path_base, int path_size) {
+  int i;
+  for (i = 0; i < path_size; i++) {
+    sequence_action action = path_base[i].action;
+    if (action == TAKE_STRAIGHT || action == TAKE_CURVE) {
+      perform_switch_action(&path_base[i]);
+    }
+  }
+}
+
+int perform_path_actions(int train, sequence* path_base, int path_size, location* cur_loc) {
+  int reverse_lookahead = get_reverse_lookahead(cur_loc->stopping_distance, cur_loc->d);
+  int switch_lookahead = get_switch_lookahead(cur_loc->d);
+  int stop_lookahead = get_stop_lookahead(cur_loc->stopping_distance, cur_loc->d);
+  int max_lookahead = max(reverse_lookahead, max(switch_lookahead, stop_lookahead));
+
+  int cur_edge_length = get_next_edge_in_path(path_base)->dist;
+  int dist = -1 * min(cur_loc->um_past_node / 1000, cur_edge_length), i;
+  for (i = 0; i < path_size && dist <= max_lookahead; i++) {
+    sequence_action action = path_base[i].action;
+    if (action == REVERSE && dist <= reverse_lookahead) {
+      perform_reverse_action(&path_base[i], train, MAX_STOPPING_TIME);
+    } else if ((action == TAKE_STRAIGHT || action == TAKE_CURVE) && dist <= switch_lookahead) {
+      perform_switch_action(&path_base[i]);
     }
 
-    dist += get_next_edge_in_path(&path_base[i])->dist;
+    if (i != path_size - 1) {
+      dist += get_next_edge_in_path(&path_base[i])->dist;
+    }
   }
 
-  // If there's less than STOPPING_DISTANCE left in the path STOP!
-  // TODO(dzelemba): Use direction to improve accuracy.
-  if (dist < DEFAULT_STOPPING_DISTANCE) {
+  if (dist <= stop_lookahead) {
     set_speed(0, train);
+    // Turn any remaining switches.
+    perform_all_path_actions(train, path_base, path_size);
     return 1;
   }
 
@@ -271,14 +355,15 @@ int perform_path_actions(int train, sequence* path_base, int path_size) {
 
 int handle_path(int train, sequence* path, int* path_index, int path_size, location* cur_loc) {
   int p_index = *path_index;
+  int path_nodes_left = path_size - p_index - 1;
 
-  // Perform actions if we've advanced.
-  if (path[p_index].location == get_track_index(get_track(), cur_loc)) {
+  if (path_nodes_left > 1 && path[p_index + 1].location == get_track_index(get_track(), cur_loc)) {
     *path_index = p_index + 1;
-    return perform_path_actions(train, path + p_index, path_size - *path_index);
+  } else if (path_nodes_left > 2 && path[p_index + 2].location == get_track_index(get_track(), cur_loc)) {
+    *path_index = p_index + 2;
   }
 
-  return 0;
+  return perform_path_actions(train, path + *path_index, path_size - *path_index, cur_loc);
 }
 
 void train_controller() {
@@ -322,6 +407,8 @@ void train_controller() {
           sensor* s = &s_array.sensors[i];
           loc.train = msg.user_cmd.train;
           loc.node = get_track_node(get_track(), sensor2idx(s->group, s->socket));
+          loc.stopping_distance = 0;
+          loc.stopping_time = 0;
 
           // TODO(dzelemba): Figure out why we need a direction.
           loc.d = FORWARD;
@@ -340,7 +427,7 @@ void train_controller() {
         Reply(tid, (void *)0, 0);
 
         cur_loc = get_train_location(&train_locations, train);
-        la_insert(&trains_on_route, train, (void*)train);
+        la_insert(&trains_on_route, train_idx, (void*)train);
 
         path_indexes[train_idx] = 0;
         get_path(get_track(), cur_loc, &msg.set_route_data.dest, paths[train_idx], &path_sizes[train_idx]);
@@ -353,7 +440,7 @@ void train_controller() {
         break;
       case TR_REVERSE:
         Reply(tid, (void *)0, 0);
-        reverse(msg.user_cmd.train);
+        reverse(msg.user_cmd.train, MAX_STOPPING_TIME);
         break;
       case CHANGE_SWITCH:
         Reply(tid, (void *)0, 0);
@@ -366,9 +453,10 @@ void train_controller() {
         la_it_create(&trains_on_route, &la_it);
         while (la_it_has_next(&trains_on_route, &la_it)) {
           train = (int)la_it_get_next(&trains_on_route, &la_it);
+          train_idx = tr_num_to_idx(train);
           if (handle_path(train, paths[train_idx], &path_indexes[train_idx],
                           path_sizes[train_idx], get_train_location(&train_locations, train))) {
-            la_remove(&trains_on_route, train);
+            la_remove(&trains_on_route, train_idx);
           }
         }
         break;

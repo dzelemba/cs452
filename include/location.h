@@ -13,6 +13,8 @@ typedef struct location {
   track_node* node;
   int um_past_node;
   direction d;
+  int stopping_distance;
+  int stopping_time;
   int prev_sensor_error;
 } location;
 

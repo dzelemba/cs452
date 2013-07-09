@@ -5,8 +5,11 @@
 
 #define DEFAULT_NM_PER_TICK 5311245
 #define DEFAULT_ACCELERATING_TICKS 428
-#define DEFAULT_STOPPING_DISTANCE 700
+#define DEFAULT_STOPPING_DISTANCE 725
 #define DEFAULT_STOPPING_TICKS 200
+
+// Ticks
+#define MAX_STOPPING_TIME 400
 
 unsigned int accelerate(int train, unsigned int v0, unsigned int v1, int t);
 unsigned int stop(int train, unsigned int v, int t);

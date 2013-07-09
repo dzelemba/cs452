@@ -14,6 +14,7 @@ typedef enum {
 typedef struct sequence {
   short location; // Matches track_node ids
   sequence_action action;
+  int performed_action;
 } sequence;
 
 int get_path(track_node* track, location* src, location* dest, sequence* out_path, int* out_size);

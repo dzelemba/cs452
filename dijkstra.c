@@ -7,6 +7,8 @@
 #include <stdio.h>
 #endif
 
+//#define ENABLE_REVERSE 1
+
 // TODO: Come up with a better path cost model
 #define REVERSE_COST 500
 
@@ -38,7 +40,7 @@ int get_path_from_idx(track_node* track, int src, int dest, sequence* out_path, 
     visited[i] = 0;
   }
 
-  path[src] = (sequence) { src, DO_NOTHING };
+  path[src] = (sequence) { src, DO_NOTHING, 0 };
   heapplus_insert(&path_heap, 0, src);
 
   int ret = 0;
@@ -61,24 +63,26 @@ int get_path_from_idx(track_node* track, int src, int dest, sequence* out_path, 
       int next = node2idx(track, node->edge[i].dest);
       if (visited[next] == 0 && heapplus_insert(&path_heap, c + node->edge[i].dist, next)) {
         if (node->type == NODE_BRANCH) {
-          path[next] = (sequence) { v, (i == DIR_STRAIGHT) ? TAKE_STRAIGHT : TAKE_CURVE };
+          path[next] = (sequence) { v, (i == DIR_STRAIGHT) ? TAKE_STRAIGHT : TAKE_CURVE, 0 };
         } else {
-          path[next] = (sequence) { v, DO_NOTHING };
+          path[next] = (sequence) { v, DO_NOTHING, 0 };
         }
       }
     }
 
+#ifdef ENABLE_REVERSE
     // TODO: Maybe we need to do better than just reverse at sensors
     if (node->type == NODE_SENSOR) {
       int rev = node2idx(track, node->reverse);
       if (visited[rev] == 0 && heapplus_insert(&path_heap, c + REVERSE_COST, rev)) {
-        path[rev] = (sequence) { v, REVERSE };
+        path[rev] = (sequence) { v, REVERSE, 0 };
       }
     }
+#endif
   }
 
   // Backtrack the path
-  out_path[0] = (sequence) { dest, DO_NOTHING };
+  out_path[0] = (sequence) { dest, DO_NOTHING, 0 };
 
   i = 1;
   int it = dest;

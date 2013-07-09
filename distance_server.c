@@ -165,9 +165,11 @@ void distance_server() {
           dum.stopping_distance = stopping_distance(msg.train, current_velocities[train_id]);
           dum.stopping_time = stopping_time(msg.train, current_velocities[train_id]);
 
-          Reply(waiting_tid, (char *)&dum, sizeof(distance_update_message));
-          waiting_tid = 0;
-          accumulated_dx[train_id] = 0;
+          if (dum.dx != 0) {
+            Reply(waiting_tid, (char *)&dum, sizeof(distance_update_message));
+            waiting_tid = 0;
+            accumulated_dx[train_id] = 0;
+          }
         }
 
         break;

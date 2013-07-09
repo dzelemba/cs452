@@ -25,7 +25,8 @@ typedef enum location_server_message_type {
   GET_UPDATES,
   SENSOR_UPDATE,
   DISTANCE_UPDATE,
-  LS_TRAIN_REVERSE
+  LS_TRAIN_REVERSE,
+  LS_TRAIN_DIRECTION
 } location_server_message_type;
 
 typedef struct location_server_message {
@@ -36,8 +37,13 @@ typedef struct location_server_message {
     struct {
       int train;
       int dx;
+      int stopping_distance;
+      int stopping_time;
     } ds_update;
-    int train;
+    struct {
+      int train;
+      direction dir;
+    } train_update;
   };
 } location_server_message;
 
@@ -56,9 +62,9 @@ void location_distance_notifier() {
   location_server_message msg;
   msg.type = DISTANCE_UPDATE;
 
-  int stopping_distance, stopping_time;
   while (1) {
-    ds_get_update(&msg.ds_update.train, &msg.ds_update.dx, &stopping_distance, &stopping_time);
+    ds_get_update(&msg.ds_update.train, &msg.ds_update.dx,
+                  &msg.ds_update.stopping_distance, &msg.ds_update.stopping_time);
     Send(location_server_tid, (char *)&msg, sizeof(location_server_message), (void *)0, 0);
   }
 
@@ -68,6 +74,7 @@ void location_distance_notifier() {
 typedef struct tracking_data {
   location* loc;
   track_edge* cur_edge;
+  track_node* next_sensor;
 } tracking_data;
 
 typedef struct tracking_data_array {
@@ -79,24 +86,42 @@ void flip_direction(direction* d) {
   *d = (*d == FORWARD ? BACKWARD : FORWARD);
 }
 
-track_edge* get_next_edge(location* loc) {
-  if (loc->node->type == NODE_BRANCH) {
-    if (get_switch_direction(loc->node->num) == 'C') {
-      return &loc->node->edge[DIR_CURVED];
+track_edge* get_next_edge(track_node* node) {
+  if (node->type == NODE_BRANCH) {
+    if (get_switch_direction(node->num) == 'C') {
+      return &node->edge[DIR_CURVED];
     } else {
-      return &loc->node->edge[DIR_STRAIGHT];
+      return &node->edge[DIR_STRAIGHT];
     }
+  } else if (node->type == NODE_EXIT) {
+    return 0;
   } else {
-    return &loc->node->edge[DIR_AHEAD];
+    return &node->edge[DIR_AHEAD];
   }
 }
 
+track_node* get_next_sensor(track_node* node) {
+  track_node* next = get_next_edge(node)->dest;
+  while (next != 0 && next->type != NODE_SENSOR) {
+    next = get_next_edge(next)->dest;
+  }
+  return next;
+}
+
 void fill_in_tracking_data(tracking_data* t_data) {
-  t_data->cur_edge = get_next_edge(t_data->loc);
+  t_data->cur_edge = get_next_edge(t_data->loc->node);
+  t_data->next_sensor = get_next_sensor(t_data->loc->node);
 }
 
 void increment_location(tracking_data* t_data) {
+  ASSERT(t_data->cur_edge != 0, "location_server.c: increment_location");
+
   t_data->loc->node = t_data->cur_edge->dest;
+  fill_in_tracking_data(t_data);
+}
+
+void increment_location_to_sensor(tracking_data* t_data, track_node* sensor) {
+  t_data->loc->node = sensor;
   fill_in_tracking_data(t_data);
 }
 
@@ -106,7 +131,7 @@ void update_tracking_data_for_distance(tracking_data* t_data) {
   }
 
   track_edge* edge = t_data->cur_edge;
-  if (t_data->loc->um_past_node / 1000 > edge->dist && edge->dest->type != NODE_SENSOR) {
+  if (edge != 0 && t_data->loc->um_past_node / 1000 > edge->dist && edge->dest->type != NODE_SENSOR) {
     t_data->loc->um_past_node -= edge->dist * 1000;
     increment_location(t_data);
   }
@@ -114,20 +139,34 @@ void update_tracking_data_for_distance(tracking_data* t_data) {
 
 int update_tracking_data_for_sensor(tracking_data* t_data, sensor* s) {
   track_edge* edge = t_data->cur_edge;
-  if (t_data->cur_edge->dest == get_track_node(get_track(), sensor2idx(s->group, s->socket))) {
-    increment_location(t_data);
-    t_data->loc->prev_sensor_error = t_data->loc->um_past_node / 1000 - edge->dist;
-    t_data->loc->um_past_node = 0;
-    return 1;
+  track_node* sensor_node = get_track_node(get_track(), sensor2idx(s->group, s->socket));
+  if (edge != 0) {
+    if (edge->dest == sensor_node) {
+      increment_location(t_data);
+      t_data->loc->prev_sensor_error = t_data->loc->um_past_node / 1000 - edge->dist;
+      t_data->loc->um_past_node = 0;
+      return 1;
+    } else if (t_data->next_sensor == sensor_node) {
+      increment_location_to_sensor(t_data, sensor_node);
+      // TODO(dzelemba): Make this prev_sensor_error accurate.
+      t_data->loc->prev_sensor_error = t_data->loc->um_past_node / 1000 - edge->dist + 30;
+      t_data->loc->um_past_node = 0;
+      return 1;
+    }
   }
 
   return 0;
 }
 
 void update_tracking_data_for_reverse(tracking_data* t_data, int train) {
-  t_data->loc->node = t_data->cur_edge->dest->reverse;
+  if (t_data->cur_edge != 0) {
+    t_data->loc->node = t_data->cur_edge->dest->reverse;
+    t_data->loc->um_past_node = max(t_data->cur_edge->dist - t_data->loc->um_past_node, 0);
+  } else {
+    t_data->loc->node = t_data->loc->node->reverse;
+    t_data->loc->um_past_node = 0;
+  }
   flip_direction(&t_data->loc->d);
-  t_data->loc->um_past_node = t_data->cur_edge->dist - t_data->loc->um_past_node;
   fill_in_tracking_data(t_data);
 }
 
@@ -190,13 +229,22 @@ void location_server() {
         break;
       case LS_TRAIN_REVERSE:
         Reply(tid, (void *)0, 0);
-        update_tracking_data_for_reverse(get_tracking_data(&t_data_array, msg.train), msg.train);
+        train = msg.train_update.train;
+        update_tracking_data_for_reverse(get_tracking_data(&t_data_array, train), train);
+        reply_to_tasks(&waiting_tasks, &loc_array);
+        break;
+      case LS_TRAIN_DIRECTION:
+        Reply(tid, (void *)0, 0);
+        train = msg.train_update.train;
+        get_tracking_data(&t_data_array, train)->loc->d = msg.train_update.dir;
         reply_to_tasks(&waiting_tasks, &loc_array);
         break;
       case DISTANCE_UPDATE:
         Reply(tid, (void *)0, 0);
         loc = get_train_location(&loc_array, msg.ds_update.train);
         loc->um_past_node += msg.ds_update.dx;
+        loc->stopping_distance = msg.ds_update.stopping_distance;
+        loc->stopping_time = msg.ds_update.stopping_time;
         update_tracking_data_for_distance(get_tracking_data(&t_data_array, msg.ds_update.train));
         reply_to_tasks(&waiting_tasks, &loc_array);
         break;
@@ -255,6 +303,15 @@ void track_train(int train, location* loc) {
   Send(location_server_tid, (char *)&msg, sizeof(location_server_message), (void *)0, 0);
 }
 
+void ls_set_direction(int train, direction dir) {
+  location_server_message msg;
+  msg.type = LS_TRAIN_DIRECTION;
+  msg.train_update.train = train;
+  msg.train_update.dir = dir;
+
+  Send(location_server_tid, (char *)&msg, sizeof(location_server_message), (void *)0, 0);
+}
+
 void get_location_updates(location_array* loc_array) {
   location_server_message msg;
   msg.type = GET_UPDATES;
@@ -266,7 +323,7 @@ void get_location_updates(location_array* loc_array) {
 void ls_train_reversed(int train) {
   location_server_message msg;
   msg.type = LS_TRAIN_REVERSE;
-  msg.train = train;
+  msg.train_update.train = train;
   Send(location_server_tid, (char *)&msg, sizeof(location_server_message), (void *)0, 0);
 }
 

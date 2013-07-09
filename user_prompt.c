@@ -137,6 +137,16 @@ int process_line(char* line) {
       return 1;
     }
     tr_set_route(train, speed, &loc);
+  } else if (string_equal(tokens[0], "set_dir")) {
+    int train = atoi(tokens[1]);
+
+    if (tokens[2][0] == 'F') {
+      ls_set_direction(train, FORWARD);
+    } else if (tokens[2][0] == 'B') {
+      ls_set_direction(train, BACKWARD);
+    } else {
+      return 1;
+    }
   } else {
     return 1;
   }
@@ -281,7 +291,7 @@ void display_train_locations() {
     get_location_updates(&loc_array);
     for (i = 0; i < loc_array.size; i++) {
       location* loc = &loc_array.locations[i];
-      printf(COM2, "\033[%d;1HTrain %d, Landmark: %s, Distance: %dmm Direction: %s Prev Sensor Error: %dmm\033[K\n",
+      printf(COM2, "\033[%d;1HTr %d Loc: %s Dist: %dmm Dir: %s Prev Sensor Error: %dmm\033[K\n",
              DRAW_ROW_TRAIN_LOC + 1 + i, loc->train, loc->node->name, loc->um_past_node / 1000, direction_to_string(loc->d),
              loc->prev_sensor_error);
       return_cursor();

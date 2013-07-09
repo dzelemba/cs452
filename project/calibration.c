@@ -227,7 +227,7 @@ void acceleration_calibration() {
   // Run the train
   int our_train = 47;
   int our_speed = 11;
-  int i, a;
+  int i;
 
   sensor sensors[MAX_NEW_SENSORS];
   start_sensor_server();
