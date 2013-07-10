@@ -11,6 +11,8 @@
 #include "timer.h"
 #include "debug.h"
 #include "train.h"
+#include "timings.h"
+#include "ourio.h"
 
 static int shutdown;
 
@@ -111,6 +113,7 @@ void init_kernel() {
   init_messenger();
 
   init_interrupts();
+  init_timings();
 
   // Create task that will intialize servers.
   kernel_add_task(MAX_PRI, &first_user_task);
@@ -131,7 +134,14 @@ void kernel_run() {
     }
 #endif
 
+    start_timing_task(next_task);
+    end_timing(KERNEL);
+
     Request* request = k_exit(next_task->retval, &next_task->stack_position);
+
+    end_timing_task(next_task);
+    start_timing(KERNEL);
+
     next_task->retval = process_request(next_task, request);
     if (shutdown) {
       break;
@@ -145,5 +155,8 @@ void kernel_run() {
     }
   }
 
+  // Clear the screen.
+  printf(COM2, "\033[2J");
+  print_timings();
   reset_interrupts();
 }
