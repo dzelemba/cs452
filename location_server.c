@@ -73,7 +73,6 @@ void location_distance_notifier() {
 
 typedef struct tracking_data {
   location* loc;
-  track_edge* cur_edge;
   track_node* next_sensor;
 } tracking_data;
 
@@ -101,22 +100,23 @@ track_edge* get_next_edge(track_node* node) {
 }
 
 track_node* get_next_sensor(track_node* node) {
-  track_node* next = get_next_edge(node)->dest;
-  while (next != 0 && next->type != NODE_SENSOR) {
-    next = get_next_edge(next)->dest;
+  track_edge* next_edge = get_next_edge(node);
+  while (next_edge != 0 && next_edge->dest->type != NODE_SENSOR) {
+    next_edge = get_next_edge(next_edge->dest);
   }
-  return next;
+
+  return next_edge == 0 ? 0 : next_edge->dest;
 }
 
 void fill_in_tracking_data(tracking_data* t_data) {
-  t_data->cur_edge = get_next_edge(t_data->loc->node);
+  t_data->loc->cur_edge = get_next_edge(t_data->loc->node);
   t_data->next_sensor = get_next_sensor(t_data->loc->node);
 }
 
 void increment_location(tracking_data* t_data) {
-  ASSERT(t_data->cur_edge != 0, "location_server.c: increment_location");
+  ASSERT(t_data->loc->cur_edge != 0, "location_server.c: increment_location");
 
-  t_data->loc->node = t_data->cur_edge->dest;
+  t_data->loc->node = t_data->loc->cur_edge->dest;
   fill_in_tracking_data(t_data);
 }
 
@@ -130,7 +130,7 @@ void update_tracking_data_for_distance(tracking_data* t_data) {
     return;
   }
 
-  track_edge* edge = t_data->cur_edge;
+  track_edge* edge = t_data->loc->cur_edge;
   if (edge != 0 && t_data->loc->um_past_node / 1000 > edge->dist && edge->dest->type != NODE_SENSOR) {
     t_data->loc->um_past_node -= edge->dist * 1000;
     increment_location(t_data);
@@ -138,7 +138,7 @@ void update_tracking_data_for_distance(tracking_data* t_data) {
 }
 
 int update_tracking_data_for_sensor(tracking_data* t_data, sensor* s) {
-  track_edge* edge = t_data->cur_edge;
+  track_edge* edge = t_data->loc->cur_edge;
   track_node* sensor_node = get_track_node(get_track(), sensor2idx(s->group, s->socket));
   if (edge != 0) {
     if (edge->dest == sensor_node) {
@@ -159,9 +159,9 @@ int update_tracking_data_for_sensor(tracking_data* t_data, sensor* s) {
 }
 
 void update_tracking_data_for_reverse(tracking_data* t_data, int train) {
-  if (t_data->cur_edge != 0) {
-    t_data->loc->node = t_data->cur_edge->dest->reverse;
-    t_data->loc->um_past_node = max(t_data->cur_edge->dist - t_data->loc->um_past_node, 0);
+  if (t_data->loc->cur_edge != 0) {
+    t_data->loc->node = t_data->loc->cur_edge->dest->reverse;
+    t_data->loc->um_past_node = max(t_data->loc->cur_edge->dist - t_data->loc->um_past_node, 0);
   } else {
     t_data->loc->node = t_data->loc->node->reverse;
     t_data->loc->um_past_node = 0;

@@ -15,6 +15,7 @@
 #include "train.h"
 #include "uart.h"
 #include "physics.h"
+#include "user_prompt.h"
 
 /*
  * Note: Some of this global memory might be problematic as the reverse
@@ -235,7 +236,6 @@ void perform_switch_action(sequence* path_node) {
 
 void perform_reverse_action(sequence* path_node, int train, int stopping_time) {
   if (!path_node->performed_action) {
-    // TODO(dzelemba): Make this look one edge ahead once we get reverses at nodes.
     reverse(train, stopping_time);
     path_node->performed_action = 1;
   }
@@ -251,8 +251,11 @@ track_edge* get_next_edge_in_path(sequence* path_node) {
     } else {
       ERROR("train.c: get_next_edge_in_path: invalid action for branch node");
     }
+  } else if (node->type == NODE_EXIT) {
+    return 0;
   }
-  return &node->edge[DIR_AHEAD];
+
+  return path_node->action == REVERSE ? 0 : &node->edge[DIR_AHEAD];
 }
 
 // Upper bound for how far ahead we need to lookahead to switch
@@ -300,8 +303,10 @@ int get_distance_to_backwardwheel(direction d) {
   return 0;
 }
 
+// TODO(dzelemba): Fix this to incorporate SWITCH_OFFSET.
+// once we have reverses at branch nodes.
 int get_reverse_lookahead(int stopping_distance, direction d) {
-  return stopping_distance - get_distance_to_backwardwheel(d) - MAX_DISTANCE_ERROR;
+  return max(stopping_distance - get_distance_to_backwardwheel(d) - MAX_DISTANCE_ERROR, 0);
 }
 
 int get_switch_lookahead(direction d) {
@@ -323,13 +328,15 @@ void perform_all_path_actions(int train, sequence* path_base, int path_size) {
 }
 
 int perform_path_actions(int train, sequence* path_base, int path_size, location* cur_loc) {
+  ASSERT(cur_loc->cur_edge != 0, "train.c: perform_path_actions");
+
   int reverse_lookahead = get_reverse_lookahead(cur_loc->stopping_distance, cur_loc->d);
   int switch_lookahead = get_switch_lookahead(cur_loc->d);
   int stop_lookahead = get_stop_lookahead(cur_loc->stopping_distance, cur_loc->d);
   int max_lookahead = max(reverse_lookahead, max(switch_lookahead, stop_lookahead));
 
-  int cur_edge_length = get_next_edge_in_path(path_base)->dist;
-  int dist = -1 * min(cur_loc->um_past_node / 1000, cur_edge_length), i;
+  track_edge* next_edge = 0;
+  int dist = max(cur_loc->cur_edge->dist - cur_loc->um_past_node / 1000, 0), i;
   for (i = 0; i < path_size && dist <= max_lookahead; i++) {
     sequence_action action = path_base[i].action;
     if (action == REVERSE && dist <= reverse_lookahead) {
@@ -338,12 +345,20 @@ int perform_path_actions(int train, sequence* path_base, int path_size, location
       perform_switch_action(&path_base[i]);
     }
 
+    next_edge = get_next_edge_in_path(&path_base[i]);
+    if (next_edge == 0) {
+      break; // Hit reverse node.
+    }
+
+    // Last edge isn't part of the path.
     if (i != path_size - 1) {
-      dist += get_next_edge_in_path(&path_base[i])->dist;
+      dist += next_edge->dist;
     }
   }
 
-  if (dist <= stop_lookahead) {
+  // Check if we've hit the end of the path (not just a reverse node)
+  // and the reminaing distance is less than stop_lookahead.
+  if (i == path_size && dist <= stop_lookahead) {
     set_speed(0, train);
     // Turn any remaining switches.
     perform_all_path_actions(train, path_base, path_size);
@@ -353,14 +368,47 @@ int perform_path_actions(int train, sequence* path_base, int path_size, location
   return 0;
 }
 
+int perform_initial_path_actions(int train, sequence* path, int path_size, location* cur_loc) {
+  sequence_action action = path->action;
+  if (action == REVERSE) {
+    perform_reverse_action(path, train, MAX_STOPPING_TIME);
+  } else if (action == TAKE_STRAIGHT || action == TAKE_CURVE) {
+    // TODO(dzelemba): Reverse if we're on top of a switch.
+    perform_switch_action(path);
+  }
+
+  // TODO(dzelemba): Check for trivial paths.
+  return 0;
+}
+
 int handle_path(int train, sequence* path, int* path_index, int path_size, location* cur_loc) {
   int p_index = *path_index;
   int path_nodes_left = path_size - p_index - 1;
+  int cur_loc_index = get_track_index(get_track(), cur_loc);
 
-  if (path_nodes_left > 1 && path[p_index + 1].location == get_track_index(get_track(), cur_loc)) {
+  /*
+   * The first case here looks for when we have just finished reversing
+   * and are starting to move again in the opposite direction.
+   *
+   * The other case is the regular case, where we check if we've advanced along
+   * the path, or if we've missed an update along the path.
+   */
+  if (path[p_index].action == REVERSE &&
+      node2idx(get_track(), cur_loc->cur_edge->dest) == path[p_index + 1].location) {
     *path_index = p_index + 1;
-  } else if (path_nodes_left > 2 && path[p_index + 2].location == get_track_index(get_track(), cur_loc)) {
-    *path_index = p_index + 2;
+  } else {
+    if (path[p_index].location == cur_loc_index) {
+      *path_index = p_index + 1;
+    } else if (path_nodes_left > 1 && path[p_index + 1].location == cur_loc_index) {
+      // TODO(dzelemba): Look ahead to next_sensor here instead of next node.
+      *path_index = p_index + 2;
+    }
+
+    // Don't permit advancing at reverse nodes. We must wait until reversing
+    // is complete before advancing the path.
+    if (p_index > 0 && path[p_index - 1].action == REVERSE) {
+      *path_index -= 1;
+    }
   }
 
   return perform_path_actions(train, path + *path_index, path_size - *path_index, cur_loc);
@@ -404,6 +452,8 @@ void train_controller() {
         for (i = 0; i < s_array.num_sensors; i++) {
           // TODO(dzelemba): Check for another train stopped on a sensor.
           location loc;
+          init_location(&loc);
+
           sensor* s = &s_array.sensors[i];
           loc.train = msg.user_cmd.train;
           loc.node = get_track_node(get_track(), sensor2idx(s->group, s->socket));
@@ -430,9 +480,12 @@ void train_controller() {
         la_insert(&trains_on_route, train_idx, (void*)train);
 
         path_indexes[train_idx] = 0;
-        get_path(get_track(), cur_loc, &msg.set_route_data.dest, paths[train_idx], &path_sizes[train_idx]);
+        get_path(get_track(), cur_loc, &msg.set_route_data.dest,
+                 paths[train_idx], &path_sizes[train_idx]);
         set_speed(msg.set_route_data.speed, train);
-        handle_path(train, paths[train_idx], &path_indexes[train_idx], path_sizes[train_idx], cur_loc);
+        perform_initial_path_actions(train, paths[train_idx], path_sizes[train_idx], cur_loc);
+        handle_path(train, paths[train_idx], &path_indexes[train_idx],
+                    path_sizes[train_idx], cur_loc);
         break;
       case CHANGE_SPEED:
         Reply(tid, (void *)0, 0);

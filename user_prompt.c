@@ -171,6 +171,7 @@ int process_line(char* line) {
     }
 
     location loc;
+    init_location(&loc);
     if (tokens[2][0] == 'B') {
       loc.node = get_track_node(get_track(), branch2idx(atoi(&tokens[2][1])));
     } else if (tokens[2][0] == 'M') {

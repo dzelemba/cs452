@@ -7,10 +7,13 @@
 #include <stdio.h>
 #endif
 
-//#define ENABLE_REVERSE 1
+#define ENABLE_REVERSE 1
 
-// TODO: Come up with a better path cost model
-#define REVERSE_COST 500
+// At a full speed of 50cm/s stopping time is about 4s
+// and it takes another 4s to get back to full speed,
+// so a reverse costs us about 8 * 50 = 400cm = 4000mm
+// TODO(dzelemba): Make this dependant on current train speed.
+#define REVERSE_COST 4000
 
 static heap_node dijkstra_mem[TRACK_MAX];
 static int dijkstra_dict[TRACK_MAX];
