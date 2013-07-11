@@ -11,6 +11,7 @@
 #define CALLID_REPLY        7
 #define CALLID_AWAITEVENT   8
 #define CALLID_SHUTDOWN     9
+#define NUM_SYSCALLS        10
 
 typedef struct Request {
   int syscall;

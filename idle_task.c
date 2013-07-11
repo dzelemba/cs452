@@ -5,6 +5,7 @@
 #define HALT_MODE_ADDR 0x80930008
 
 void idle_task_run() {
+  RegisterAs("Idle Task");
   while (1) {
     int halting = *(int *)(HALT_MODE_ADDR);
     (void) halting;

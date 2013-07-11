@@ -24,6 +24,8 @@ void notifier_run() {
 }
 
 void clockserver_run() {
+  // TODO(dzelemba): Figure out why this causes the program to hang.
+  //RegisterAs("Clockserver");
   init_heap(&listeners, listeners_mem, MAX_TASKS);
   ticks = 0;
 

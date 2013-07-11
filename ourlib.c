@@ -1,5 +1,6 @@
 #include "ourlib.h"
 #include "debug.h"
+#include "timings.h"
 
 #define HEAP_SIZE 16 * 1024 * 1024
 
@@ -32,13 +33,44 @@ int atoi(char* src) {
   return num;
 }
 
-int memcpy(char* destination, const char* source, int len) {
+int memcpy_aligned(int* dest, const int* src, int len) {
   int i;
   for (i = 0; i < len; i++) {
-    *(destination + i) = *(source + i);
+    dest[i] = src[i];
   }
 
   return 0;
+}
+
+int memcpy_unaligned(char* dest, const char * src, int len) {
+  int i;
+  for (i = 0; i < len; i++) {
+    dest[i] = src[i];
+  }
+
+  return 0;
+}
+
+int memcpy(char* dest, const char* src, int len) {
+/*
+  if (!in_userspace()) {
+    start_timing(KERNEL_MEMCPY);
+  }
+*/
+  int ret;
+  if ((unsigned int)dest % sizeof(int) == 0 &&
+      (unsigned int)src % sizeof(int) == 0 &&
+      len % sizeof(int) == 0) {
+    ret = memcpy_aligned((int *)dest, (const int*)src, len / sizeof(int));
+  } else {
+    ret = memcpy_unaligned(dest, src, len);
+  }
+/*
+  if (!in_userspace()) {
+    end_timing(KERNEL_MEMCPY);
+  }
+*/
+  return ret;
 }
 
 char* kmalloc(int size) {

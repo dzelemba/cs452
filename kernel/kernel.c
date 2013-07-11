@@ -105,6 +105,7 @@ void init_kernel() {
   int device_config = *(int *)(DEVICE_CONFIG_ADDR);
   *(int *)(DEVICE_CONFIG_ADDR) = device_config | 0x1;
 
+  init_timings();
   init_stdlib();
   init_debug_timer();
   init_timer();
@@ -113,7 +114,6 @@ void init_kernel() {
   init_messenger();
 
   init_interrupts();
-  init_timings();
 
   // Create task that will intialize servers.
   kernel_add_task(MAX_PRI, &first_user_task);
@@ -127,22 +127,27 @@ void kernel_add_task(int priority, void* code) {
 void kernel_run() {
   Task* next_task;
   while (1) {
+    //start_timing(SCHEDULER);
     next_task = scheduler_get_next_task();
+    //end_timing(SCHEDULER);
 #ifdef TEST
     if (get_num_user_tasks() == 0) {
       break;
     }
 #endif
 
-    start_timing_task(next_task);
     end_timing(KERNEL);
+    start_timing_task(next_task);
 
     Request* request = k_exit(next_task->retval, &next_task->stack_position);
 
     end_timing_task(next_task);
     start_timing(KERNEL);
 
+    // Map interrupt request to syscall number NUM_SYSCALLS
+    //start_timing_syscall(request == 0 ? NUM_SYSCALLS : request->syscall);
     next_task->retval = process_request(next_task, request);
+    //end_timing_syscall(request == 0 ? NUM_SYSCALLS : request->syscall);
     if (shutdown) {
       break;
     }
@@ -150,13 +155,17 @@ void kernel_run() {
     // Must happen after process_request.
     // TODO: This is pretty hacky. Some syscalls will remove the current task from the
     // scheduler (i.e Exit, Send), so we should only move_to_back if that hasn't happened.
+    //start_timing(SCHEDULER);
     if (next_task == scheduler_get_next_task()) {
       scheduler_move_to_back(next_task->priority);
     }
+    //end_timing(SCHEDULER);
+
   }
 
   // Clear the screen.
-  printf(COM2, "\033[2J");
+  printf(COM2, "\033cn");
+  printf(COM2, "\033[2J\n");
   print_timings();
   reset_interrupts();
 }

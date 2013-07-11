@@ -35,6 +35,7 @@ unsigned int edges() {
   return *timer_value;
 }
 
+// NOTE: We must multiply second to avoid overflow errors.
 unsigned int edges_to_micros(unsigned int edges) {
-  return ((edges * 1000) / 983);
+  return (edges  / 983) * 1000;
 }

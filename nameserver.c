@@ -17,7 +17,7 @@ typedef struct nameserver_request {
   int tid;
 } nameserver_request;
 
-#define MAX_NAME_LENGTH 16
+#define MAX_NAME_LENGTH 32
 #define MAX_ENTRIES 64
 
 typedef struct entry {
@@ -94,6 +94,16 @@ void nameserver_run() {
 void start_nameserver() {
   next_entry = 0;
   nameserver_tid = Create(NAMESERVER_PRIORITY, &nameserver_run);
+}
+
+char* name_of(int tid) {
+  int i;
+  for (i = 0; i < next_entry; i++) {
+    if (entries[i].tid == tid) {
+      return entries[i].name;
+    }
+  }
+  return 0;
 }
 
 int RegisterAs(char* name) {

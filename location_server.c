@@ -188,6 +188,8 @@ tracking_data* get_tracking_data(tracking_data_array* t_data_array, int train) {
 }
 
 void location_server() {
+  RegisterAs("Location Server");
+
   queue waiting_tasks;
   int q_mem2[MAX_TASKS];
   init_queue(&waiting_tasks, q_mem2, MAX_TASKS);

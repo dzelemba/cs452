@@ -95,6 +95,7 @@ void uart2_read_notifier_run() {
 }
 
 void ioserver_run() {
+  RegisterAs("IO Server");
   // TODO: The data queues don't make sense to be bounded by MAX_TASKS
 
   ioserver_tid = MyTid();

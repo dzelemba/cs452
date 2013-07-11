@@ -57,6 +57,7 @@ void process_sensor_bytes(char* bytes, sensor_server_message* msg) {
 }
 
 void sensor_notifier() {
+  RegisterAs("Sensor Notifier");
   sensor_server_message msg;
   msg.type = SENSOR_SERVER_DATA_MSG;
   char sensor_bytes[NUM_SENSOR_BYTES];
@@ -74,6 +75,7 @@ void sensor_notifier() {
 }
 
 void sensor_server() {
+  RegisterAs("Sensor Server");
   Create(MED_PRI, &sensor_notifier);
 
   queue waiting_tasks;

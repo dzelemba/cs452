@@ -415,6 +415,7 @@ int handle_path(int train, sequence* path, int* path_index, int path_size, locat
 }
 
 void train_controller() {
+  RegisterAs("Train Controller");
   location_array train_locations;
   train_locations.size = 0;
 
