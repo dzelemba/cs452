@@ -336,5 +336,5 @@ char* direction_to_string(direction d) {
     case BACKWARD:
       return "B";
   }
-  return "UNKNOWN";
+  return "U";
 }

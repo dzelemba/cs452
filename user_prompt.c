@@ -18,14 +18,19 @@
 
 #define DRAW_ROW_RECENT_HIT 9
 #define DRAW_ROW_TRAIN_LOC 16
-#define DRAW_ROW_PROMPT 30
-#define DRAW_DEBUG_OUTPUT 35
+#define DRAW_ROW_PROMPT 36
+#define DRAW_DEBUG_OUTPUT 38
 #define DEBUG_OUTPUT_SIZE 10
 
-#define DRAW_ROW_LOG 20
+#define DRAW_ROW_LOG 26
 #define LOG_LENGTH 10
 static char log_mem[LOG_LENGTH][80];
 static int log_ring;
+
+#define DRAW_COL_TR_LOC 12
+#define DRAW_COL_TR_DIST 23
+#define DRAW_COL_TR_DIR 35
+#define DRAW_COL_TR_ERR 56
 
 static unsigned int current_prompt_pos;
 
@@ -50,25 +55,22 @@ void draw_initial() {
   printf(COM2, "\033[3;1HSwitch Table:");
   printf(COM2, "\033[%d;1HMost Recently Hit Sensors:", DRAW_ROW_RECENT_HIT);
   printf(COM2, "\033[%d;1HTrain Locations:", DRAW_ROW_TRAIN_LOC);
-  printf(COM2, "\033[%d;1HTrain Locations:", DRAW_ROW_TRAIN_LOC);
   printf(COM2, "\033[%d;1HDebug Output:", DRAW_DEBUG_OUTPUT);
 
   // Set scrollable area for debug output.
   printf(COM2, "\033[%d;%dr", DRAW_DEBUG_OUTPUT + 1, DRAW_DEBUG_OUTPUT + DEBUG_OUTPUT_SIZE);
 
+  // Draw switch states
   int sw;
 
-  // top row
   printf(COM2, "\033[4;1H");
   for (sw = 1; sw <= 18; sw++) {
     printf(COM2, "%3d ", sw);
   }
-
   for (sw = 1; sw <= 18; sw++) {
     draw_switch_state(sw, 'S');
   }
 
-  // bottom row
   printf(COM2, "\033[6;1H");
   for (sw = 0x99; sw <= 0x9c; sw++) {
     printf(COM2, "%3d ", sw);
@@ -77,6 +79,14 @@ void draw_initial() {
   for (sw = 0x99; sw <= 0x9c; sw++) {
     draw_switch_state(sw, 'S');
   }
+
+  // Draw train states
+  int tr;
+  for (tr = 0; tr < MAX_TRAINS; tr++) {
+    printf(COM2, "\033[%d;1HTr %d Loc: ____ Dist: ____mm Dir: _ Prev Sensor Error: _____mm\033[K\n",
+           DRAW_ROW_TRAIN_LOC + tr + 1, tr_idx_to_num(tr));
+  }
+
   return_cursor();
 }
 
@@ -345,19 +355,20 @@ void display_train_locations() {
   int i;
   while (1) {
     get_location_updates(&loc_array);
+    // If this is still sucking too much CPU, we can just throttle this
     for (i = 0; i < loc_array.size; i++) {
       location* loc = &loc_array.locations[i];
-      printf(COM2, "\033[%d;1HTr %d Loc: %s Dist: %dmm Dir: %s Prev Sensor Error: %dmm\033[K\n",
-             DRAW_ROW_TRAIN_LOC + 1 + i, loc->train, loc->node->name, loc->um_past_node / 1000, direction_to_string(loc->d),
-             loc->prev_sensor_error);
+      printf(COM2, "\033[33m\033[%d;%dH%4s\033[%dC%4d\033[%dC%s\033[%dC%5d\033[0m",
+             DRAW_ROW_TRAIN_LOC + 1 + tr_num_to_idx(loc->train), DRAW_COL_TR_LOC, loc->node->name,
+             DRAW_COL_TR_DIST - DRAW_COL_TR_LOC - 4, loc->um_past_node / 1000,
+             DRAW_COL_TR_DIR - DRAW_COL_TR_DIST - 4, direction_to_string(loc->d),
+             DRAW_COL_TR_ERR - DRAW_COL_TR_DIR - 1, loc->prev_sensor_error);
       return_cursor();
     }
   }
 
   Exit();
 }
-
-
 
 /*
  * Public Methods
