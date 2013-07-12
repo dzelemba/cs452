@@ -14,12 +14,10 @@
 
 typedef struct Task {
   // Public
-  int tid;
-  int parent_tid;
-
-  int priority;
-
-  int state;
+  char tid;
+  char parent_tid;
+  char priority;
+  char state;
 
   // Return value to pass to the user program after a syscall.
   int retval;
