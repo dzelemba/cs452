@@ -188,8 +188,15 @@ int update_tracking_data_for_sensor(tracking_data* t_data, sensor* s) {
 
 void update_tracking_data_for_reverse(tracking_data* t_data, int train) {
   if (t_data->loc->cur_edge != 0) {
-    t_data->loc->node = t_data->loc->cur_edge->dest->reverse;
-    t_data->loc->um_past_node = max(t_data->loc->cur_edge->dist - t_data->loc->um_past_node, 0);
+    // If the train is stopped on top of a sensor, it won't trigger the reverse sensor
+    // so put it at the reverse sensor instead.
+    if (t_data->loc->node->type == NODE_SENSOR && t_data->loc->um_past_node  < PICKUP_LENGTH * 1000) {
+      t_data->loc->node = t_data->loc->node->reverse;
+      t_data->loc->um_past_node = PICKUP_LENGTH * 1000 - t_data->loc->um_past_node;
+    } else {
+      t_data->loc->node = t_data->loc->cur_edge->dest->reverse;
+      t_data->loc->um_past_node = max(t_data->loc->cur_edge->dist - t_data->loc->um_past_node, 0);
+    }
   } else {
     t_data->loc->node = t_data->loc->node->reverse;
     t_data->loc->um_past_node = 0;
@@ -367,4 +374,27 @@ char* direction_to_string(direction d) {
       return "B";
   }
   return "U";
+}
+
+track_edge* get_next_edge(track_node* node) {
+  if (node->type == NODE_BRANCH) {
+    if (get_switch_direction(node->num) == 'C') {
+      return &node->edge[DIR_CURVED];
+    } else {
+      return &node->edge[DIR_STRAIGHT];
+    }
+  } else if (node->type == NODE_EXIT) {
+    return 0;
+  } else {
+    return &node->edge[DIR_AHEAD];
+  }
+}
+
+track_node* get_next_sensor(track_node* node) {
+  track_edge* next_edge = get_next_edge(node);
+  while (next_edge != 0 && next_edge->dest->type != NODE_SENSOR) {
+    next_edge = get_next_edge(next_edge->dest);
+  }
+
+  return next_edge == 0 ? 0 : next_edge->dest;
 }

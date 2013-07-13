@@ -30,5 +30,8 @@ void ls_train_reversed(int train);
 
 char* direction_to_string(direction d);
 
+track_edge* get_next_edge(track_node* node);
+
+track_node* get_next_sensor(track_node* node);
 
 #endif

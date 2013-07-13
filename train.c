@@ -175,7 +175,7 @@ void sw(int switch_number, char switch_direction) {
  * Train Controller
  */
 
-#define FINDING_LOCATION_SPEED 2
+#define FINDING_LOCATION_SPEED 1
 
 static int train_controller_tid;
 
@@ -270,18 +270,6 @@ track_edge* get_next_edge_in_path(sequence* path_node) {
 // Maximum error in our distance measurements in mm.
 #define MAX_DISTANCE_ERROR 150
 
-/*
- * Note: When talking about wheels of the train we will use
- *   - Backward/Forward when referring to the direction the
- *     train is moving.
- *   - Back/Front when referring to the side of the train the
- *     pickup is on.
- */
-
-#define PICKUP_TO_FRONTWHEEL 0
-#define PICKUP_LENGTH 50
-#define PICKUP_TO_BACKWHEEL 120
-
 int get_distance_to_forwardwheel(direction d) {
   switch (d) {
     case FORWARD:
@@ -335,6 +323,7 @@ int perform_path_actions(int train, sequence* path_base, int path_size, location
   if (cur_loc->cur_edge == 0) {
     if (path_base->action == REVERSE) {
       perform_reverse_action(path_base, train, MAX_STOPPING_TIME);
+      return 0;
     }
   }
 
@@ -401,7 +390,8 @@ int handle_path(int train, sequence* path, int* path_index, int path_size, locat
    * the path, or if we've missed an update along the path.
    */
   if (path[p_index].action == REVERSE && cur_loc->cur_edge != 0 &&
-      node2idx(get_track(), cur_loc->cur_edge->dest) == path[p_index + 1].location) {
+      (node2idx(get_track(), cur_loc->cur_edge->dest) == path[p_index + 1].location ||
+       node2idx(get_track(), cur_loc->node) == path[p_index + 1].location)) {
     INFO(TRAIN_CONTROLLER, "Train %d Reversed at %s", train, cur_loc->node->name);
     *path_index = p_index + 1;
   } else {
@@ -416,7 +406,7 @@ int handle_path(int train, sequence* path, int* path_index, int path_size, locat
 
     // Don't permit advancing at reverse nodes. We must wait until reversing
     // is complete before advancing the path.
-    if (p_index > 0 && path[p_index - 1].action == REVERSE) {
+    if (*path_index > 0 && path[*path_index - 1].action == REVERSE) {
       *path_index -= 1;
     }
   }

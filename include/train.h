@@ -9,6 +9,18 @@
 #define NUM_SPEEDS 15
 
 /*
+ * Note: When talking about wheels of the train we will use
+ *   - Backward/Forward when referring to the direction the
+ *     train is moving.
+ *   - Back/Front when referring to the side of the train the
+ *     pickup is on.
+ */
+
+#define PICKUP_TO_FRONTWHEEL 0
+#define PICKUP_LENGTH 50
+#define PICKUP_TO_BACKWHEEL 120
+
+/*
  * Methods for controlling the trains.
  */
 
