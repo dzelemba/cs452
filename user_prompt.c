@@ -375,13 +375,18 @@ void display_train_locations() {
  */
 
 void print_debug_output(char* fmt, ...) {
+  va_list va;
+  va_start(va,fmt);
+  format_debug_output(fmt, va);
+  va_end(va);
+
+}
+
+void format_debug_output(char* fmt, va_list va) {
   string output;
   STR_CREATE(output, MAX_DEBUG_LENGTH);
 
-  va_list va;
-  va_start(va,fmt);
   s_format(&output, fmt, va);
-  va_end(va);
 
   printf(COM2, "\033[%d;1H\n%s", DRAW_DEBUG_OUTPUT + DEBUG_OUTPUT_SIZE, str_get_chars(&output));
 }

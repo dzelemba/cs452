@@ -13,7 +13,6 @@
 #include "task.h"
 #include "distance_server.h"
 #include "track_node.h"
-#include "user_prompt.h"
 
 /*
  * Private Methods
@@ -137,7 +136,7 @@ void update_tracking_data_for_distance(tracking_data* t_data) {
        * so we'll assume 1) since its the more important case to get right.
        */
       if (t_data->missed_sensor != 0) {
-        //print_debug_output("Lost Train: %d at %s", t_data->loc->train, edge->dest->name);
+        INFO(LOCATION_SERVER,"Lost Train: %d at %s", t_data->loc->train, edge->dest->name);
 
         t_data->lost_train = 1;
 
@@ -145,7 +144,7 @@ void update_tracking_data_for_distance(tracking_data* t_data) {
         t_data->loc->um_past_node = 0;
         return;
       }
-      //print_debug_output("Broken Sensor Found: %s", edge->dest->name);
+      INFO(LOCATION_SERVER,"Broken Sensor Found: %s", edge->dest->name);
 
       t_data->loc->um_past_node -= edge->dist * 1000;
       t_data->missed_sensor = edge->dest;
@@ -162,13 +161,13 @@ int update_tracking_data_for_sensor(tracking_data* t_data, sensor* s) {
       increment_location(t_data);
       t_data->loc->prev_sensor_error = t_data->loc->um_past_node / 1000 - edge->dist;
     } else if (t_data->next_sensor == sensor_node) {
-      //print_debug_output("Updated to Next Sensor: %s", sensor_node->name);
+      INFO(LOCATION_SERVER, "Updated to Next Sensor: %s", sensor_node->name);
       increment_location_to_sensor(t_data, sensor_node);
       // TODO(dzelemba): Make this prev_sensor_error accurate.
       t_data->loc->prev_sensor_error = t_data->loc->um_past_node / 1000 - edge->dist + 30;
     } else if (t_data->missed_sensor == sensor_node) {
       // Case where we updated our location prematurely
-      //print_debug_output("Premature Update for Train: %d", t_data->loc->train);
+      INFO(LOCATION_SERVER,"Premature Update for Train: %d", t_data->loc->train);
       t_data->loc->node = sensor_node;
       t_data->loc->prev_sensor_error = t_data->loc->um_past_node / 1000;
     } else {
@@ -176,7 +175,7 @@ int update_tracking_data_for_sensor(tracking_data* t_data, sensor* s) {
     }
 
     if (t_data->lost_train) {
-      //print_debug_output("Found Train: %d at %s", t_data->loc->train, sensor_node->name);
+      INFO(LOCATION_SERVER,"Found Train: %d at %s", t_data->loc->train, sensor_node->name);
       t_data->lost_train = 0;
     }
     t_data->loc->um_past_node = 0;

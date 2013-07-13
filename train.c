@@ -402,11 +402,14 @@ int handle_path(int train, sequence* path, int* path_index, int path_size, locat
    */
   if (path[p_index].action == REVERSE && cur_loc->cur_edge != 0 &&
       node2idx(get_track(), cur_loc->cur_edge->dest) == path[p_index + 1].location) {
+    INFO(TRAIN_CONTROLLER, "Train %d Reversed at %s", train, cur_loc->node->name);
     *path_index = p_index + 1;
   } else {
     if (path[p_index].location == cur_loc_index) {
+      INFO(TRAIN_CONTROLLER, "Train %d Advanced to %s", train, cur_loc->node->name);
       *path_index = p_index + 1;
     } else if (path_nodes_left > 1 && path[p_index + 1].location == cur_loc_index) {
+      INFO(TRAIN_CONTROLLER, "Train %d Skipped to %s", train, cur_loc->node->name);
       // TODO(dzelemba): Look ahead to next_sensor here instead of next node.
       *path_index = p_index + 2;
     }

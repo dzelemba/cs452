@@ -14,11 +14,13 @@
 
 #ifdef DEBUG_3
   #define DEBUG_2 1
-  #define INFO(...) do { print_debug("INFO: "); print_debug(__VA_ARGS__); } while (0)
   #define USER_INFO(...) do { print_debug("USER INFO: "); print_debug(__VA_ARGS__); } while (0)
+  #define K_INFO(...) do { print_debug("KERNEL INFO: "); print_debug(__VA_ARGS__); } while (0)
+  #define INFO(group, ...) do { info(group, __VA_ARGS__); } while (0)
 #else
-  #define INFO(...) do { } while (0)
   #define USER_INFO(...) do { } while (0)
+  #define K_INFO(...) do { } while (0)
+  #define INFO(group, ...) do { } while (0)
 #endif
 
 #ifdef DEBUG_2
@@ -41,5 +43,13 @@ void method_entry(char* format, ...);
 void method_exit(char* format, ...);
 void assert(int exp, char* exp_str, char* format, ...);
 void error(char* format, ...);
+
+typedef enum debug_group {
+  TRAIN_CONTROLLER,
+  LOCATION_SERVER,
+  NUM_DEBUG_GROUPS
+} debug_group;
+
+void info(debug_group group, char* format, ...);
 
 #endif

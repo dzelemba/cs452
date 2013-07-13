@@ -1,6 +1,7 @@
 #include "debug.h"
 #include "ourio.h"
 #include "interrupt_handler.h"
+#include "user_prompt.h"
 
 static int method_depth = 0;
 
@@ -66,4 +67,19 @@ void error(char* format, ...) {
   va_start(args, format);
   bwformat(COM2, format, args);
   va_end(args);
+}
+
+// I'm hoping the consts will make the compiler do smart things here.
+static const int const enabled_groups [NUM_DEBUG_GROUPS] = {
+  0, /* TRAIN_CONTROLLER */
+  0, /* LOCATION_SERVER */
+};
+
+void info(debug_group group, char* format, ...) {
+  if (enabled_groups[group]) {
+    va_list args;
+    va_start(args, format);
+    format_debug_output(format, args);
+    va_end(args);
+  }
 }
