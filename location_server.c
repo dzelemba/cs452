@@ -13,6 +13,7 @@
 #include "task.h"
 #include "distance_server.h"
 #include "track_node.h"
+#include "user_prompt.h"
 
 /*
  * Private Methods
@@ -74,6 +75,8 @@ void location_distance_notifier() {
 typedef struct tracking_data {
   location* loc;
   track_node* next_sensor;
+  track_node* missed_sensor;
+  int lost_train;
 } tracking_data;
 
 typedef struct tracking_data_array {
@@ -102,15 +105,52 @@ void increment_location_to_sensor(tracking_data* t_data, track_node* sensor) {
   fill_in_tracking_data(t_data);
 }
 
+// If our model says we're this many mm past a sensor that we haven't hit,
+// assume that it is broken.
+#define BROKEN_SENSOR_ERROR 100
+
 void update_tracking_data_for_distance(tracking_data* t_data) {
-  if (t_data->loc->node->type == NODE_EXIT) {
+  track_edge* edge = t_data->loc->cur_edge;
+  if (t_data->lost_train || edge == 0 || t_data->loc->node->type == NODE_EXIT) {
     return;
   }
 
-  track_edge* edge = t_data->loc->cur_edge;
-  if (edge != 0 && t_data->loc->um_past_node / 1000 > edge->dist && edge->dest->type != NODE_SENSOR) {
+  if (t_data->loc->um_past_node / 1000 > edge->dist && edge->dest->type != NODE_SENSOR) {
     t_data->loc->um_past_node -= edge->dist * 1000;
     increment_location(t_data);
+  }
+
+  // Check for broken sensor
+  if (edge->dest->type == NODE_SENSOR) {
+    int mm_past_sensor = t_data->loc->um_past_node / 1000 - edge->dist;
+    if (mm_past_sensor > BROKEN_SENSOR_ERROR) {
+      /*
+       * If we've missed two sensors in a row, then report lost train
+       * This can happen becuase either
+       *   1) Our distances are way off, or
+       *   2) The train is stuck
+       * For 1), we should just wait until the train hits the sensor.
+       * For 2), we should tell the distance server the train isn't
+       * moving and then go into acceleration mode when it starts again.
+       *
+       * Unfortunately, there is no way to distinguish between the above cases,
+       * so we'll assume 1) since its the more important case to get right.
+       */
+      if (t_data->missed_sensor != 0) {
+        //print_debug_output("Lost Train: %d at %s", t_data->loc->train, edge->dest->name);
+
+        t_data->lost_train = 1;
+
+        // So we don't enter this case multiple times.
+        t_data->loc->um_past_node = 0;
+        return;
+      }
+      //print_debug_output("Broken Sensor Found: %s", edge->dest->name);
+
+      t_data->loc->um_past_node -= edge->dist * 1000;
+      t_data->missed_sensor = edge->dest;
+      increment_location(t_data);
+    }
   }
 }
 
@@ -121,15 +161,27 @@ int update_tracking_data_for_sensor(tracking_data* t_data, sensor* s) {
     if (edge->dest == sensor_node) {
       increment_location(t_data);
       t_data->loc->prev_sensor_error = t_data->loc->um_past_node / 1000 - edge->dist;
-      t_data->loc->um_past_node = 0;
-      return 1;
     } else if (t_data->next_sensor == sensor_node) {
+      //print_debug_output("Updated to Next Sensor: %s", sensor_node->name);
       increment_location_to_sensor(t_data, sensor_node);
       // TODO(dzelemba): Make this prev_sensor_error accurate.
       t_data->loc->prev_sensor_error = t_data->loc->um_past_node / 1000 - edge->dist + 30;
-      t_data->loc->um_past_node = 0;
-      return 1;
+    } else if (t_data->missed_sensor == sensor_node) {
+      // Case where we updated our location prematurely
+      //print_debug_output("Premature Update for Train: %d", t_data->loc->train);
+      t_data->loc->node = sensor_node;
+      t_data->loc->prev_sensor_error = t_data->loc->um_past_node / 1000;
+    } else {
+      return 0;
     }
+
+    if (t_data->lost_train) {
+      //print_debug_output("Found Train: %d at %s", t_data->loc->train, sensor_node->name);
+      t_data->lost_train = 0;
+    }
+    t_data->loc->um_past_node = 0;
+    t_data->missed_sensor = 0;
+    return 1;
   }
 
   return 0;
@@ -198,6 +250,8 @@ void location_server() {
 
         // Create tracking data.
         t_data_array.t_data[t_data_array.size].loc = &loc_array.locations[loc_array.size - 1];
+        t_data_array.t_data[t_data_array.size].missed_sensor = 0;
+        t_data_array.t_data[t_data_array.size].lost_train = 0;
         fill_in_tracking_data(&t_data_array.t_data[t_data_array.size]);
         t_data_array.size++;
 
