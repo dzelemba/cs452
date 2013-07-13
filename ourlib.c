@@ -33,6 +33,8 @@ int atoi(char* src) {
   return num;
 }
 
+#ifndef UNIT
+
 int memcpy_aligned(int* dest, const int* src, int len) {
   int i;
   for (i = 0; i < len; i++) {
@@ -72,6 +74,8 @@ int memcpy(char* dest, const char* src, int len) {
 */
   return ret;
 }
+
+#endif
 
 char* kmalloc(int size) {
   ASSERT(free_ptr + size < heap + HEAP_SIZE, "kmalloc out of memory");

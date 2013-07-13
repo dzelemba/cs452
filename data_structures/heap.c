@@ -1,8 +1,6 @@
 #include "debug.h"
 #include "heap.h"
 
-// TODO: Better SWAP
-
 void init_heap(heap* hp, heap_node* buf, int size) {
   hp->size = 0;
   hp->buf = buf;
