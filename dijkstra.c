@@ -22,8 +22,9 @@ static heapplus path_heap;
 static sequence path[TRACK_MAX];
 static char visited[TRACK_MAX];
 
-int get_path(track_node* track, location* src, location* dest, sequence* out_path, int* out_size) {
-  return get_path_from_idx(track, node2idx(track, src->node), node2idx(track, dest->node), out_path, out_size);
+int get_path(track_node* track, track_node* src, track_node* dest,
+             sequence* out_path, int* out_size) {
+  return get_path_from_idx(track, node2idx(track, src), node2idx(track, dest), out_path, out_size);
 }
 
 // Perfectly thread unsafe

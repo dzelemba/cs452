@@ -249,7 +249,8 @@ track_edge* get_next_edge_in_path(sequence* path_node) {
     } else if (path_node->action == TAKE_CURVE) {
       return &node->edge[DIR_CURVED];
     } else {
-      ERROR("train.c: get_next_edge_in_path: invalid action for branch node");
+      // Case when branch node is our last node.
+      return &node->edge[DIR_AHEAD];
     }
   } else if (node->type == NODE_EXIT) {
     return 0;
@@ -328,7 +329,14 @@ void perform_all_path_actions(int train, sequence* path_base, int path_size) {
 }
 
 int perform_path_actions(int train, sequence* path_base, int path_size, location* cur_loc) {
-  ASSERT(cur_loc->cur_edge != 0, "train.c: perform_path_actions");
+  // This really shouldn't happen. If it does, it must because
+  // we're trying to reverse at an end edge and have gone too
+  // far, so just reverse.
+  if (cur_loc->cur_edge == 0) {
+    if (path_base->action == REVERSE) {
+      perform_reverse_action(path_base, train, MAX_STOPPING_TIME);
+    }
+  }
 
   int reverse_lookahead = get_reverse_lookahead(cur_loc->stopping_distance, cur_loc->d);
   int switch_lookahead = get_switch_lookahead(cur_loc->d);
@@ -373,8 +381,7 @@ int perform_initial_path_actions(int train, sequence* path, int path_size, locat
   if (action == REVERSE) {
     perform_reverse_action(path, train, MAX_STOPPING_TIME);
   } else if (action == TAKE_STRAIGHT || action == TAKE_CURVE) {
-    // TODO(dzelemba): Reverse if we're on top of a switch.
-    perform_switch_action(path);
+    ERROR("train.c: First node in path is a branch, should never happen");
   }
 
   // TODO(dzelemba): Check for trivial paths.
@@ -393,7 +400,7 @@ int handle_path(int train, sequence* path, int* path_index, int path_size, locat
    * The other case is the regular case, where we check if we've advanced along
    * the path, or if we've missed an update along the path.
    */
-  if (path[p_index].action == REVERSE &&
+  if (path[p_index].action == REVERSE && cur_loc->cur_edge != 0 &&
       node2idx(get_track(), cur_loc->cur_edge->dest) == path[p_index + 1].location) {
     *path_index = p_index + 1;
   } else {
@@ -481,8 +488,16 @@ void train_controller() {
         la_insert(&trains_on_route, train_idx, (void*)train);
 
         path_indexes[train_idx] = 0;
-        get_path(get_track(), cur_loc, &msg.set_route_data.dest,
-                 paths[train_idx], &path_sizes[train_idx]);
+
+        // If first node is a branch, then get directions from the next node
+        // so we don't have to worry about backing up to clear the switch.
+        if (cur_loc->node->type == NODE_BRANCH) {
+          get_path(get_track(), get_next_edge(cur_loc->node)->dest, msg.set_route_data.dest.node,
+                   paths[train_idx], &path_sizes[train_idx]);
+        } else {
+          get_path(get_track(), cur_loc->node, msg.set_route_data.dest.node,
+                   paths[train_idx], &path_sizes[train_idx]);
+        }
         set_speed(msg.set_route_data.speed, train);
         perform_initial_path_actions(train, paths[train_idx], path_sizes[train_idx], cur_loc);
         handle_path(train, paths[train_idx], &path_indexes[train_idx],

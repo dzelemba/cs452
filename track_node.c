@@ -1,5 +1,6 @@
 #include "track_node.h"
 #include "debug.h"
+#include "train.h"
 
 // We redefine this so we can run this code in a unittest
 #define SOCKETS_PER_SENSOR 16
@@ -73,4 +74,26 @@ void get_next_sensors(track_node* track, track_node* node, sensor* sensors, int*
   get_next_sensors_recurse(track, node, sensors, num_sensors);
 }
 
+track_edge* get_next_edge(track_node* node) {
+  if (node->type == NODE_BRANCH) {
+    if (get_switch_direction(node->num) == 'C') {
+      return &node->edge[DIR_CURVED];
+    } else {
+      return &node->edge[DIR_STRAIGHT];
+    }
+  } else if (node->type == NODE_EXIT) {
+    return 0;
+  } else {
+    return &node->edge[DIR_AHEAD];
+  }
+}
+
+track_node* get_next_sensor(track_node* node) {
+  track_edge* next_edge = get_next_edge(node);
+  while (next_edge != 0 && next_edge->dest->type != NODE_SENSOR) {
+    next_edge = get_next_edge(next_edge->dest);
+  }
+
+  return next_edge == 0 ? 0 : next_edge->dest;
+}
 

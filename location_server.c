@@ -85,29 +85,6 @@ void flip_direction(direction* d) {
   *d = (*d == FORWARD ? BACKWARD : FORWARD);
 }
 
-track_edge* get_next_edge(track_node* node) {
-  if (node->type == NODE_BRANCH) {
-    if (get_switch_direction(node->num) == 'C') {
-      return &node->edge[DIR_CURVED];
-    } else {
-      return &node->edge[DIR_STRAIGHT];
-    }
-  } else if (node->type == NODE_EXIT) {
-    return 0;
-  } else {
-    return &node->edge[DIR_AHEAD];
-  }
-}
-
-track_node* get_next_sensor(track_node* node) {
-  track_edge* next_edge = get_next_edge(node);
-  while (next_edge != 0 && next_edge->dest->type != NODE_SENSOR) {
-    next_edge = get_next_edge(next_edge->dest);
-  }
-
-  return next_edge == 0 ? 0 : next_edge->dest;
-}
-
 void fill_in_tracking_data(tracking_data* t_data) {
   t_data->loc->cur_edge = get_next_edge(t_data->loc->node);
   t_data->next_sensor = get_next_sensor(t_data->loc->node);
