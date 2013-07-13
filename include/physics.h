@@ -3,6 +3,13 @@
 
 #include "location.h"
 
+#define MM_PER_CM 10
+#define UM_PER_MM 1000
+#define UM_PER_CM UM_PER_MM * MM_PER_CM
+#define NM_PER_UM 1000
+#define NM_PER_MM NM_PER_UM * UM_PER_MM
+#define NM_PER_CM NM_PER_MM * MM_PER_CM
+
 #define DEFAULT_NM_PER_TICK 5311245
 #define DEFAULT_ACCELERATING_TICKS 428
 #define DEFAULT_STOPPING_DISTANCE 725
