@@ -79,7 +79,7 @@ int heapplus_insert(heapplus* hp, int priority, int value) {
     buf[it].value = (void *)value;
     hp->dict[(int)value] = it;
     hp_simple->size = hp_simple->size + 1;
-  } else if (hp->dict[(int) value] > priority) {
+  } else if (buf[hp->dict[(int) value]].priority > priority) {
     it = hp->dict[(int) value];
   } else {
     return 0;
