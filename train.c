@@ -175,7 +175,7 @@ void sw(int switch_number, char switch_direction) {
  * Train Controller
  */
 
-#define FINDING_LOCATION_SPEED 1
+#define FINDING_LOCATION_SPEED 2
 
 static int train_controller_tid;
 

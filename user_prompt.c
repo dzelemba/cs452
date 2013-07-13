@@ -350,21 +350,37 @@ void timer_display_task() {
  * Displaying Train Locations
  */
 
+int has_location_changed_enough(location_array* cur_locs, location_array* prev_locs, int i) {
+  if (prev_locs->size == 0) {
+    return 1;
+  }
+  location* cur_loc = &cur_locs->locations[i];
+  location* prev_loc = &prev_locs->locations[i];
+
+  return cur_loc->node != prev_loc->node ||
+         cur_loc->d != prev_loc->d ||
+         cur_loc->um_past_node - prev_loc->um_past_node > 100000;
+}
+
 void display_train_locations() {
+  location_array prev_locations;
   location_array loc_array;
   int i;
   while (1) {
     get_location_updates(&loc_array);
-    // If this is still sucking too much CPU, we can just throttle this
     for (i = 0; i < loc_array.size; i++) {
-      location* loc = &loc_array.locations[i];
-      printf(COM2, "\033[33m\033[%d;%dH%4s\033[%dC%4d\033[%dC%s\033[%dC%5d\033[0m",
-             DRAW_ROW_TRAIN_LOC + 1 + tr_num_to_idx(loc->train), DRAW_COL_TR_LOC, loc->node->name,
-             DRAW_COL_TR_DIST - DRAW_COL_TR_LOC - 4, loc->um_past_node / 1000,
-             DRAW_COL_TR_DIR - DRAW_COL_TR_DIST - 4, direction_to_string(loc->d),
-             DRAW_COL_TR_ERR - DRAW_COL_TR_DIR - 1, loc->prev_sensor_error);
-      return_cursor();
+      if (has_location_changed_enough(&loc_array, &prev_locations, i)) {
+        location* loc = &loc_array.locations[i];
+        printf(COM2, "\033[33m\033[%d;%dH%4s\033[%dC%4d\033[%dC%s\033[%dC%5d\033[0m",
+               DRAW_ROW_TRAIN_LOC + 1 + tr_num_to_idx(loc->train), DRAW_COL_TR_LOC, loc->node->name,
+               DRAW_COL_TR_DIST - DRAW_COL_TR_LOC - 4, loc->um_past_node / 1000,
+               DRAW_COL_TR_DIR - DRAW_COL_TR_DIST - 4, direction_to_string(loc->d),
+               DRAW_COL_TR_ERR - DRAW_COL_TR_DIR - 1, loc->prev_sensor_error);
+        return_cursor();
+      }
     }
+
+    memcpy((char *)&prev_locations, (const char*)&loc_array, sizeof(location_array));
   }
 
   Exit();
