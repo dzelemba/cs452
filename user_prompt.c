@@ -236,6 +236,10 @@ void user_prompt_task() {
 
   while (1) {
     char ch = Getc(COM2);
+    if (ch == '\n') {
+      continue;
+    }
+
     if (ch == '\r') {
       line[current_prompt_pos] = '\0'; // null-terminate line
       memcpy(log_mem[log_ring] + 5, line, current_prompt_pos);
