@@ -354,33 +354,49 @@ void timer_display_task() {
  * Displaying Train Locations
  */
 
-int has_location_changed_enough(location_array* cur_locs, location_array* prev_locs, int i) {
-  if (prev_locs->size <= i) {
-    return 1;
-  }
-  location* cur_loc = &cur_locs->locations[i];
-  location* prev_loc = &prev_locs->locations[i];
+int has_location_changed_enough(location* cur_loc, location* prev_loc, int* prev_updated) {
+  // Minimally, update every second
+  bool ret = (Time() - *prev_updated >= TICK_PER_S);
 
-  // Update terminal every 1cm
-  int ret = cur_loc->node != prev_loc->node ||
-    cur_loc->d != prev_loc->d ||
-    (cur_loc->um_past_node - prev_loc->um_past_node) > 2 * UM_PER_CM;
+  // Node change
+  ret |= (cur_loc->node != prev_loc->node);
+  // Direction change
+  ret |= (cur_loc->d != prev_loc->d);
+  // Update every cm
+  ret |= (cur_loc->um_past_node - prev_loc->um_past_node) >= UM_PER_CM;
 
   if (ret) {
     *prev_loc = *cur_loc;
+    *prev_updated = Time();
   }
-
   return ret;
 }
 
 void display_train_locations() {
+  int prev_updated[MAX_TRAINS];
   location_array prev_locations;
   location_array loc_array;
+
   int i;
+  bool have_new_train, has_changed_enough;
   while (1) {
     get_location_updates(&loc_array);
+    have_new_train = false;
+
+    if (loc_array.size != prev_locations.size) {
+      memcpy((char *)&prev_locations, (const char*)&loc_array, sizeof(location_array));
+      for (i = 0; i < loc_array.size; i++) {
+        prev_updated[i] = Time();
+      }
+      have_new_train = true;
+    }
+
     for (i = 0; i < loc_array.size; i++) {
-      if (has_location_changed_enough(&loc_array, &prev_locations, i)) {
+      has_changed_enough = have_new_train ||
+        has_location_changed_enough(
+          &loc_array.locations[i], &prev_locations.locations[i], &prev_updated[i]);
+
+      if (has_changed_enough) {
         location* loc = &loc_array.locations[i];
         printf(COM2, "\033[33m\033[%d;%dH%4s\033[%dC%4d\033[%dC%s\033[%dC%5d\033[0m",
                DRAW_ROW_TRAIN_LOC + 1 + tr_num_to_idx(loc->train), DRAW_COL_TR_LOC, loc->node->name,

@@ -1,8 +1,12 @@
 #ifndef __STDLIB_H__
 #define __STDLIB_H__
 
+#define TICK_PER_S 100
+#define MS_PER_TICK 10
+#define MS_PER_S MS_PER_TICK * TICK_PER_S
+
 #ifndef UNIT
-#define bool char
+#define bool int
 #define true 1
 #define false 0
 #endif
