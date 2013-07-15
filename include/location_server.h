@@ -34,4 +34,7 @@ track_edge* get_next_edge(track_node* node);
 
 track_node* get_next_sensor(track_node* node);
 
+int get_next_sensor_distance(track_node* node);
+
+void ds_update_speed(int train, int speed);
 #endif

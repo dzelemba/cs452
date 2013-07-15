@@ -1,18 +1,21 @@
+#include "debug.h"
+#include "distance_server.h"
 #include "location_server.h"
-#include "syscall.h"
+#include "ourio.h"
+#include "ourlib.h"
+#include "physics.h"
+#include "priorities.h"
+#include "queue.h"
 #include "sensor.h"
 #include "sensor_server.h"
-#include "track_node.h"
-#include "ourlib.h"
-#include "queue.h"
-#include "track_data.h"
-#include "priorities.h"
-#include "train.h"
-#include "debug.h"
-#include "ourio.h"
+#include "syscall.h"
 #include "task.h"
-#include "distance_server.h"
+#include "track_data.h"
 #include "track_node.h"
+#include "track_node.h"
+#include "train.h"
+
+#define NOT_ACCELERATING -1
 
 /*
  * Private Methods
@@ -24,9 +27,9 @@ typedef enum location_server_message_type {
   TRACK_TRAIN,
   GET_UPDATES,
   SENSOR_UPDATE,
-  DISTANCE_UPDATE,
   LS_TRAIN_REVERSE,
-  LS_TRAIN_DIRECTION
+  LS_TRAIN_DIRECTION,
+  DS_UPDATE_SPEED
 } location_server_message_type;
 
 typedef struct location_server_message {
@@ -36,16 +39,16 @@ typedef struct location_server_message {
     location loc;
     struct {
       int train;
-      int dx;
-      int stopping_distance;
-      int stopping_time;
-    } ds_update;
-    struct {
-      int train;
       direction dir;
+      int speed;
     } train_update;
   };
 } location_server_message;
+
+static int acceleration_start_time[MAX_TRAINS];
+static unsigned int current_velocities[MAX_TRAINS];
+static int current_speeds[MAX_TRAINS];
+static int stopping_time[MAX_TRAINS];
 
 void location_sensor_notifier() {
   location_server_message msg;
@@ -58,14 +61,13 @@ void location_sensor_notifier() {
   Exit();
 }
 
-void location_distance_notifier() {
-  location_server_message msg;
-  msg.type = DISTANCE_UPDATE;
-
+void distance_notifier() {
+  int now = Time();
   while (1) {
-    ds_get_update(&msg.ds_update.train, &msg.ds_update.dx,
-                  &msg.ds_update.stopping_distance, &msg.ds_update.stopping_time);
-    Send(location_server_tid, (char *)&msg, sizeof(location_server_message), (void *)0, 0);
+    // Use DelayUntil to reduce to constant factor drifting
+    DelayUntil(now + 1);
+    now++;
+    Send(location_server_tid, (char *)NULL, 0, NULL, 0);
   }
 
   Exit();
@@ -114,18 +116,23 @@ void update_tracking_data_for_distance(tracking_data* t_data) {
     return;
   }
 
-  if (t_data->loc->um_past_node / 1000 > edge->dist && edge->dest->type != NODE_SENSOR) {
-    t_data->loc->um_past_node -= edge->dist * 1000;
-    increment_location(t_data);
+  int train_id = tr_num_to_idx(t_data->loc->train);
+  bool is_stopping = acceleration_start_time[train_id] != NOT_ACCELERATING && current_speeds[train_id] == 0;
+
+  if (t_data->loc->um_past_node / 1000 > edge->dist) {
+    if (is_stopping || edge->dest->type != NODE_SENSOR) {
+      t_data->loc->um_past_node -= edge->dist * 1000;
+      increment_location(t_data);
+    }
   }
 
   // Check for broken sensor
-  if (edge->dest->type == NODE_SENSOR) {
+  if (!is_stopping && edge->dest->type == NODE_SENSOR) {
     int mm_past_sensor = t_data->loc->um_past_node / 1000 - edge->dist;
     if (mm_past_sensor > BROKEN_SENSOR_ERROR) {
       /*
        * If we've missed two sensors in a row, then report lost train
-       * This can happen becuase either
+       * This can happen because either
        *   1) Our distances are way off, or
        *   2) The train is stuck
        * For 1), we should just wait until the train hits the sensor.
@@ -156,15 +163,22 @@ void update_tracking_data_for_distance(tracking_data* t_data) {
 int update_tracking_data_for_sensor(tracking_data* t_data, sensor* s) {
   track_edge* edge = t_data->loc->cur_edge;
   track_node* sensor_node = get_track_node(get_track(), sensor2idx(s->group, s->socket));
+
+  int train_id = tr_num_to_idx(t_data->loc->train);
+  bool is_stopping = acceleration_start_time[train_id] != NOT_ACCELERATING && current_speeds[train_id] == 0;
+  if (is_stopping) {
+    return 0;
+  }
+
   if (edge != 0) {
     if (edge->dest == sensor_node) {
       increment_location(t_data);
       t_data->loc->prev_sensor_error = t_data->loc->um_past_node / 1000 - edge->dist;
     } else if (t_data->next_sensor == sensor_node) {
       INFO(LOCATION_SERVER, "Updated to Next Sensor: %s", sensor_node->name);
+      int expected_distance_to_sensor = get_next_sensor_distance(t_data->loc->node);
+      t_data->loc->prev_sensor_error = t_data->loc->um_past_node / 1000 - expected_distance_to_sensor;
       increment_location_to_sensor(t_data, sensor_node);
-      // TODO(dzelemba): Make this prev_sensor_error accurate.
-      t_data->loc->prev_sensor_error = t_data->loc->um_past_node / 1000 - edge->dist + 30;
     } else if (t_data->missed_sensor == sensor_node) {
       // Case where we updated our location prematurely
       INFO(LOCATION_SERVER,"Premature Update for Train: %d", t_data->loc->train);
@@ -190,7 +204,7 @@ void update_tracking_data_for_reverse(tracking_data* t_data, int train) {
   if (t_data->loc->cur_edge != 0) {
     // If the train is stopped on top of a sensor, it won't trigger the reverse sensor
     // so put it at the reverse sensor instead.
-    if (t_data->loc->node->type == NODE_SENSOR && t_data->loc->um_past_node  < PICKUP_LENGTH * 1000) {
+    if (t_data->loc->node->type == NODE_SENSOR && t_data->loc->um_past_node < PICKUP_LENGTH * 1000) {
       t_data->loc->node = t_data->loc->node->reverse;
       t_data->loc->um_past_node = PICKUP_LENGTH * 1000 - t_data->loc->um_past_node;
     } else {
@@ -235,73 +249,139 @@ void location_server() {
   tracking_data_array t_data_array;
   t_data_array.size = 0;
 
-  int tid, train, i, k, locations_changed;
+  int tid, train, train_id, i, k, locations_changed, dt, dx, target_velocity;
   location* loc;
   location_server_message msg;
 
+  int distance_notifier_tid = Create(MED_PRI, &distance_notifier);
+
   while (1) {
-    train = -1;
     Receive(&tid, (char *)&msg, sizeof(location_server_message));
-    switch (msg.type) {
-      case TRACK_TRAIN:
-        Reply(tid, (void *)0, 0);
-        ASSERT(loc_array.size < MAX_TRAINS, "location_server.c: track train request");
 
-        // Notify distance server.
-        ds_track_train(msg.loc.train);
+    // Periodic distance update
+    if (tid == distance_notifier_tid) {
+      Reply(tid, NULL, 0);
+      for (i = 0; i < loc_array.size; i++) {
+        train = loc_array.locations[i].train;
+        train_id = tr_num_to_idx(train);
 
-        // Copy location data into location array
-        memcpy((char *)&loc_array.locations[loc_array.size], (const char *)&msg.loc, sizeof(location));
-        loc_array.size++;
-
-        // Create tracking data.
-        t_data_array.t_data[t_data_array.size].loc = &loc_array.locations[loc_array.size - 1];
-        t_data_array.t_data[t_data_array.size].missed_sensor = 0;
-        t_data_array.t_data[t_data_array.size].lost_train = 0;
-        fill_in_tracking_data(&t_data_array.t_data[t_data_array.size]);
-        t_data_array.size++;
-
-        reply_to_tasks(&waiting_tasks, &loc_array);
-        break;
-      case GET_UPDATES:
-        push(&waiting_tasks, tid);
-        break;
-      case LS_TRAIN_REVERSE:
-        Reply(tid, (void *)0, 0);
-        train = msg.train_update.train;
-        update_tracking_data_for_reverse(get_tracking_data(&t_data_array, train), train);
-        reply_to_tasks(&waiting_tasks, &loc_array);
-        break;
-      case LS_TRAIN_DIRECTION:
-        Reply(tid, (void *)0, 0);
-        train = msg.train_update.train;
-        get_tracking_data(&t_data_array, train)->loc->d = msg.train_update.dir;
-        reply_to_tasks(&waiting_tasks, &loc_array);
-        break;
-      case DISTANCE_UPDATE:
-        Reply(tid, (void *)0, 0);
-        loc = get_train_location(&loc_array, msg.ds_update.train);
-        loc->um_past_node += msg.ds_update.dx;
-        loc->stopping_distance = msg.ds_update.stopping_distance;
-        loc->stopping_time = msg.ds_update.stopping_time;
-        update_tracking_data_for_distance(get_tracking_data(&t_data_array, msg.ds_update.train));
-        reply_to_tasks(&waiting_tasks, &loc_array);
-        break;
-      case SENSOR_UPDATE: {
-        Reply(tid, (void *)0, 0);
-        locations_changed = 0; // Required so we don't send multiple updates for multiple sensor triggers
-        for (k = 0; k < t_data_array.size; k++) {
-          tracking_data* t_data = &t_data_array.t_data[k];
-          for (i = 0; i < msg.sensors.num_sensors; i++) {
-            locations_changed |= update_tracking_data_for_sensor(t_data, &msg.sensors.sensors[i]);
+        if (acceleration_start_time[train_id] != NOT_ACCELERATING) {
+          if (current_speeds[train_id] > 0) {
+            dt = Time() - acceleration_start_time[train_id];
+            target_velocity = mean_velocity(train, current_speeds[train_id]);
+            current_velocities[train_id] = accelerate(train, current_velocities[train_id], target_velocity, dt);
+            if (current_velocities[train_id] == target_velocity) {
+              acceleration_start_time[train_id] = NOT_ACCELERATING;
+            }
+          } else {
+            // Stopping has no deceleration model
+            if (stopping_time[train_id] - 1 == 0) {
+              acceleration_start_time[train_id] = NOT_ACCELERATING;
+            }
+            stopping_time[train_id]--;
           }
         }
-        if (locations_changed) {
-          reply_to_tasks(&waiting_tasks, &loc_array);
+
+        if (acceleration_start_time[train_id] != NOT_ACCELERATING) {
+          if (current_speeds[train_id] > 0) {
+            dx = current_velocities[train_id] / NM_PER_UM;
+          } else if (stopping_time[train_id] > 0) {
+            dx = (DEFAULT_STOPPING_DISTANCE * UM_PER_MM) / DEFAULT_STOPPING_TICKS;
+          }
+        } else {
+          current_velocities[train_id] = mean_velocity(train, current_speeds[train_id]);
+          dx = mean_velocity(train, current_speeds[train_id]) / NM_PER_UM;
         }
-        break;
+
+        loc = get_train_location(&loc_array, train);
+        dx = (dx * piecewise_velocity(train, current_speeds[train_id], loc)) / 100;
+        loc->um_past_node += dx;
+        loc->stopping_distance = stopping_distance(train, current_velocities[train_id]);
+        update_tracking_data_for_distance(get_tracking_data(&t_data_array, train));
+      }
+      reply_to_tasks(&waiting_tasks, &loc_array);
+    } else {
+      switch (msg.type) {
+        case TRACK_TRAIN:
+          Reply(tid, (void *)0, 0);
+          ASSERT(loc_array.size < MAX_TRAINS, "location_server.c: track train request");
+
+          // Notify distance server.
+          train_id = tr_num_to_idx(msg.loc.train);
+
+          current_speeds[train_id] = 0;
+          current_velocities[train_id] = 0;
+          acceleration_start_time[train_id] = NOT_ACCELERATING;
+          stopping_time[train_id] = 0;
+
+          // Copy location data into location array
+          memcpy((char *)&loc_array.locations[loc_array.size], (const char *)&msg.loc, sizeof(location));
+          loc_array.size++;
+
+          // Create tracking data.
+          t_data_array.t_data[t_data_array.size].loc = &loc_array.locations[loc_array.size - 1];
+          t_data_array.t_data[t_data_array.size].missed_sensor = 0;
+          t_data_array.t_data[t_data_array.size].lost_train = 0;
+          fill_in_tracking_data(&t_data_array.t_data[t_data_array.size]);
+          t_data_array.size++;
+
+          reply_to_tasks(&waiting_tasks, &loc_array);
+          break;
+        case GET_UPDATES:
+          push(&waiting_tasks, tid);
+          break;
+        case LS_TRAIN_REVERSE:
+          Reply(tid, (void *)0, 0);
+          train = msg.train_update.train;
+          update_tracking_data_for_reverse(get_tracking_data(&t_data_array, train), train);
+          reply_to_tasks(&waiting_tasks, &loc_array);
+          break;
+        case LS_TRAIN_DIRECTION:
+          Reply(tid, (void *)0, 0);
+          train = msg.train_update.train;
+          get_tracking_data(&t_data_array, train)->loc->d = msg.train_update.dir;
+          reply_to_tasks(&waiting_tasks, &loc_array);
+          break;
+        case SENSOR_UPDATE: {
+          Reply(tid, (void *)0, 0);
+          locations_changed = 0; // Required so we don't send multiple updates for multiple sensor triggers
+          for (k = 0; k < t_data_array.size; k++) {
+            tracking_data* t_data = &t_data_array.t_data[k];
+            for (i = 0; i < msg.sensors.num_sensors; i++) {
+              locations_changed |= update_tracking_data_for_sensor(t_data, &msg.sensors.sensors[i]);
+            }
+          }
+          if (locations_changed) {
+            reply_to_tasks(&waiting_tasks, &loc_array);
+          }
+          break;
+        }
+        case DS_UPDATE_SPEED:
+          Reply(tid, NULL, 0);
+          train_id = tr_num_to_idx(msg.train_update.train);
+          if (msg.train_update.speed == current_speeds[train_id]) {
+            INFO(LOCATION_SERVER, "Ignored speed update: train %d to %d", msg.train_update.train, msg.train_update.speed);
+            break;
+          } else {
+            INFO(LOCATION_SERVER, "Speed update: train %d (%d to %d)", msg.train_update.train,
+                 current_speeds[train_id], msg.train_update.speed);
+          }
+
+          current_speeds[train_id] = msg.train_update.speed;
+          if (current_speeds[train_id] == 0) {
+            acceleration_start_time[train_id] = Time();
+            // Division by 4 necessary to avoid integer overflow
+            stopping_time[train_id] = (((DEFAULT_STOPPING_TICKS / 4) * current_velocities[train_id]) / DEFAULT_NM_PER_TICK) * 4;
+            current_velocities[train_id] = 0;
+            INFO(LOCATION_SERVER, "Stopping time: train %d stops in %d ticks", msg.train_update.train, stopping_time[train_id]);
+          } else {
+            acceleration_start_time[train_id] = Time();
+          }
+
+          break;
       }
     }
+
   }
   Exit();
 }
@@ -328,7 +408,6 @@ int get_track_index(track_node* track, location* loc) {
 void start_location_server() {
   location_server_tid = Create(MED_PRI, &location_server);
   Create(MED_PRI, &location_sensor_notifier);
-  Create(MED_PRI, &location_distance_notifier);
 }
 
 void track_train(int train, location* loc) {
@@ -366,6 +445,14 @@ void ls_train_reversed(int train) {
   Send(location_server_tid, (char *)&msg, sizeof(location_server_message), (void *)0, 0);
 }
 
+void ds_update_speed(int train, int speed) {
+  location_server_message msg;
+  msg.type = DS_UPDATE_SPEED;
+  msg.train_update.train = train;
+  msg.train_update.speed = speed;
+  Send(location_server_tid, (char *)&msg, sizeof(location_server_message), NULL, 0);
+}
+
 char* direction_to_string(direction d) {
   switch (d) {
     case FORWARD:
@@ -397,4 +484,15 @@ track_node* get_next_sensor(track_node* node) {
   }
 
   return next_edge == 0 ? 0 : next_edge->dest;
+}
+
+int get_next_sensor_distance(track_node* node) {
+  track_edge* next_edge = get_next_edge(node);
+  int dist = (next_edge == 0) ? -1 : next_edge->dist;
+  while (next_edge != 0 && next_edge->dest->type != NODE_SENSOR) {
+    next_edge = get_next_edge(next_edge->dest);
+    dist += next_edge->dist;
+  }
+
+  return dist;
 }

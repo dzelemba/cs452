@@ -65,7 +65,6 @@ void velocity_a_calibration() {
   known_distances[IX('C', 12)][IX('A', 4)] = 376;
 
   start_sensor_server();
-  start_distance_server();
   start_location_server();
 
   // Setup Inner Loop for Track A
@@ -156,7 +155,6 @@ void velocity_b_calibration() {
   known_distances[IX('E', 6)][IX('D', 4)] = 297;
 
   start_sensor_server();
-  start_distance_server();
   start_location_server();
 
   // Setup Inner Loop for Track B
@@ -231,7 +229,6 @@ void acceleration_calibration() {
 
   sensor sensors[MAX_NEW_SENSORS];
   start_sensor_server();
-  start_distance_server();
   start_location_server();
   init_trains();
 

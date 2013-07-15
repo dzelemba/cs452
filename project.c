@@ -11,7 +11,6 @@
 
 void shell_task() {
   start_sensor_server();
-  start_distance_server();
   start_location_server();
   init_trains();
 
