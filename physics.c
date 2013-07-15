@@ -47,7 +47,7 @@ unsigned int stopping_time(int train, unsigned int v) {
   return DEFAULT_ACCELERATING_TICKS * v / DEFAULT_NM_PER_TICK;
 }
 
-void init_physicsa() {
+void init_mean_velocities() {
   int i;
   for (i = 0; i < MAX_TRAINS; i++) {
     _mean_velocities[0][i] = 0;
@@ -55,8 +55,20 @@ void init_physicsa() {
   }
 
   _mean_velocities[11][tr_num_to_idx(47)] = 5311245;
-  _mean_velocities[11][tr_num_to_idx(50)] = 5192361;
 
+  _mean_velocities[1][tr_num_to_idx(50)] =  89622;
+  _mean_velocities[2][tr_num_to_idx(50)] =  705592;
+  _mean_velocities[3][tr_num_to_idx(50)] =  1227363;
+  _mean_velocities[4][tr_num_to_idx(50)] =  1730769;
+  _mean_velocities[5][tr_num_to_idx(50)] =  2193155;
+  _mean_velocities[6][tr_num_to_idx(50)] =  2712882;
+  _mean_velocities[11][tr_num_to_idx(50)] = 5192361;
+}
+
+void init_physicsa() {
+  init_mean_velocities();
+
+  int i;
   for (i = 0; i < TRACK_MAX; i++) {
     _piecewise_velocities[0][i] = 100;
     _piecewise_velocities[11][i] = 100;
@@ -79,15 +91,9 @@ void init_physicsa() {
 }
 
 void init_physicsb() {
+  init_mean_velocities();
+
   int i;
-  for (i = 0; i < MAX_TRAINS; i++) {
-    _mean_velocities[0][i] = 0;
-    _mean_velocities[11][i] = DEFAULT_NM_PER_TICK;
-  }
-
-  _mean_velocities[11][tr_num_to_idx(47)] = 5311245;
-  _mean_velocities[11][tr_num_to_idx(50)] = 5192361;
-
   for (i = 0; i < TRACK_MAX; i++) {
     _piecewise_velocities[0][i] = 100;
     _piecewise_velocities[11][i] = 100;
