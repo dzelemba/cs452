@@ -274,6 +274,7 @@ void location_server() {
             // Stopping has no deceleration model
             if (stopping_time[train_id] - 1 == 0) {
               acceleration_start_time[train_id] = NOT_ACCELERATING;
+              current_velocities[train_id] = 0;
             }
             stopping_time[train_id]--;
           }
@@ -370,7 +371,6 @@ void location_server() {
             acceleration_start_time[train_id] = Time();
             // Division by 4 necessary to avoid integer overflow
             stopping_time[train_id] = (((DEFAULT_STOPPING_TICKS / 4) * current_velocities[train_id]) / DEFAULT_NM_PER_TICK) * 4;
-            current_velocities[train_id] = 0;
             INFO(LOCATION_SERVER, "Stopping time: train %d stops in %d ticks", msg.train_update.train, stopping_time[train_id]);
           } else {
             acceleration_start_time[train_id] = Time();
