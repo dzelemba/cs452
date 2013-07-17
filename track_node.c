@@ -25,10 +25,16 @@ int exit2idx(int num) {
 }
 
 int merge2idx(int num) {
+  if (num >= 153 && num <= 156) {
+    num = num - 153 + 19;
+  }
   return BRANCH_BASE + 2*(num - 1) + 1;
 }
 
 int branch2idx(int num) {
+  if (num >= 153 && num <= 156) {
+    num = num - 153 + 19;
+  }
   return BRANCH_BASE + 2*(num - 1);
 }
 
