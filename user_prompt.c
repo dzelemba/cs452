@@ -24,7 +24,14 @@
 
 #define DRAW_ROW_LOG 26
 #define LOG_LENGTH 10
+
+#define LOG_STATUS_GOOD 0
+#define LOG_STATUS_BAD 1
+#define LOG_STATUS_HOLD 2
+
 static char log_mem[LOG_LENGTH][80];
+static int log_status[LOG_LENGTH];
+static int log_line_length[LOG_LENGTH];
 static int log_ring;
 
 #define DRAW_COL_TR_LOC 12
@@ -98,7 +105,7 @@ int check_train_speed(int speed) {
   return speed >= 0 && speed <= NUM_SPEEDS;
 }
 
-int process_line(char* line) {
+int process_line(char* line, bool* is_hold_on) {
   char static_tokens[MAX_TOKENS][MAX_TOKEN_SIZE];
   char* tokens[MAX_TOKENS];
   create_string_array((const char*)static_tokens, MAX_TOKENS, MAX_TOKEN_SIZE, (const char**)tokens);
@@ -107,6 +114,22 @@ int process_line(char* line) {
   int ret = string_split(line, ' ', MAX_TOKENS, MAX_TOKEN_SIZE, (char**)tokens, &error);
   if (ret == -1) {
     return 1;
+  }
+
+  if (string_equal(tokens[0], "hold")) {
+    if (string_equal(tokens[1], "on")) {
+      *is_hold_on = true;
+    } else if (string_equal(tokens[1], "off")) {
+      *is_hold_on = false;
+    } else {
+      return 1;
+    }
+
+    return 0;
+  }
+
+  if (*is_hold_on) {
+    return 0;
   }
 
   if (string_equal(tokens[0], "tr")) {
@@ -222,6 +245,10 @@ int process_line(char* line) {
 
 void user_prompt_task() {
   char line[64];
+  bool is_hold_on = false, was_hold_on = false;
+  int is_bad_command;
+
+  int hold_start, hold_end;
 
   // Initialize log
   log_ring = 0;
@@ -242,23 +269,41 @@ void user_prompt_task() {
 
     if (ch == '\r') {
       line[current_prompt_pos] = '\0'; // null-terminate line
-      memcpy(log_mem[log_ring] + 5, line, current_prompt_pos);
-      log_mem[log_ring][current_prompt_pos + 5 + 0] = '\033';
-      log_mem[log_ring][current_prompt_pos + 5 + 1] = '[';
-      log_mem[log_ring][current_prompt_pos + 5 + 2] = '0';
-      log_mem[log_ring][current_prompt_pos + 5 + 3] = 'm';
-      log_mem[log_ring][current_prompt_pos + 5 + 4] = '\0';
+      memcpy(log_mem[log_ring], line, current_prompt_pos + 1);
+      log_line_length[log_ring] = current_prompt_pos + 1;
 
-      int is_bad_command = process_line(line);
-      if (is_bad_command) {
-        memcpy(log_mem[log_ring], "\033[31m", 5);
+      is_bad_command = process_line(line, &is_hold_on);
+      if (is_hold_on) {
+        log_status[log_ring] = LOG_STATUS_HOLD;
       } else {
-        memcpy(log_mem[log_ring], "\033[32m", 5);
+        if (is_bad_command) {
+          log_status[log_ring] = LOG_STATUS_BAD;
+        } else {
+          log_status[log_ring] = LOG_STATUS_GOOD;
+        }
       }
+
+      if (!was_hold_on && is_hold_on) {
+        hold_start = (log_ring + 1) % LOG_LENGTH;
+      }
+      if (was_hold_on && !is_hold_on) {
+        hold_end = log_ring;
+        for (i = hold_start; i != hold_end; i = (i + 1) % LOG_LENGTH) {
+          process_line(log_mem[i], &is_hold_on);
+        }
+      }
+      was_hold_on = is_hold_on;
 
       // Update log
       for (i = 0; i < LOG_LENGTH; i++) {
-        printf(COM2, "\033[%d;1H%s\033[K", DRAW_ROW_LOG + i, log_mem[(log_ring + i + 1) % LOG_LENGTH]);
+        int log_pos = (log_ring + i + 1) % LOG_LENGTH;
+        if (log_status[log_pos] == LOG_STATUS_GOOD) {
+          printf(COM2, "\033[%d;1H%s%s\033[K\033[0m", DRAW_ROW_LOG + i, "\033[32m", log_mem[log_pos]);
+        } else if (log_status[log_pos] == LOG_STATUS_BAD) {
+          printf(COM2, "\033[%d;1H%s%s\033[K\033[0m", DRAW_ROW_LOG + i, "\033[31m", log_mem[log_pos]);
+        } else {
+          printf(COM2, "\033[%d;1H%s%s\033[K\033[0m", DRAW_ROW_LOG + i, "\033[36m", log_mem[log_pos]);
+        }
       }
       log_ring = (log_ring + 1) % LOG_LENGTH;
 
