@@ -356,14 +356,14 @@ void timer_display_task() {
 
 int has_location_changed_enough(location* cur_loc, location* prev_loc, int* prev_updated) {
   // Minimally, update every second
-  bool ret = (Time() - *prev_updated >= TICK_PER_S);
+  bool ret = (Time() - *prev_updated >= TICK_PER_S / 2);
 
   // Node change
   ret |= (cur_loc->node != prev_loc->node);
   // Direction change
   ret |= (cur_loc->d != prev_loc->d);
   // Update every cm
-  ret |= (cur_loc->um_past_node - prev_loc->um_past_node) >= UM_PER_CM;
+  ret |= (cur_loc->um_past_node - prev_loc->um_past_node) >= 2 * UM_PER_CM;
 
   if (ret) {
     *prev_loc = *cur_loc;
