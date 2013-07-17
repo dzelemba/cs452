@@ -573,6 +573,7 @@ void train_controller() {
   int tid, train, train_idx;
   location* cur_loc;
   train_controller_message msg;
+
   while (1) {
     Receive(&tid, (char *)&msg, sizeof(train_controller_message));
     switch (msg.type) {
@@ -618,12 +619,11 @@ void train_controller() {
         // If first node is a branch, then get directions from the next node
         // so we don't have to worry about backing up to clear the switch.
         if (cur_loc->node->type == NODE_BRANCH) {
-          get_path(get_track(), get_next_edge(cur_loc->node)->dest,
-                   msg.set_route_data.dest.node, path_info[train_idx].path,
-                   &path_info[train_idx].path_size);
+          get_path(get_track(), get_next_edge(cur_loc->node)->dest, msg.set_route_data.dest.node,
+                   NULL, path_info[train_idx].path, &path_info[train_idx].path_size);
         } else {
           get_path(get_track(), cur_loc->node, msg.set_route_data.dest.node,
-                   path_info[train_idx].path, &path_info[train_idx].path_size);
+                   NULL, path_info[train_idx].path, &path_info[train_idx].path_size);
         }
         path_info[train_idx].is_stopping = 0;
         if (path_info[train_idx].blocked_edge == 0) {
