@@ -28,9 +28,9 @@ static char log_mem[LOG_LENGTH][80];
 static int log_ring;
 
 #define DRAW_COL_TR_LOC 12
-#define DRAW_COL_TR_DIST 23
-#define DRAW_COL_TR_DIR 35
-#define DRAW_COL_TR_ERR 56
+#define DRAW_COL_TR_DIST 24
+#define DRAW_COL_TR_DIR 36
+#define DRAW_COL_TR_ERR 57
 
 static unsigned int current_prompt_pos;
 
@@ -83,7 +83,7 @@ void draw_initial() {
   // Draw train states
   int tr;
   for (tr = 0; tr < MAX_TRAINS; tr++) {
-    printf(COM2, "\033[%d;1HTr %d Loc: ____ Dist: ____mm Dir: _ Prev Sensor Error: _____mm\033[K\n",
+    printf(COM2, "\033[%d;1HTr %d Loc: _____ Dist: ____mm Dir: _ Prev Sensor Error: _____mm\033[K\n",
            DRAW_ROW_TRAIN_LOC + tr + 1, tr_idx_to_num(tr));
   }
 
@@ -398,9 +398,9 @@ void display_train_locations() {
 
       if (has_changed_enough) {
         location* loc = &loc_array.locations[i];
-        printf(COM2, "\033[33m\033[%d;%dH%4s\033[%dC%4d\033[%dC%s\033[%dC%5d\033[0m",
+        printf(COM2, "\033[33m\033[%d;%dH%5s\033[%dC%4d\033[%dC%s\033[%dC%5d\033[0m",
                DRAW_ROW_TRAIN_LOC + 1 + tr_num_to_idx(loc->train), DRAW_COL_TR_LOC, loc->node->name,
-               DRAW_COL_TR_DIST - DRAW_COL_TR_LOC - 4, loc->um_past_node / UM_PER_MM,
+               DRAW_COL_TR_DIST - DRAW_COL_TR_LOC - 5, loc->um_past_node / UM_PER_MM,
                DRAW_COL_TR_DIR - DRAW_COL_TR_DIST - 4, direction_to_string(loc->d),
                DRAW_COL_TR_ERR - DRAW_COL_TR_DIR - 1, loc->prev_sensor_error);
         return_cursor();
