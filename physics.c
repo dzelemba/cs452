@@ -42,13 +42,27 @@ void init_mean_velocities() {
 
   _mean_velocities[11][tr_num_to_idx(47)] = 5311245;
 
+  _mean_velocities[8][tr_num_to_idx(49)] =  3612000; // Avi's data
+  _mean_velocities[9][tr_num_to_idx(49)] =  4586000; // Avi's data
+  _mean_velocities[10][tr_num_to_idx(49)] = 5111000; // Avi's data
+  _mean_velocities[11][tr_num_to_idx(49)] = 5683000; // Avi's data
+  _mean_velocities[12][tr_num_to_idx(49)] = 6135000; // Avi's data
+  _mean_velocities[13][tr_num_to_idx(49)] = 6203000; // Avi's data
+  _mean_velocities[14][tr_num_to_idx(49)] = 6320000; // Avi's data
+
   _mean_velocities[1][tr_num_to_idx(50)] =  89622;
   _mean_velocities[2][tr_num_to_idx(50)] =  705592;
   _mean_velocities[3][tr_num_to_idx(50)] =  1227363;
   _mean_velocities[4][tr_num_to_idx(50)] =  1730769;
   _mean_velocities[5][tr_num_to_idx(50)] =  2193155;
   _mean_velocities[6][tr_num_to_idx(50)] =  2712882;
+  _mean_velocities[8][tr_num_to_idx(50)] =  3772000; // Avi's data
+  _mean_velocities[9][tr_num_to_idx(50)] =  4287000; // Avi's data
+  _mean_velocities[10][tr_num_to_idx(50)] = 4769000; // Avi's data
   _mean_velocities[11][tr_num_to_idx(50)] = 5192361;
+  _mean_velocities[12][tr_num_to_idx(50)] = 5664000; // Avi's data
+  _mean_velocities[13][tr_num_to_idx(50)] = 5740000; // Avi's data
+  _mean_velocities[14][tr_num_to_idx(50)] = 5867000; // Avi's data
 }
 
 void init_physicsa() {
