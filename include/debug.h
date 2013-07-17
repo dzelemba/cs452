@@ -47,6 +47,9 @@ void error(char* format, ...);
 typedef enum debug_group {
   TRAIN_CONTROLLER,
   LOCATION_SERVER,
+  RESERVATION_SERVER,
+  MISC,
+  MISC2,
   NUM_DEBUG_GROUPS
 } debug_group;
 

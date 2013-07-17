@@ -58,4 +58,7 @@ void node2sensor(track_node* track, track_node* node, sensor* s);
 
 void get_next_sensors(track_node* track, track_node* node, sensor* sensors, int* num_sensors);
 
+// Returns num edges.
+int get_next_edges(track_node* track, track_node* node, track_edge** edges);
+
 #endif

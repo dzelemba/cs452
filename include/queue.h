@@ -1,6 +1,8 @@
 #ifndef __QUEUE_H__
 #define __QUEUE_H__
 
+#define Q_CREATE(q, size) int mem[size]; init_queue(&q, mem, size);
+
 typedef struct _queue {
   char* name;
   int start;
@@ -24,6 +26,10 @@ int is_queue_empty(queue *q);
 int is_queue_full(queue *q);
 
 int queue_size(queue *q);
+
+void queue_get_mem(queue* q, int** mem, int* size);
+
+void queue_clear(queue* q);
 
 // For iterating over the queue.
 

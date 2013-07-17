@@ -16,6 +16,8 @@
 #include "uart.h"
 #include "physics.h"
 #include "user_prompt.h"
+#include "reservation_server.h"
+#include "track_edge_array.h"
 
 /*
  * Note: Some of this global memory might be problematic as the reverse
@@ -162,13 +164,15 @@ void sw(int switch_number, char switch_direction) {
     return;
   }
 
-  char cmd[3];
-  cmd[0] = switch_direction_code;
-  cmd[1] = switch_number;
-  cmd[2] = 32; /* Turn solenoid off */
-  putbytes(COM1, cmd, 3);
+  if (switch_directions[convert_switch_number(switch_number)] != switch_direction) {
+    char cmd[3];
+    cmd[0] = switch_direction_code;
+    cmd[1] = switch_number;
+    cmd[2] = 32; /* Turn solenoid off */
+    putbytes(COM1, cmd, 3);
 
-  switch_directions[convert_switch_number(switch_number)] = switch_direction;
+    switch_directions[convert_switch_number(switch_number)] = switch_direction;
+  }
 }
 
 /*
@@ -186,6 +190,7 @@ typedef enum train_controller_message_type {
   TR_REVERSE,
   CHANGE_SWITCH,
   UPDATE_LOCATIONS,
+  RETRY_RESERVATIONS,
 } train_controller_message_type;
 
 typedef struct user_command_data {
@@ -207,6 +212,7 @@ typedef struct train_controller_message {
     user_command_data user_cmd;
     location_array loc_array;
     set_route_command_data set_route_data;
+    train_array tr_array;
   };
 } train_controller_message;
 
@@ -220,6 +226,31 @@ void location_notifier() {
 
   Exit();
 }
+
+void rs_notifier() {
+  train_controller_message msg;
+  msg.type = RETRY_RESERVATIONS;
+  while (1) {
+    rs_get_updates(&msg.tr_array);
+    Send(train_controller_tid, (char *)&msg, sizeof(train_controller_message), (void* )0, 0);
+  }
+
+  Exit();
+}
+
+/*
+ * Path Following
+ */
+
+typedef struct path_following_info {
+  sequence path[TRACK_MAX];
+  int path_size;
+  int path_index;
+  track_edge_array reserved_edges;
+  track_edge* blocked_edge;
+  int is_stopping;
+  int saved_speed;
+} path_following_info;
 
 void perform_switch_action(sequence* path_node) {
   if (!path_node->performed_action) {
@@ -256,7 +287,7 @@ track_edge* get_next_edge_in_path(sequence* path_node) {
     return 0;
   }
 
-  return path_node->action == REVERSE ? 0 : &node->edge[DIR_AHEAD];
+  return &node->edge[DIR_AHEAD];
 }
 
 // Upper bound for how far ahead we need to lookahead to switch
@@ -306,6 +337,10 @@ int get_stop_lookahead(int stopping_distance, direction d) {
   return stopping_distance + get_distance_to_forwardwheel(d);
 }
 
+int get_reserve_lookahead(int stopping_distance, direction d) {
+  return stopping_distance + get_distance_to_forwardwheel(d) + MAX_DISTANCE_ERROR;
+}
+
 void perform_all_path_actions(int train, sequence* path_base, int path_size) {
   int i;
   for (i = 0; i < path_size; i++) {
@@ -316,35 +351,126 @@ void perform_all_path_actions(int train, sequence* path_base, int path_size) {
   }
 }
 
-int perform_path_actions(int train, sequence* path_base, int path_size, location* cur_loc) {
+void restart_train(int train, path_following_info* p_info) {
+  set_speed(p_info->saved_speed, train);
+  p_info->is_stopping = 0;
+}
+
+void stop_train(int train, path_following_info* p_info) {
+  int train_idx = tr_num_to_idx(train);
+  p_info->saved_speed = train_speeds[train_idx];
+  set_speed(0, train);
+  p_info->is_stopping = 1;
+}
+
+void tc_reserve_edge(int train, track_edge* edge, location* cur_loc,
+                  path_following_info* p_info) {
+  track_edge_array* reserved_edges = &p_info->reserved_edges;
+  if (is_edge_free(edge, reserved_edges)) {
+    rs_reply reply = rs_reserve(train, edge);
+    if (reply == FAIL) {
+      stop_train(train, p_info);
+      p_info->blocked_edge = edge;
+    } else {
+      reserve_edge(edge, reserved_edges);
+    }
+  }
+}
+
+void tc_free_edge(int train, track_edge* edge, path_following_info* p_info) {
+  track_edge_array* reserved_edges = &p_info->reserved_edges;
+
+  if (!is_edge_free(edge, reserved_edges)) {
+    rs_free(train, edge);
+    free_edge(edge, reserved_edges);
+  }
+}
+
+#define MAX_PREVIOUS_EDGES 8
+
+void tc_free_previous_edges(int train, location* cur_loc, path_following_info* p_info,
+                            int spots_behind) {
+  int nodes_index = 0;
+  track_node* nodes[MAX_PREVIOUS_EDGES];
+  nodes[nodes_index++] = cur_loc->node->reverse;
+
+  // Do BFS backwards through the graph to get all edges x spots_behind.
+  // TODO(dzelemba): This may be simpler if we store edges instead of nodes..
+  int i,j;
+  track_edge* next_edges[2];
+  for (i = 0; i < spots_behind - 1; i++) {
+    int saved_nodes_index = nodes_index;
+    for (j = 0; j < saved_nodes_index; j++) {
+      int num_next_edges = get_next_edges(get_track(), nodes[j], next_edges);
+      if (num_next_edges != 0) {
+        nodes[j] = next_edges[0]->dest;
+        if (num_next_edges > 1) {
+          nodes[nodes_index++] = next_edges[1]->dest;
+        }
+      }
+    }
+  }
+
+  // Now free the edges.
+  for (i = 0; i < nodes_index; i++) {
+    int num_next_edges = get_next_edges(get_track(), nodes[i], next_edges);
+    if (num_next_edges != 0) {
+      tc_free_edge(train, next_edges[0], p_info);
+      if (num_next_edges > 1) {
+        tc_free_edge(train, next_edges[1], p_info);
+      }
+    }
+  }
+}
+
+void perform_path_actions(location* cur_loc, path_following_info* p_info) {
+  sequence* path_base = p_info->path + p_info->path_index;
+  int train = cur_loc->train;
+  int path_size = p_info->path_size - p_info->path_index;
+
   // This really shouldn't happen. If it does, it must because
   // we're trying to reverse at an end edge and have gone too
   // far, so just reverse.
   if (cur_loc->cur_edge == 0) {
     if (path_base->action == REVERSE) {
       perform_reverse_action(path_base, train, MAX_STOPPING_TIME);
-      return 0;
+      return;
     }
   }
 
   int reverse_lookahead = get_reverse_lookahead(cur_loc->stopping_distance, cur_loc->d);
   int switch_lookahead = get_switch_lookahead(cur_loc->d);
   int stop_lookahead = get_stop_lookahead(cur_loc->stopping_distance, cur_loc->d);
-  int max_lookahead = max(reverse_lookahead, max(switch_lookahead, stop_lookahead));
+  int reserve_lookahead = get_reserve_lookahead(cur_loc->stopping_distance, cur_loc->d);
+  int max_lookahead = max(reverse_lookahead, max(switch_lookahead,
+                      max(stop_lookahead, reserve_lookahead)));
 
   track_edge* next_edge = 0;
   int dist = max(cur_loc->cur_edge->dist - cur_loc->um_past_node / 1000, 0), i;
   for (i = 0; i < path_size && dist <= max_lookahead; i++) {
     sequence_action action = path_base[i].action;
-    if (action == REVERSE && dist <= reverse_lookahead) {
+    if (!p_info->is_stopping && action == REVERSE && dist <= reverse_lookahead) {
+      p_info->is_stopping = 1;
       perform_reverse_action(&path_base[i], train, MAX_STOPPING_TIME);
+
+      // Acquire reverse edge.
+      next_edge = get_next_edge_in_path(&path_base[i]);
+      tc_reserve_edge(train, next_edge, cur_loc, p_info);
+
+      // Break so that we don't start performing actions that need to be performed
+      // after the reverse is finished.
+      break;
     } else if ((action == TAKE_STRAIGHT || action == TAKE_CURVE) && dist <= switch_lookahead) {
       perform_switch_action(&path_base[i]);
     }
 
     next_edge = get_next_edge_in_path(&path_base[i]);
     if (next_edge == 0) {
-      break; // Hit reverse node.
+      break; // Exit node hit.
+    }
+
+    if (!p_info->is_stopping && dist <= reserve_lookahead) {
+      tc_reserve_edge(train, next_edge, cur_loc, p_info);
     }
 
     // Last edge isn't part of the path.
@@ -355,17 +481,16 @@ int perform_path_actions(int train, sequence* path_base, int path_size, location
 
   // Check if we've hit the end of the path (not just a reverse node)
   // and the reminaing distance is less than stop_lookahead.
-  if (i == path_size && dist <= stop_lookahead) {
-    set_speed(0, train);
+  if (!p_info->is_stopping && i == path_size && dist <= stop_lookahead) {
+    stop_train(train, p_info);
     // Turn any remaining switches.
     perform_all_path_actions(train, path_base, path_size);
-    return 1;
   }
-
-  return 0;
 }
 
-int perform_initial_path_actions(int train, sequence* path, int path_size, location* cur_loc) {
+int perform_initial_path_actions(location* cur_loc, path_following_info* info) {
+  int train = cur_loc->train;
+  sequence* path = info->path;
   sequence_action action = path->action;
   if (action == REVERSE) {
     perform_reverse_action(path, train, MAX_STOPPING_TIME);
@@ -377,10 +502,13 @@ int perform_initial_path_actions(int train, sequence* path, int path_size, locat
   return 0;
 }
 
-int handle_path(int train, sequence* path, int* path_index, int path_size, location* cur_loc) {
-  int p_index = *path_index;
-  int path_nodes_left = path_size - p_index - 1;
+void handle_path(location* cur_loc, path_following_info* p_info) {
+  int train = cur_loc->train;
+  int p_index = p_info->path_index;
+  int path_nodes_left = p_info->path_size - p_index - 1;
   int cur_loc_index = get_track_index(get_track(), cur_loc);
+  sequence* path = p_info->path;
+  int* path_index = &p_info->path_index;
 
   /*
    * The first case here looks for when we have just finished reversing
@@ -394,46 +522,53 @@ int handle_path(int train, sequence* path, int* path_index, int path_size, locat
        node2idx(get_track(), cur_loc->node) == path[p_index + 1].location)) {
     INFO(TRAIN_CONTROLLER, "Train %d Reversed at %s", train, cur_loc->node->name);
     *path_index = p_index + 1;
+    p_info->is_stopping = 0;
   } else {
     if (path[p_index].location == cur_loc_index) {
-      INFO(TRAIN_CONTROLLER, "Train %d Advanced to %s", train, cur_loc->node->name);
       *path_index = p_index + 1;
     } else if (path_nodes_left > 1 && path[p_index + 1].location == cur_loc_index) {
       INFO(TRAIN_CONTROLLER, "Train %d Skipped to %s", train, cur_loc->node->name);
       // TODO(dzelemba): Look ahead to next_sensor here instead of next node.
       *path_index = p_index + 2;
+
+      tc_free_previous_edges(train, cur_loc, p_info, 3 /* Spots Behind */);
     }
 
     // Don't permit advancing at reverse nodes. We must wait until reversing
     // is complete before advancing the path.
-    if (*path_index > 0 && path[*path_index - 1].action == REVERSE) {
-      *path_index -= 1;
+    // Second case frees previous edges we no longer need to reserve. Note that
+    // we don't free an edge if we're waiting on a reverse command.
+    if (*path_index > p_index) {
+      if (*path_index > 0 && path[*path_index - 1].action == REVERSE) {
+        *path_index -= 1;
+      } else  {
+        tc_free_previous_edges(train, cur_loc, p_info, 2 /* Spots Behind */);
+        INFO(TRAIN_CONTROLLER, "Train %d Advanced to %s", train, cur_loc->node->name);
+      }
     }
   }
 
-  return perform_path_actions(train, path + *path_index, path_size - *path_index, cur_loc);
+  perform_path_actions(cur_loc, p_info);
 }
+
 
 void train_controller() {
   RegisterAs("Train Controller");
   location_array train_locations;
   train_locations.size = 0;
 
-  // Paths. We will use kmalloc to allocate paths,
-  // so we don't have to pre-allocate a ton of memory.
-  int path_sizes[MAX_TRAINS];
-  int path_indexes[MAX_TRAINS];
-  sequence* paths[MAX_TRAINS];
+  path_following_info path_info[MAX_TRAINS];
 
   int i = 0;
   for (i = 0; i < MAX_TRAINS; i++) {
-    paths[i] = 0;
-    path_sizes[i] = 0;
+    path_info[i].path_size = 0;
+    path_info[i].path_index = 0;
+    path_info[i].blocked_edge = 0;
+    path_info[i].is_stopping = 0;
+    path_info[i].saved_speed = 0;
+    clear_track_edge_array(&path_info[i].reserved_edges);
   }
 
-  linked_array trains_on_route;
-  la_create(&trains_on_route, MAX_TRAINS);
-  linked_array_iterator la_it;
 
   int tid, train, train_idx;
   location* cur_loc;
@@ -443,6 +578,7 @@ void train_controller() {
     switch (msg.type) {
       case TRACK_TRAIN: {
         Reply(tid, (void *)0, 0);
+        train = msg.user_cmd.train;
         train_idx = tr_num_to_idx(msg.user_cmd.train);
         set_speed(FINDING_LOCATION_SPEED, msg.user_cmd.train);
 
@@ -450,51 +586,53 @@ void train_controller() {
         sensor_array s_array;
         s_array.num_sensors = get_sensor_data(s_array.sensors, MAX_NEW_SENSORS);
         set_speed(0, msg.user_cmd.train);
+        location loc;
+        init_location(&loc);
         for (i = 0; i < s_array.num_sensors; i++) {
           // TODO(dzelemba): Check for another train stopped on a sensor.
-          location loc;
-          init_location(&loc);
-
           sensor* s = &s_array.sensors[i];
           loc.train = msg.user_cmd.train;
           loc.node = get_track_node(get_track(), sensor2idx(s->group, s->socket));
           loc.stopping_distance = 0;
           loc.stopping_time = 0;
 
-          // TODO(dzelemba): Figure out why we need a direction.
           loc.d = FORWARD;
           track_train(msg.user_cmd.train, &loc);
         }
         tracked_trains[train_idx] = 1;
 
-        // Allocate memory for future routes.
-        paths[train_idx] = (sequence *)kmalloc(TRACK_MAX * sizeof(sequence));
+        // Reserve edges we're on.
+        tc_reserve_edge(train, &loc.node->edge[DIR_AHEAD], &loc, &path_info[train_idx]);
+        tc_reserve_edge(train, &loc.node->reverse->edge[DIR_AHEAD], &loc, &path_info[train_idx]);
         break;
       }
       case SET_ROUTE:
         train = msg.set_route_data.train;
         train_idx = tr_num_to_idx(train);
-        ASSERT(paths[train_idx] != 0, "train.c: set_route on non-tracked train");
         Reply(tid, (void *)0, 0);
 
         cur_loc = get_train_location(&train_locations, train);
-        la_insert(&trains_on_route, train_idx, (void*)train);
 
-        path_indexes[train_idx] = 0;
+        path_info[train_idx].path_index = 0;
 
         // If first node is a branch, then get directions from the next node
         // so we don't have to worry about backing up to clear the switch.
         if (cur_loc->node->type == NODE_BRANCH) {
-          get_path(get_track(), get_next_edge(cur_loc->node)->dest, msg.set_route_data.dest.node,
-                   paths[train_idx], &path_sizes[train_idx]);
+          get_path(get_track(), get_next_edge(cur_loc->node)->dest,
+                   msg.set_route_data.dest.node, path_info[train_idx].path,
+                   &path_info[train_idx].path_size);
         } else {
           get_path(get_track(), cur_loc->node, msg.set_route_data.dest.node,
-                   paths[train_idx], &path_sizes[train_idx]);
+                   path_info[train_idx].path, &path_info[train_idx].path_size);
         }
-        set_speed(msg.set_route_data.speed, train);
-        perform_initial_path_actions(train, paths[train_idx], path_sizes[train_idx], cur_loc);
-        handle_path(train, paths[train_idx], &path_indexes[train_idx],
-                    path_sizes[train_idx], cur_loc);
+        path_info[train_idx].is_stopping = 0;
+        if (path_info[train_idx].blocked_edge == 0) {
+          set_speed(msg.set_route_data.speed, train);
+        } else {
+          path_info[train_idx].saved_speed = msg.set_route_data.speed;
+        }
+        perform_initial_path_actions(cur_loc, &path_info[train_idx]);
+        handle_path(cur_loc, &path_info[train_idx]);
         break;
       case CHANGE_SPEED:
         Reply(tid, (void *)0, 0);
@@ -512,13 +650,28 @@ void train_controller() {
         Reply(tid, (void *)0, 0);
         memcpy((char *)&train_locations, (const char *)&msg.loc_array, sizeof(location_array));
 
-        la_it_create(&trains_on_route, &la_it);
-        while (la_it_has_next(&trains_on_route, &la_it)) {
-          train = (int)la_it_get_next(&trains_on_route, &la_it);
+        for (i = 0; i < train_locations.size; i++) {
+          cur_loc = &train_locations.locations[i];
+          train = cur_loc->train;
           train_idx = tr_num_to_idx(train);
-          if (handle_path(train, paths[train_idx], &path_indexes[train_idx],
-                          path_sizes[train_idx], get_train_location(&train_locations, train))) {
-            la_remove(&trains_on_route, train_idx);
+          if (path_info[train_idx].path_size > 0) {
+            handle_path(cur_loc, &path_info[train_idx]);
+          }
+        }
+        break;
+      }
+      case RETRY_RESERVATIONS: {
+        Reply(tid, (void *)0, 0);
+        for (i = 0; i < msg.tr_array.size; i++) {
+          train = msg.tr_array.trains[i];
+          path_following_info* p_info = &path_info[tr_num_to_idx(train)];
+          if (p_info->blocked_edge != 0) {
+            rs_reply reply = rs_reserve(train, p_info->blocked_edge);
+            if (reply == SUCCESS) {
+              reserve_edge(p_info->blocked_edge, &p_info->reserved_edges);
+              p_info->blocked_edge = 0;
+              restart_train(train, p_info);
+            }
           }
         }
         break;
@@ -553,9 +706,11 @@ void init_trains() {
     sw(switch_number_from_index(i), 'S');
   }
 
+  init_reservation_server();
   reverse_server_tid = Create(MED_PRI_K, &tr_reverse_task);
   train_controller_tid = Create(MED_PRI, &train_controller);
   Create(MED_PRI, &location_notifier);
+  Create(MED_PRI, &rs_notifier);
 }
 
 /* Train Methods */

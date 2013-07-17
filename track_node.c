@@ -78,3 +78,16 @@ void get_next_sensors(track_node* track, track_node* node, sensor* sensors, int*
 
   get_next_sensors_recurse(track, node, sensors, num_sensors);
 }
+
+
+int get_next_edges(track_node* track, track_node* node, track_edge** edges) {
+  int index = 0;
+  if (node->type == NODE_BRANCH) {
+    edges[index++] = &node->edge[DIR_CURVED];
+    edges[index++] = &node->edge[DIR_STRAIGHT];
+  } else if (node->type != NODE_EXIT) {
+    edges[index++] = &node->edge[DIR_AHEAD];
+  }
+
+  return index;
+}

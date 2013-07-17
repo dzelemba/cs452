@@ -20,6 +20,11 @@
 #define PICKUP_LENGTH 50
 #define PICKUP_TO_BACKWHEEL 120
 
+typedef struct train_array {
+  int trains[MAX_TRAINS];
+  int size;
+} train_array;
+
 /*
  * Methods for controlling the trains.
  */

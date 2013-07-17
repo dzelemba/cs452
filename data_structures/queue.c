@@ -45,6 +45,16 @@ int queue_size(queue *q) {
   return q->end - q->start;
 }
 
+void queue_get_mem(queue* q, int** mem, int* size) {
+  *mem = (q->buf + q->start);
+  *size = queue_size(q);
+}
+
+void queue_clear(queue* q) {
+  q->start = 0;
+  q->end = 0;
+}
+
 // For iterating over the queue.
 
 void init_queue_iterator(queue* q, queue_iterator* q_it) {
