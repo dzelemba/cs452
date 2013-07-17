@@ -42,6 +42,8 @@ void init_mean_velocities() {
 
   _mean_velocities[11][tr_num_to_idx(47)] = 5311245;
 
+  _mean_velocities[11][tr_num_to_idx(48)] = 5145417;
+
   _mean_velocities[8][tr_num_to_idx(49)] =  3612000; // Avi's data
   _mean_velocities[9][tr_num_to_idx(49)] =  4586000; // Avi's data
   _mean_velocities[10][tr_num_to_idx(49)] = 5111000; // Avi's data
