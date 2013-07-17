@@ -1,6 +1,7 @@
 #include "dijkstra.h"
 #include "heapplus.h"
 #include "track_data.h"
+#include "track_edge_array.h"
 #include "track_node.h"
 
 #ifdef UNIT
@@ -37,6 +38,8 @@ int get_path_debug(track_node* track, char src_sensor, int src_socket,
 }
 
 int get_path_from_idx(track_node* track, int src, int dest, sequence* out_path, int* out_size) {
+  track_edge_array* broken_edges = get_broken_edges();
+
   init_heapplus(&path_heap, dijkstra_mem, dijkstra_dict, TRACK_MAX);
 
   int i;
@@ -64,6 +67,10 @@ int get_path_from_idx(track_node* track, int src, int dest, sequence* out_path, 
 
     i = 0;
     for (i = 0; i < num_neighbours; i++) {
+      if (isset_edge(broken_edges, &node->edge[i])) {
+        continue;
+      }
+
       int next = node2idx(track, node->edge[i].dest);
       if (visited[next] == 0 && heapplus_insert(&path_heap, c + node->edge[i].dist, next)) {
         if (node->type == NODE_BRANCH) {

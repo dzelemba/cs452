@@ -109,7 +109,7 @@ unit: test.out
 
 test.out: export RTOS_COMPILER=/usr/bin/gcc
 test.out: unittests/* strings.* data_structures/* ourlib.* track_node.*
-	$(XCC) $(TESTFLAGS) unittests/all_tests.c unittests/test_helpers.c strings.c data_structures/* ourlib.c dijkstra.c track_data.c track_node.c -o test.out
+	$(XCC) $(TESTFLAGS) unittests/all_tests.c unittests/test_helpers.c strings.c data_structures/* ourlib.c dijkstra.c track_data.c track_node.c track_edge_array.c -o test.out
 
 clean:
 	rm -rf obj dbg dbg1 dbg2 dbg3 test test.out

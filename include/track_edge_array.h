@@ -3,16 +3,16 @@
 
 // In its own file to avoid circular dependancy.
 
-#include "track_data.h"
+#include "ourlib.h"
 #include "track_node.h"
 
 typedef struct track_edge_array {
-  int map[TRACK_MAX * 2];
+  bool map[TRACK_MAX * 2];
 } track_edge_array;
 
 void clear_track_edge_array(track_edge_array* t);
 
-int isset_edge(track_edge_array* t, track_edge* edge);
+bool isset_edge(track_edge_array* t, track_edge* edge);
 
 void set_edge(track_edge_array* t, track_edge* edge);
 

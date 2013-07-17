@@ -1,4 +1,10 @@
+#include "track_data.h"
 #include "track_edge_array.h"
+#include "track_node.h"
+
+#ifdef UNIT
+#include "stdio.h"
+#endif
 
 int edge2idx(track_edge* edge) {
   track_node* src = edge->src;
@@ -18,14 +24,14 @@ void clear_track_edge_array(track_edge_array* t) {
   }
 }
 
-int isset_edge(track_edge_array* t, track_edge* edge) {
+bool isset_edge(track_edge_array* t, track_edge* edge) {
   return t->map[edge2idx(edge)];
 }
 
 void set_edge(track_edge_array* t, track_edge* edge) {
-  t->map[edge2idx(edge)] = 1;
+  t->map[edge2idx(edge)] = true;
 }
 
 void unset_edge(track_edge_array* t, track_edge* edge) {
-  t->map[edge2idx(edge)] = 0;
+  t->map[edge2idx(edge)] = false;
 }

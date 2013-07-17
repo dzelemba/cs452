@@ -5,11 +5,11 @@
 #define MS_PER_TICK 10
 #define MS_PER_S MS_PER_TICK * TICK_PER_S
 
-#ifndef UNIT
 #define bool int
 #define true 1
 #define false 0
 
+#ifndef UNIT
 #define NULL (void *)0
 #endif
 

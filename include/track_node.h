@@ -17,6 +17,9 @@ typedef enum {
 #define DIR_STRAIGHT 0
 #define DIR_CURVED 1
 
+// The track initialization functions expect an array of this size.
+#define TRACK_MAX 144
+
 struct track_node;
 typedef struct track_node track_node;
 typedef struct track_edge track_edge;

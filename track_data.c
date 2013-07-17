@@ -1,5 +1,12 @@
 #include "track_data.h"
+#include "track_edge_array.h"
 #include "track_node.h"
+
+#ifdef UNIT
+#include "stdio.h"
+#endif
+
+static track_edge_array _broken_edges;
 
 static track_node _track[TRACK_MAX];
 
@@ -11,6 +18,10 @@ static void *memset(void *s, int c, unsigned int n) {
 
 track_node* get_track() {
   return _track;
+}
+
+track_edge_array* get_broken_edges() {
+  return &_broken_edges;
 }
 
 void init_tracka(track_node *track) {
@@ -1195,9 +1206,16 @@ void init_tracka(track_node *track) {
   track[143].name = "EX10";
   track[143].type = NODE_EXIT;
   track[143].reverse = &track[142];
+
+  clear_track_edge_array(&_broken_edges);
+
+  track_edge* te = &(get_track_node(track, branch2idx(156))->edge[DIR_CURVED]);
+  set_edge(&_broken_edges, te);
 }
 
 void init_trackb(track_node *track) {
+  clear_track_edge_array(&_broken_edges);
+
   memset(track, 0, TRACK_MAX*sizeof(track_node));
   track[0].name = "A1";
   track[0].type = NODE_SENSOR;
