@@ -19,7 +19,6 @@
 #define MAX_STOPPING_TIME 400
 
 unsigned int accelerate(int train, unsigned int v0, unsigned int v1, int t);
-unsigned int ticks_to_accelerate(unsigned int v0, unsigned int v1);
 unsigned int piecewise_velocity(int train, int speed, location* loc);
 unsigned int mean_velocity(int train, int speed);
 unsigned int stopping_distance(int train, unsigned int v);

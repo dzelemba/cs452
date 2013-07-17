@@ -77,7 +77,7 @@ typedef struct tracking_data {
   location* loc;
   track_node* next_sensor;
   track_node* missed_sensor;
-  int lost_train;
+  bool lost_train;
 } tracking_data;
 
 typedef struct tracking_data_array {
@@ -142,10 +142,10 @@ void update_tracking_data_for_distance(tracking_data* t_data) {
        * Unfortunately, there is no way to distinguish between the above cases,
        * so we'll assume 1) since its the more important case to get right.
        */
-      if (t_data->missed_sensor != 0) {
+      if (t_data->missed_sensor != NULL) {
         INFO(LOCATION_SERVER,"Lost Train: %d at %s", t_data->loc->train, edge->dest->name);
 
-        t_data->lost_train = 1;
+        t_data->lost_train = true;
 
         // So we don't enter this case multiple times.
         t_data->loc->um_past_node = 0;
@@ -160,44 +160,41 @@ void update_tracking_data_for_distance(tracking_data* t_data) {
   }
 }
 
-int update_tracking_data_for_sensor(tracking_data* t_data, sensor* s) {
+bool update_tracking_data_for_sensor(tracking_data* t_data, sensor* s) {
   track_edge* edge = t_data->loc->cur_edge;
   track_node* sensor_node = get_track_node(get_track(), sensor2idx(s->group, s->socket));
 
   int train_id = tr_num_to_idx(t_data->loc->train);
   bool is_stopping = acceleration_start_time[train_id] != NOT_ACCELERATING && current_speeds[train_id] == 0;
   if (is_stopping) {
-    return 0;
+    return false;
   }
 
-  if (edge != 0) {
-    if (edge->dest == sensor_node) {
-      increment_location(t_data);
-      t_data->loc->prev_sensor_error = t_data->loc->um_past_node / 1000 - edge->dist;
-    } else if (t_data->next_sensor == sensor_node) {
+  if (edge != NULL) {
+    if (t_data->next_sensor == sensor_node) {
       INFO(LOCATION_SERVER, "Updated to Next Sensor: %s", sensor_node->name);
       int expected_distance_to_sensor = get_next_sensor_distance(t_data->loc->node);
-      t_data->loc->prev_sensor_error = t_data->loc->um_past_node / 1000 - expected_distance_to_sensor;
+      t_data->loc->prev_sensor_error = t_data->loc->um_past_node / UM_PER_MM - expected_distance_to_sensor;
       increment_location_to_sensor(t_data, sensor_node);
     } else if (t_data->missed_sensor == sensor_node) {
       // Case where we updated our location prematurely
-      INFO(LOCATION_SERVER,"Premature Update for Train: %d", t_data->loc->train);
+      INFO(LOCATION_SERVER, "Premature Update for Train: %d", t_data->loc->train);
       t_data->loc->node = sensor_node;
-      t_data->loc->prev_sensor_error = t_data->loc->um_past_node / 1000;
+      t_data->loc->prev_sensor_error = t_data->loc->um_past_node / UM_PER_MM;
     } else {
-      return 0;
+      return false;
     }
 
     if (t_data->lost_train) {
       INFO(LOCATION_SERVER,"Found Train: %d at %s", t_data->loc->train, sensor_node->name);
-      t_data->lost_train = 0;
+      t_data->lost_train = false;
     }
     t_data->loc->um_past_node = 0;
     t_data->missed_sensor = 0;
-    return 1;
+    return true;
   }
 
-  return 0;
+  return false;
 }
 
 void update_tracking_data_for_reverse(tracking_data* t_data, int train) {
@@ -320,8 +317,9 @@ void location_server() {
 
           // Create tracking data.
           t_data_array.t_data[t_data_array.size].loc = &loc_array.locations[loc_array.size - 1];
-          t_data_array.t_data[t_data_array.size].missed_sensor = 0;
-          t_data_array.t_data[t_data_array.size].lost_train = 0;
+          t_data_array.t_data[t_data_array.size].missed_sensor = NULL;
+          t_data_array.t_data[t_data_array.size].lost_train = false;
+
           fill_in_tracking_data(&t_data_array.t_data[t_data_array.size]);
           t_data_array.size++;
 
@@ -414,7 +412,7 @@ void track_train(int train, location* loc) {
   location_server_message msg;
   msg.type = TRACK_TRAIN;
   loc->train = train;
-  loc->um_past_node = 0;
+  loc->um_past_node = 6 * UM_PER_CM;
   loc->prev_sensor_error = 0;
   memcpy((char *)&msg.loc, (const char*)loc, sizeof(location));
 

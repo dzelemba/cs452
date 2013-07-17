@@ -7,18 +7,12 @@
 
 static unsigned int _piecewise_velocities[NUM_SPEEDS + 1][TRACK_MAX];
 static unsigned int _mean_velocities[NUM_SPEEDS + 1][MAX_TRAINS];
+static unsigned int _stopping_distance[MAX_TRAINS];
 
 unsigned int accelerate(int train, unsigned int v0, unsigned int v1, int t) {
-  // TODO(f2fung): Scale this by |v0 - v1|
-  int at_poly = max(-6 * t * t + 3463 * t - 279770, 0); // Our polyfit model
-  v0 += (at_poly / 10);
+  int at_poly = max(-6 * t * t + 3463 * t - 259770, 0); // Our polyfit model
+  v0 += ((at_poly / 10) * ((v1 * 100) / DEFAULT_NM_PER_TICK)) / 100;
   return (v0 < v1) ? v0 : v1;
-}
-
-unsigned int ticks_to_accelerate(unsigned int v0, unsigned int v1) {
-  unsigned int dv = (v0 < v1) ? v1 - v0 : v0 - v1;
-  // TODO(f2fung): This is simple scaling and isn't backed by any experimental data
-  return dv * DEFAULT_ACCELERATING_TICKS / DEFAULT_NM_PER_TICK;
 }
 
 unsigned int piecewise_velocity(int train, int speed, location* loc) {
@@ -30,7 +24,8 @@ unsigned int mean_velocity(int train, int speed) {
 }
 
 unsigned int stopping_distance(int train, unsigned int v) {
-  return ((DEFAULT_STOPPING_DISTANCE / 5) * v) / DEFAULT_NM_PER_TICK * 5;
+  int train_id = tr_num_to_idx(train);
+  return ((_stopping_distance[train_id] / 5) * v) / _mean_velocities[11][train_id] * 5;
 }
 
 void init_mean_velocities() {
@@ -38,11 +33,13 @@ void init_mean_velocities() {
   for (i = 0; i < MAX_TRAINS; i++) {
     _mean_velocities[0][i] = 0;
     _mean_velocities[11][i] = DEFAULT_NM_PER_TICK;
+
+    _stopping_distance[i] = DEFAULT_STOPPING_DISTANCE;
   }
 
   _mean_velocities[11][tr_num_to_idx(47)] = 5311245;
 
-  _mean_velocities[11][tr_num_to_idx(48)] = 5145417;
+  _mean_velocities[11][tr_num_to_idx(48)] = 5000000; // Unscience
 
   _mean_velocities[8][tr_num_to_idx(49)] =  3612000; // Avi's data
   _mean_velocities[9][tr_num_to_idx(49)] =  4586000; // Avi's data
@@ -65,15 +62,19 @@ void init_mean_velocities() {
   _mean_velocities[12][tr_num_to_idx(50)] = 5664000; // Avi's data
   _mean_velocities[13][tr_num_to_idx(50)] = 5740000; // Avi's data
   _mean_velocities[14][tr_num_to_idx(50)] = 5867000; // Avi's data
+
+  _stopping_distance[tr_num_to_idx(48)] = 740;
+  _stopping_distance[tr_num_to_idx(50)] = 670;
 }
 
 void init_physicsa() {
   init_mean_velocities();
 
-  int i;
-  for (i = 0; i < TRACK_MAX; i++) {
-    _piecewise_velocities[0][i] = 100;
-    _piecewise_velocities[11][i] = 100;
+  int i, j;
+  for (i = 0; i <= NUM_SPEEDS; i++) {
+    for (j = 0; j < TRACK_MAX; j++) {
+      _piecewise_velocities[i][j] = 100;
+    }
   }
 
   _piecewise_velocities[11][50] = 102;
@@ -95,10 +96,11 @@ void init_physicsa() {
 void init_physicsb() {
   init_mean_velocities();
 
-  int i;
-  for (i = 0; i < TRACK_MAX; i++) {
-    _piecewise_velocities[0][i] = 100;
-    _piecewise_velocities[11][i] = 100;
+  int i, j;
+  for (i = 0; i <= NUM_SPEEDS; i++) {
+    for (j = 0; j < TRACK_MAX; j++) {
+      _piecewise_velocities[i][j] = 100;
+    }
   }
 
   _piecewise_velocities[11][20] = 97;
