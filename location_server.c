@@ -89,9 +89,13 @@ void flip_direction(direction* d) {
   *d = (*d == FORWARD ? BACKWARD : FORWARD);
 }
 
+void fill_in_tracking_data_with_edge(tracking_data* t_data) {
+  t_data->next_sensor = get_next_sensor(t_data->loc->cur_edge);
+}
+
 void fill_in_tracking_data(tracking_data* t_data) {
   t_data->loc->cur_edge = get_next_edge(t_data->loc->node);
-  t_data->next_sensor = get_next_sensor(t_data->loc->node);
+  fill_in_tracking_data_with_edge(t_data);
 }
 
 void increment_location(tracking_data* t_data) {
@@ -204,16 +208,19 @@ void update_tracking_data_for_reverse(tracking_data* t_data, int train) {
     if (t_data->loc->node->type == NODE_SENSOR && t_data->loc->um_past_node < PICKUP_LENGTH * 1000) {
       t_data->loc->node = t_data->loc->node->reverse;
       t_data->loc->um_past_node = PICKUP_LENGTH * 1000 - t_data->loc->um_past_node;
+      fill_in_tracking_data(t_data);
     } else {
       t_data->loc->node = t_data->loc->cur_edge->dest->reverse;
+      t_data->loc->cur_edge = t_data->loc->cur_edge->reverse;
       t_data->loc->um_past_node = max(t_data->loc->cur_edge->dist - t_data->loc->um_past_node, 0);
+      fill_in_tracking_data_with_edge(t_data);
     }
   } else {
     t_data->loc->node = t_data->loc->node->reverse;
     t_data->loc->um_past_node = 0;
+    fill_in_tracking_data(t_data);
   }
   flip_direction(&t_data->loc->d);
-  fill_in_tracking_data(t_data);
 }
 
 void reply_to_tasks(queue* waiting_tasks, location_array* loc_array) {
@@ -475,8 +482,8 @@ track_edge* get_next_edge(track_node* node) {
   }
 }
 
-track_node* get_next_sensor(track_node* node) {
-  track_edge* next_edge = get_next_edge(node);
+track_node* get_next_sensor(track_edge* edge) {
+  track_edge* next_edge = edge;
   while (next_edge != 0 && next_edge->dest->type != NODE_SENSOR) {
     next_edge = get_next_edge(next_edge->dest);
   }

@@ -447,14 +447,15 @@ void perform_path_actions(location* cur_loc, path_following_info* p_info) {
   int dist = max(cur_loc->cur_edge->dist - cur_loc->um_past_node / 1000, 0), i;
   for (i = 0; i < path_size && dist <= max_lookahead; i++) {
     sequence_action action = path_base[i].action;
-    if (!p_info->is_stopping && action == REVERSE && dist <= reverse_lookahead) {
-      p_info->is_stopping = 1;
-      perform_reverse_action(&path_base[i], train, MAX_STOPPING_TIME);
+    if (!p_info->is_stopping && action == REVERSE) {
+      if (dist <= reverse_lookahead) {
+        p_info->is_stopping = 1;
+        perform_reverse_action(&path_base[i], train, MAX_STOPPING_TIME);
 
-      // Acquire reverse edge.
-      next_edge = get_next_edge_in_path(&path_base[i]);
-      tc_reserve_edge(train, next_edge, cur_loc, p_info);
-
+        // Acquire reverse edge.
+        next_edge = get_next_edge_in_path(&path_base[i]);
+        tc_reserve_edge(train, next_edge, cur_loc, p_info);
+      }
       // Break so that we don't start performing actions that need to be performed
       // after the reverse is finished.
       break;
@@ -623,6 +624,7 @@ void train_controller() {
           get_path(get_track(), cur_loc->node, msg.set_route_data.dest.node,
                    NULL, path_info[train_idx].path, &path_info[train_idx].path_size);
         }
+
         path_info[train_idx].is_stopping = 0;
         if (path_info[train_idx].blocked_edge == 0) {
           set_speed(msg.set_route_data.speed, train);

@@ -71,7 +71,7 @@ void error(char* format, ...) {
 
 // I'm hoping the consts will make the compiler do smart things here.
 static const int const enabled_groups [NUM_DEBUG_GROUPS] = {
-  1, /* TRAIN_CONTROLLER */
+  0, /* TRAIN_CONTROLLER */
   0, /* LOCATION_SERVER */
   0, /* RESERVATION_SERVER */
   0, /* MISC */
