@@ -164,15 +164,13 @@ void sw(int switch_number, char switch_direction) {
     return;
   }
 
-  if (switch_directions[convert_switch_number(switch_number)] != switch_direction) {
-    char cmd[3];
-    cmd[0] = switch_direction_code;
-    cmd[1] = switch_number;
-    cmd[2] = 32; /* Turn solenoid off */
-    putbytes(COM1, cmd, 3);
+  char cmd[3];
+  cmd[0] = switch_direction_code;
+  cmd[1] = switch_number;
+  cmd[2] = 32; /* Turn solenoid off */
+  putbytes(COM1, cmd, 3);
 
-    switch_directions[convert_switch_number(switch_number)] = switch_direction;
-  }
+  switch_directions[convert_switch_number(switch_number)] = switch_direction;
 }
 
 /*
