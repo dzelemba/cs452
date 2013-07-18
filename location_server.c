@@ -109,7 +109,7 @@ void perform_merge_action(track_edge* edge) {
 
 void check_merge_action(tracking_data* t_data) {
   track_edge* next_edge = get_next_edge(t_data->loc->cur_edge->dest);
-  if (next_edge->dest->type == NODE_MERGE) {
+  if (next_edge != 0 && next_edge->dest->type == NODE_MERGE) {
     perform_merge_action(next_edge);
   }
 }
@@ -242,8 +242,8 @@ void update_tracking_data_for_reverse(tracking_data* t_data, int train) {
       fill_in_tracking_data(t_data);
     } else {
       t_data->loc->node = t_data->loc->cur_edge->dest->reverse;
+      t_data->loc->um_past_node = max(t_data->loc->cur_edge->dist * 1000 - t_data->loc->um_past_node, 0);
       t_data->loc->cur_edge = t_data->loc->cur_edge->reverse;
-      t_data->loc->um_past_node = max(t_data->loc->cur_edge->dist - t_data->loc->um_past_node, 0);
       fill_in_tracking_data_with_edge(t_data);
     }
   } else {
@@ -330,14 +330,15 @@ void location_server() {
 
         loc = get_train_location(&loc_array, train);
         loc->um_past_node += dx;
-        loc->stopping_distance = stopping_distance(train, current_velocities[train_id]);
 
         bool has_new_location = update_tracking_data_for_distance(get_tracking_data(&t_data_array, train));
-        if (acceleration_start_time[train_id] != NOT_ACCELERATING && has_new_location) {
+        if (acceleration_start_time[train_id] == NOT_ACCELERATING && has_new_location) {
           loc = get_train_location(&loc_array, train);
           // Exponential moving average
-          current_velocities[train_id] = (current_velocities[train_id] + mean_velocity(train, current_speeds[train_id]) * piecewise_velocity(train, current_speeds[train_id], loc)) / 2;
+          int edge_velocity = (mean_velocity(train, current_speeds[train_id]) * piecewise_velocity(train, current_speeds[train_id], loc)) / 100;
+          current_velocities[train_id] = (current_velocities[train_id] + edge_velocity) / 2;
         }
+        loc->stopping_distance = stopping_distance(train, current_velocities[train_id]);
       }
       reply_to_tasks(&waiting_tasks, &loc_array);
     } else {

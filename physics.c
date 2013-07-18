@@ -11,7 +11,7 @@ static unsigned int _mean_velocities[NUM_SPEEDS + 1][MAX_TRAINS];
 static unsigned int _stopping_distance[MAX_TRAINS];
 
 unsigned int accelerate(int train, unsigned int v0, unsigned int v1, int t) {
-  int at_poly = max(-6 * t * t + 3463 * t - 259770, 0); // Our polyfit model
+  int at_poly = max(-6 * t * t + 3463 * t - 269770, 0); // Our polyfit model
   v0 += ((at_poly / 10) * ((v1 * 100) / DEFAULT_NM_PER_TICK)) / 100;
   return (v0 < v1) ? v0 : v1;
 }
