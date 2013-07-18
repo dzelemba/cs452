@@ -141,10 +141,10 @@ void increment_location_to_sensor(tracking_data* t_data, track_node* sensor) {
 // assume that it is broken.
 #define BROKEN_SENSOR_ERROR 100
 
-bool update_tracking_data_for_distance(tracking_data* t_data) {
+void update_tracking_data_for_distance(tracking_data* t_data) {
   track_edge* edge = t_data->loc->cur_edge;
   if (t_data->lost_train || edge == 0 || t_data->loc->node->type == NODE_EXIT) {
-    return false;
+    return;
   }
 
   int train_id = tr_num_to_idx(t_data->loc->train);
@@ -154,7 +154,6 @@ bool update_tracking_data_for_distance(tracking_data* t_data) {
     if (is_stopping || edge->dest->type != NODE_SENSOR) {
       t_data->loc->um_past_node -= edge->dist * 1000;
       increment_location(t_data);
-      return true;
     }
   }
 
@@ -181,18 +180,15 @@ bool update_tracking_data_for_distance(tracking_data* t_data) {
 
         // So we don't enter this case multiple times.
         t_data->loc->um_past_node = 0;
-        return false;
+        return;
       }
       INFO(LOCATION_SERVER,"Broken Sensor Found: %s", edge->dest->name);
 
       t_data->loc->um_past_node -= edge->dist * 1000;
       t_data->missed_sensor = edge->dest;
       increment_location(t_data);
-      return true;
     }
   }
-
-  return false;
 }
 
 bool update_tracking_data_for_sensor(tracking_data* t_data, sensor* s) {
@@ -325,19 +321,15 @@ void location_server() {
             dx = (DEFAULT_STOPPING_DISTANCE * UM_PER_MM) / DEFAULT_STOPPING_TICKS;
           }
         } else {
-          dx = current_velocities[train_id] / NM_PER_UM;
+          current_velocities[train_id] = mean_velocity(train, current_speeds[train_id]);
+          dx = mean_velocity(train, current_speeds[train_id]) / NM_PER_UM;
         }
 
         loc = get_train_location(&loc_array, train);
+        dx = (dx * piecewise_velocity(train, current_speeds[train_id], loc)) / 100;
         loc->um_past_node += dx;
         loc->stopping_distance = stopping_distance(train, current_velocities[train_id]);
-
-        bool has_new_location = update_tracking_data_for_distance(get_tracking_data(&t_data_array, train));
-        if (acceleration_start_time[train_id] != NOT_ACCELERATING && has_new_location) {
-          loc = get_train_location(&loc_array, train);
-          // Exponential moving average
-          current_velocities[train_id] = (current_velocities[train_id] + mean_velocity(train, current_speeds[train_id]) * piecewise_velocity(train, current_speeds[train_id], loc)) / 2;
-        }
+        update_tracking_data_for_distance(get_tracking_data(&t_data_array, train));
       }
       reply_to_tasks(&waiting_tasks, &loc_array);
     } else {
