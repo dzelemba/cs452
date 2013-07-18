@@ -18,6 +18,7 @@
 #include "user_prompt.h"
 #include "reservation_server.h"
 #include "track_edge_array.h"
+#include "switch_server.h"
 
 /*
  * Note: Some of this global memory might be problematic as the reverse
@@ -30,7 +31,6 @@ static int _train_idx_to_num[MAX_TRAINS];
 
 static int train_speeds[MAX_TRAINS];
 static int tracked_trains[MAX_TRAINS];
-static int switch_directions[NUM_SWITCHES + 1];
 
 static int reverse_server_tid;
 
@@ -116,63 +116,6 @@ void reverse(int train, int delay) {
   Send(reverse_server_tid, (char *)&msg, sizeof(reverse_command), (void *)0, 0);
 }
 
-int convert_switch_number(int switch_number) {
-  if (switch_number < 19) return switch_number;
-
-  switch (switch_number) {
-  case 0x99:
-    return 19;
-  case 0x9A:
-    return 20;
-  case 0x9B:
-    return 21;
-  case 0x9C:
-    return 22;
-  }
-
-  return 0;
-}
-
-int switch_number_from_index(int index) {
-  if (index < 19) return index;
-
-  switch (index) {
-  case 19:
-    return 0x99;
-  case 20:
-    return 0x9A;
-  case 21:
-    return 0x9B;
-  case 22:
-    return 0x9C;
-  }
-
-  return 0;
-}
-
-void sw(int switch_number, char switch_direction) {
-  int switch_direction_code;
-  switch (switch_direction) {
-  case 'S':
-    switch_direction_code = 33;
-    break;
-  case 'C':
-    switch_direction_code = 34;
-    break;
-  default:
-    ERROR("train.c: tr_sw: Invalid switch direction");
-    return;
-  }
-
-  char cmd[3];
-  cmd[0] = switch_direction_code;
-  cmd[1] = switch_number;
-  cmd[2] = 32; /* Turn solenoid off */
-  putbytes(COM1, cmd, 3);
-
-  switch_directions[convert_switch_number(switch_number)] = switch_direction;
-}
-
 /*
  * Train Controller
  */
@@ -186,7 +129,6 @@ typedef enum train_controller_message_type {
   SET_ROUTE,
   CHANGE_SPEED,
   TR_REVERSE,
-  CHANGE_SWITCH,
   UPDATE_LOCATIONS,
   RETRY_RESERVATIONS,
 } train_controller_message_type;
@@ -194,8 +136,6 @@ typedef enum train_controller_message_type {
 typedef struct user_command_data {
   int train;
   int speed;
-  int switch_number;
-  char switch_direction;
 } user_command_data;
 
 typedef struct set_route_command_data {
@@ -253,9 +193,9 @@ typedef struct path_following_info {
 void perform_switch_action(sequence* path_node) {
   if (!path_node->performed_action) {
     if (path_node->action == TAKE_STRAIGHT) {
-      sw(get_track_node(get_track(), path_node->location)->num, 'S');
+      tr_sw(get_track_node(get_track(), path_node->location)->num, 'S');
     } else if (path_node->action == TAKE_CURVE) {
-      sw(get_track_node(get_track(), path_node->location)->num, 'C');
+      tr_sw(get_track_node(get_track(), path_node->location)->num, 'C');
     } else {
       ERROR("train.c: perform_switch_action: node doesn't have switch action");
     }
@@ -642,10 +582,6 @@ void train_controller() {
         Reply(tid, (void *)0, 0);
         reverse(msg.user_cmd.train, MAX_STOPPING_TIME);
         break;
-      case CHANGE_SWITCH:
-        Reply(tid, (void *)0, 0);
-        sw(msg.user_cmd.switch_number, msg.user_cmd.switch_direction);
-        break;
       case UPDATE_LOCATIONS: {
         Reply(tid, (void *)0, 0);
         memcpy((char *)&train_locations, (const char *)&msg.loc_array, sizeof(location_array));
@@ -702,10 +638,6 @@ void init_trains() {
     tracked_trains[i] = 0;
   }
 
-  for (i = 1; i < NUM_SWITCHES + 1; i++) {
-    sw(switch_number_from_index(i), 'S');
-  }
-
   init_reservation_server();
   reverse_server_tid = Create(MED_PRI_K, &tr_reverse_task);
   train_controller_tid = Create(MED_PRI, &train_controller);
@@ -744,18 +676,4 @@ void tr_set_route(int train, int speed, location* loc) {
   msg.set_route_data.speed = speed;
   memcpy((char *)&msg.set_route_data.dest, (const char *)loc, sizeof(location));
   Send(train_controller_tid, (char *)&msg, sizeof(train_controller_message), (void *)0, 0);
-}
-
-/* Switch Methods */
-
-void tr_sw(int switch_number, char switch_direction) {
-  train_controller_message msg;
-  msg.type = CHANGE_SWITCH;
-  msg.user_cmd.switch_direction = switch_direction;
-  msg.user_cmd.switch_number = switch_number;
-  Send(train_controller_tid, (char *)&msg, sizeof(train_controller_message), (void *)0, 0);
-}
-
-char get_switch_direction(int switch_number) {
-  return switch_directions[convert_switch_number(switch_number)];
 }

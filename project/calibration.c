@@ -8,6 +8,7 @@
 #include "track_data.h"
 #include "track_node.h"
 #include "train.h"
+#include "switch_server.h"
 
 // Table of sensor to sensor distances
 #define UNKNOWN_DISTANCE -1

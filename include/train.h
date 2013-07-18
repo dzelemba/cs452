@@ -5,7 +5,6 @@
 
 #define NUM_TRAINS 80
 #define MAX_TRAINS 8
-#define NUM_SWITCHES 22
 #define NUM_SPEEDS 15
 
 /*
@@ -44,11 +43,5 @@ void tr_set_speed(int speed, int train);
 void tr_reverse(int train);
 
 void tr_set_route(int train, int speed, location* loc);
-
-/* Switch Methods */
-
-void tr_sw(int switch_number, char switch_direction);
-
-char get_switch_direction(int switch_number);
 
 #endif

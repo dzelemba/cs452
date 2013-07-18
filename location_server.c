@@ -14,6 +14,7 @@
 #include "track_node.h"
 #include "track_node.h"
 #include "train.h"
+#include "switch_server.h"
 
 #define NOT_ACCELERATING -1
 

@@ -6,10 +6,12 @@
 #include "user_prompt.h"
 #include "location_server.h"
 #include "distance_server.h"
+#include "switch_server.h"
 
 // SHELL TASK
 
 void shell_task() {
+  init_switch_server();
   start_sensor_server();
   start_location_server();
   init_trains();

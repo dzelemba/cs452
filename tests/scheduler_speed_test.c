@@ -8,6 +8,7 @@
 #include "ourio.h"
 #include "train.h"
 #include "task.h"
+#include "switch_server.h"
 
 #define ITERATIONS 1000
 

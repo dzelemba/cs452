@@ -11,6 +11,7 @@
 #include "track_data.h"
 #include "train.h"
 #include "user_prompt.h"
+#include "switch_server.h"
 
 #define MAX_LINE_LENGTH 64
 #define MAX_TOKENS 4

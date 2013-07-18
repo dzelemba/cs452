@@ -6,6 +6,7 @@
 #include "train.h"
 #include "debug.h"
 #include "ourlib.h"
+#include "switch_server.h"
 
 static void user_task() {
   USER_INFO("Train Test Starting...\n");
