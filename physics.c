@@ -5,6 +5,7 @@
 #include "track_node.h"
 #include "train.h"
 
+// TODO(f2fung): _piecewise_velocities should take edges not nodes
 static unsigned int _piecewise_velocities[NUM_SPEEDS + 1][TRACK_MAX];
 static unsigned int _mean_velocities[NUM_SPEEDS + 1][MAX_TRAINS];
 static unsigned int _stopping_distance[MAX_TRAINS];
@@ -16,7 +17,7 @@ unsigned int accelerate(int train, unsigned int v0, unsigned int v1, int t) {
 }
 
 unsigned int piecewise_velocity(int train, int speed, location* loc) {
-  return _piecewise_velocities[speed][node2idx(get_track(), loc->node)];
+  return _piecewise_velocities[11][node2idx(get_track(), loc->node)];
 }
 
 unsigned int mean_velocity(int train, int speed) {
@@ -64,7 +65,7 @@ void init_mean_velocities() {
   _mean_velocities[14][tr_num_to_idx(50)] = 5867000; // Avi's data
 
   _stopping_distance[tr_num_to_idx(48)] = 740;
-  _stopping_distance[tr_num_to_idx(50)] = 670;
+  _stopping_distance[tr_num_to_idx(50)] = 650;
 }
 
 void init_physicsa() {
@@ -91,6 +92,14 @@ void init_physicsa() {
   _piecewise_velocities[11][97] = 98;
   _piecewise_velocities[11][98] = 102;
   _piecewise_velocities[11][99] = 102;
+
+  // Unscience
+  _piecewise_velocities[11][branch2idx(3)] = 90;
+  _piecewise_velocities[11][branch2idx(2)] = 90;
+  _piecewise_velocities[11][branch2idx(1)] = 90;
+
+  _piecewise_velocities[11][sensor2idx('C', 1)] = 110;
+  _piecewise_velocities[11][sensor2idx('B', 4)] = 110;
 }
 
 void init_physicsb() {
