@@ -12,6 +12,7 @@
 #include "train.h"
 #include "user_prompt.h"
 #include "switch_server.h"
+#include "demo.h"
 
 #define MAX_LINE_LENGTH 64
 #define MAX_TOKENS 4
@@ -22,6 +23,7 @@
 #define DRAW_ROW_PROMPT 36
 #define DRAW_DEBUG_OUTPUT 38
 #define DEBUG_OUTPUT_SIZE 10
+#define DRAW_DEMO_OUTPUT 50
 
 #define DRAW_ROW_LOG 26
 #define LOG_LENGTH 10
@@ -237,6 +239,21 @@ int process_line(char* line, bool* is_hold_on) {
     } else {
       return 1;
     }
+  } else if (string_equal(tokens[0], "demo")) {
+    if (ret != 3) {
+      return 1;
+    }
+
+    int train1 = atoi(tokens[1]);
+    int train2 = atoi(tokens[2]);
+    if (!check_train_number(train1) || !check_train_number(train2)) {
+      return 1;
+    }
+    start_demo(train1, train2);
+  } else if (string_equal(tokens[0], "c")) {
+    demo_continue();
+  } else if (string_equal(tokens[0], "loop")) {
+    demo_loop();
   } else {
     return 1;
   }
@@ -476,6 +493,20 @@ void format_debug_output(char* fmt, va_list va) {
   s_format(&output, fmt, va);
 
   printf(COM2, "\033[%d;1H\n%s", DRAW_DEBUG_OUTPUT + DEBUG_OUTPUT_SIZE, str_get_chars(&output));
+  return_cursor();
+}
+
+#define DEST_OFFSET 23
+
+void init_demo_output(int train1, int train2) {
+  printf(COM2, "\033[%d;1HTrain %2d Destination: ", DRAW_DEMO_OUTPUT, train1);
+  printf(COM2, "\033[%d;1HTrain %2d Destination: ", DRAW_DEMO_OUTPUT + 1, train2);
+  return_cursor();
+}
+
+void update_demo_location(int row, location* loc) {
+  printf(COM2, "\033[%d;%dH%s\033[K", DRAW_DEMO_OUTPUT + row, DEST_OFFSET, loc->node->name);
+  return_cursor();
 }
 
 void start_user_prompt() {

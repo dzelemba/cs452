@@ -23,6 +23,8 @@ int abs(int a);
 
 int atoi(char* src);
 
+int rand();
+
 #ifndef UNIT
 int memcpy(char* destination, const char* source, int len);
 #endif

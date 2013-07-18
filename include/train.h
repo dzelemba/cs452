@@ -44,4 +44,6 @@ void tr_reverse(int train);
 
 void tr_set_route(int train, int speed, location* loc);
 
+void tr_get_done_trains(train_array* tr_array);
+
 #endif

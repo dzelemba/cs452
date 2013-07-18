@@ -6,6 +6,8 @@
 #include "stdio.h"
 #endif
 
+static int track_number;
+
 static track_edge_array _broken_edges;
 
 static track_node _track[TRACK_MAX];
@@ -14,6 +16,10 @@ static void *memset(void *s, int c, unsigned int n) {
   unsigned char *p = s;
   while(n --> 0) { *p++ = (unsigned char)c; }
   return s;
+}
+
+int get_track_number() {
+  return track_number;
 }
 
 track_node* get_track() {
@@ -25,6 +31,8 @@ track_edge_array* get_broken_edges() {
 }
 
 void init_tracka(track_node *track) {
+  track_number = 0;
+
   memset(track, 0, TRACK_MAX*sizeof(track_node));
   track[0].name = "A1";
   track[0].type = NODE_SENSOR;
@@ -1214,6 +1222,7 @@ void init_tracka(track_node *track) {
 }
 
 void init_trackb(track_node *track) {
+  track_number = 1;
   clear_track_edge_array(&_broken_edges);
 
   memset(track, 0, TRACK_MAX*sizeof(track_node));

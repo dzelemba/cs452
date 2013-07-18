@@ -131,6 +131,7 @@ typedef enum train_controller_message_type {
   TR_REVERSE,
   UPDATE_LOCATIONS,
   RETRY_RESERVATIONS,
+  TC_GET_DONE_TRAINS
 } train_controller_message_type;
 
 typedef struct user_command_data {
@@ -180,6 +181,12 @@ void rs_notifier() {
  * Path Following
  */
 
+typedef enum path_following_state {
+  NOT_STARTED,
+  ON_ROUTE,
+  DONE
+} path_following_state;
+
 typedef struct path_following_info {
   sequence path[TRACK_MAX];
   int path_size;
@@ -188,6 +195,7 @@ typedef struct path_following_info {
   track_edge* blocked_edge;
   int is_stopping;
   int saved_speed;
+  path_following_state state;
 } path_following_info;
 
 void perform_switch_action(sequence* path_node) {
@@ -427,11 +435,12 @@ void perform_path_actions(location* cur_loc, path_following_info* p_info) {
   }
 }
 
-int perform_initial_path_actions(location* cur_loc, path_following_info* info) {
+int perform_initial_path_actions(location* cur_loc, path_following_info* p_info) {
   int train = cur_loc->train;
-  sequence* path = info->path;
+  sequence* path = p_info->path;
   sequence_action action = path->action;
   if (action == REVERSE) {
+    p_info->is_stopping = 1;
     perform_reverse_action(path, train, MAX_STOPPING_TIME);
   } else if (action == TAKE_STRAIGHT || action == TAKE_CURVE) {
     ERROR("train.c: First node in path is a branch, should never happen");
@@ -487,9 +496,37 @@ void handle_path(location* cur_loc, path_following_info* p_info) {
     }
   }
 
+  if (*path_index >= p_info->path_size) {
+    *path_index = p_info->path_size - 1;
+  }
+
+  if (p_info->is_stopping && *path_index == p_info->path_size - 1 &&
+      cur_loc->stopping_distance == 0) {
+    p_info->state = DONE;
+  }
+
   perform_path_actions(cur_loc, p_info);
 }
 
+void check_done_trains(int* waiting_tid, location_array* train_locations,
+                       path_following_info* path_info) {
+  train_array done_trains;
+  done_trains.size = 0;
+
+  int i;
+  for (i = 0; i < train_locations->size; i++) {
+    location *cur_loc = &train_locations->locations[i];
+    int train = cur_loc->train;
+    int train_idx = tr_num_to_idx(train);
+    if (path_info[train_idx].state == DONE || path_info[train_idx].state == NOT_STARTED) {
+      done_trains.trains[done_trains.size++] = train;
+    }
+  }
+  if (done_trains.size > 0 && *waiting_tid != 0) {
+    Reply(*waiting_tid, (char *)&done_trains, sizeof(train_array));
+    *waiting_tid = 0;
+  }
+}
 
 void train_controller() {
   RegisterAs("Train Controller");
@@ -505,9 +542,12 @@ void train_controller() {
     path_info[i].blocked_edge = 0;
     path_info[i].is_stopping = 0;
     path_info[i].saved_speed = 0;
+    path_info[i].state = NOT_STARTED;
     clear_track_edge_array(&path_info[i].reserved_edges);
   }
 
+  // Task waiting on GET_DONE_TRAINS.
+  int waiting_tid = 0;
 
   int tid, train, train_idx;
   location* cur_loc;
@@ -554,6 +594,7 @@ void train_controller() {
         cur_loc = get_train_location(&train_locations, train);
 
         path_info[train_idx].path_index = 0;
+        path_info[train_idx].state = ON_ROUTE;
 
         // If first node is a branch, then get directions from the next node
         // so we don't have to worry about backing up to clear the switch.
@@ -594,6 +635,8 @@ void train_controller() {
             handle_path(cur_loc, &path_info[train_idx]);
           }
         }
+
+        check_done_trains(&waiting_tid, &train_locations, path_info);
         break;
       }
       case RETRY_RESERVATIONS: {
@@ -612,6 +655,10 @@ void train_controller() {
         }
         break;
       }
+      case TC_GET_DONE_TRAINS:
+        waiting_tid = tid;
+        check_done_trains(&waiting_tid, &train_locations, path_info);
+        break;
     }
   }
 
@@ -676,4 +723,11 @@ void tr_set_route(int train, int speed, location* loc) {
   msg.set_route_data.speed = speed;
   memcpy((char *)&msg.set_route_data.dest, (const char *)loc, sizeof(location));
   Send(train_controller_tid, (char *)&msg, sizeof(train_controller_message), (void *)0, 0);
+}
+
+void tr_get_done_trains(train_array* tr_array) {
+  train_controller_message msg;
+  msg.type = TC_GET_DONE_TRAINS;
+  Send(train_controller_tid, (char *)&msg, sizeof(train_controller_message),
+                             (char *)tr_array, sizeof(train_array));
 }

@@ -1,6 +1,7 @@
 #include "ourlib.h"
 #include "debug.h"
 #include "timings.h"
+#include "timer.h"
 
 #define HEAP_SIZE 16 * 1024 * 1024
 
@@ -31,6 +32,10 @@ int atoi(char* src) {
     src++;
   }
   return num;
+}
+
+int rand() {
+  return edges();
 }
 
 #ifndef UNIT
