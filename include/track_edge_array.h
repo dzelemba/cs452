@@ -7,7 +7,7 @@
 #include "track_node.h"
 
 typedef struct track_edge_array {
-  bool map[TRACK_MAX * 2];
+  int map[TRACK_MAX * 2];
 } track_edge_array;
 
 void clear_track_edge_array(track_edge_array* t);
@@ -18,6 +18,8 @@ void set_edge(track_edge_array* t, track_edge* edge);
 
 void unset_edge(track_edge_array* t, track_edge* edge);
 
+void set_edge_value(track_edge_array* t, track_edge* edge, int val);
 
+int get_edge_value(track_edge_array* t, track_edge* edge);
 
 #endif

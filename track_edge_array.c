@@ -35,3 +35,11 @@ void set_edge(track_edge_array* t, track_edge* edge) {
 void unset_edge(track_edge_array* t, track_edge* edge) {
   t->map[edge2idx(edge)] = false;
 }
+
+void set_edge_value(track_edge_array* t, track_edge* edge, int val) {
+  t->map[edge2idx(edge)] = val;
+}
+
+int get_edge_value(track_edge_array* t, track_edge* edge) {
+  return t->map[edge2idx(edge)];
+}

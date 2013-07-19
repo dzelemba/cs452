@@ -13,6 +13,7 @@
 #include "user_prompt.h"
 #include "switch_server.h"
 #include "demo.h"
+#include "reservation_server.h"
 
 #define MAX_LINE_LENGTH 64
 #define MAX_TOKENS 4
@@ -24,6 +25,7 @@
 #define DRAW_DEBUG_OUTPUT 38
 #define DEBUG_OUTPUT_SIZE 10
 #define DRAW_DEMO_OUTPUT 50
+#define DRAW_RESERVATION_OUTPUT 55
 
 #define DRAW_ROW_LOG 26
 #define LOG_LENGTH 10
@@ -66,6 +68,9 @@ void draw_initial() {
   printf(COM2, "\033[%d;1HMost Recently Hit Sensors:", DRAW_ROW_RECENT_HIT);
   printf(COM2, "\033[%d;1HTrain Locations:", DRAW_ROW_TRAIN_LOC);
   printf(COM2, "\033[%d;1HDebug Output:", DRAW_DEBUG_OUTPUT);
+  printf(COM2, "\033[%d;1HReservations", DRAW_RESERVATION_OUTPUT);
+  printf(COM2, "\033[%d;1HTrain 47: ", DRAW_RESERVATION_OUTPUT + 1);
+  printf(COM2, "\033[%d;1HTrain 50: ", DRAW_RESERVATION_OUTPUT + 2);
 
   // Set scrollable area for debug output.
   printf(COM2, "\033[%d;%dr", DRAW_DEBUG_OUTPUT + 1, DRAW_DEBUG_OUTPUT + DEBUG_OUTPUT_SIZE);
@@ -475,6 +480,59 @@ void display_train_locations() {
 }
 
 /*
+ * Drawing Reservation State
+ */
+
+void display_reservation_status() {
+  track_edge_array edge_statuses;
+  clear_track_edge_array(&edge_statuses);
+
+  track_edge_array train_at_edge;
+  clear_track_edge_array(&train_at_edge);
+
+  // Store the actual edge as well for simplicity.
+  track_edge_array edge_at_edge;
+  clear_track_edge_array(&edge_at_edge);
+
+  int i, count47, count50;
+  get_all_updates_reply edge_update;
+  while (1) {
+    count47 = 0;
+    count50 = 0;
+    rs_get_all_updates(&edge_update);
+    if (edge_update.status == FREE) {
+      free_edge(edge_update.edge, &edge_statuses);
+      free_edge(edge_update.edge, &train_at_edge);
+      free_edge(edge_update.edge, &edge_at_edge);
+    } else {
+      reserve_edge(edge_update.edge, &edge_statuses);
+      set_edge_value(&train_at_edge, edge_update.edge, edge_update.train);
+      set_edge_value(&edge_at_edge, edge_update.edge, (int)edge_update.edge);
+    }
+
+    // Clear each row
+    printf(COM2, "\033[%d;10H\033[K", DRAW_RESERVATION_OUTPUT + 1);
+    printf(COM2, "\033[%d;10H\033[K", DRAW_RESERVATION_OUTPUT + 2);
+
+    // TODO(dzelemba): Create an iterator and use that instead here.
+    // TODO(dzelemba): The train 47/50 assumption is hideous.
+    track_edge* edge;
+    int row, train, col;
+    for (i = 0; i < TRACK_MAX * 2; i++) {
+      if (edge_statuses.map[i] == 1 && train_at_edge.map[i] != 0) {
+        edge = (track_edge *)edge_at_edge.map[i];
+        train = train_at_edge.map[i];
+        row = train == 47 ? 1 : 2;
+        col = 11 * (train == 47 ? count47++ : count50++) + 11;
+        printf(COM2, "\033[%d;%dH%s->%s", DRAW_RESERVATION_OUTPUT+row, col,
+               edge->src->name, edge->dest->name);
+      }
+    }
+  }
+  Exit();
+}
+
+/*
  * Public Methods
  */
 
@@ -516,4 +574,5 @@ void start_user_prompt() {
   Create(MED_PRI, &user_prompt_task);
   Create(MED_PRI, &display_sensor_data);
   Create(MED_PRI, &display_train_locations);
+  Create(MED_PRI_1, &display_reservation_status);
 }

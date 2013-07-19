@@ -10,6 +10,17 @@ typedef enum rs_reply {
   FAIL
 } rs_reply;
 
+typedef enum edge_status {
+  FREE,
+  RESERVED
+} edge_status;
+
+typedef struct get_all_updates_reply {
+  track_edge* edge;
+  edge_status status;
+  int train;
+} get_all_updates_reply;
+
 void init_reservation_server();
 
 rs_reply rs_reserve(int train, track_edge* edge);
@@ -17,6 +28,8 @@ rs_reply rs_reserve(int train, track_edge* edge);
 void rs_free(int train, track_edge* edge);
 
 void rs_get_updates(train_array* tr_array);
+
+void rs_get_all_updates(get_all_updates_reply *reply);
 
 /*
  * Helpers for reserving through track_edge_arrays

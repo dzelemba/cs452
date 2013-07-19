@@ -15,7 +15,8 @@ static int reservation_server_tid;
 typedef enum reservation_server_message_type {
   RS_RESERVE,
   RS_FREE,
-  RS_GET_UPDATES
+  RS_GET_FREE_UPDATES,
+  RS_GET_ALL_UPDATES
 } reservation_server_message_type;
 
 typedef struct reservation_server_message {
@@ -86,6 +87,19 @@ void free_edge(track_edge* edge, track_edge_array* edge_statuses) {
   }
 }
 
+void reply_to_all_updates(int* tid, track_edge* edge, edge_status status, int train) {
+  if (*tid != 0) {
+    get_all_updates_reply reply;
+    reply.edge = edge;
+    reply.status = status;
+    reply.train = train;
+    Reply(*tid, (char *)&reply, sizeof(get_all_updates_reply));
+    *tid = 0;
+  } else {
+    INFO(RESERVATION_SERVER, "No one waiting for all updates");
+  }
+}
+
 void reservation_server() {
   track_edge_array edge_statuses;
   clear_track_edge_array(&edge_statuses);
@@ -96,9 +110,12 @@ void reservation_server() {
 
   // Task id of the task waiting to hear about trains
   // that were waiting on nodes that have been freed up.
-  int waiting_tid = 0;
+  int waiting_tid_free_updates = 0;
   int* blocked_trains_mem;
   int num_blocked_trains;
+
+  // Task id of task waiting to hear about any reservation change.
+  int waiting_tid_all_updates = 0;
 
   rs_reply reply;
   int tid;
@@ -112,6 +129,7 @@ void reservation_server() {
                msg.train, msg.edge->src->name, msg.edge->dest->name);
           reserve_edge(msg.edge, &edge_statuses);
           reply = SUCCESS;
+          reply_to_all_updates(&waiting_tid_all_updates, msg.edge, RESERVED, msg.train);
         } else {
           INFO(RESERVATION_SERVER, "Train %d Blocked on %s -> %s",
                msg.train, msg.edge->src->name, msg.edge->dest->name);
@@ -129,20 +147,24 @@ void reservation_server() {
         free_edge(msg.edge, &edge_statuses);
         INFO(RESERVATION_SERVER, "Train %d Freed %s -> %s",
              msg.train, msg.edge->src->name, msg.edge->dest->name);
+        reply_to_all_updates(&waiting_tid_all_updates, msg.edge, FREE, msg.train);
 
         if (queue_size(&blocked_trains) != 0) {
-          if (waiting_tid == 0) {
+          if (waiting_tid_free_updates == 0) {
             INFO(RESERVATION_SERVER, "No one waiting for freed nodes");
           } else {
             queue_get_mem(&blocked_trains, &blocked_trains_mem, &num_blocked_trains);
-            Reply(waiting_tid, (char *)blocked_trains_mem, num_blocked_trains * sizeof(int));
+            Reply(waiting_tid_free_updates, (char *)blocked_trains_mem, num_blocked_trains * sizeof(int));
             queue_clear(&blocked_trains);
-            waiting_tid = 0;
+            waiting_tid_free_updates = 0;
           }
         }
         break;
-      case RS_GET_UPDATES:
-        waiting_tid = tid;
+      case RS_GET_FREE_UPDATES:
+        waiting_tid_free_updates = tid;
+        break;
+      case RS_GET_ALL_UPDATES:
+        waiting_tid_all_updates = tid;
         break;
     }
   }
@@ -178,10 +200,17 @@ void rs_free(int train, track_edge* edge) {
 
 void rs_get_updates(train_array* tr_array) {
   reservation_server_message msg;
-  msg.type = RS_GET_UPDATES;
+  msg.type = RS_GET_FREE_UPDATES;
 
   int size = Send(reservation_server_tid, (char *)&msg, sizeof(reservation_server_message),
                                           (char *)tr_array->trains, sizeof(train_array));
   tr_array->size = size / sizeof(int);
 }
 
+void rs_get_all_updates(get_all_updates_reply *reply) {
+  reservation_server_message msg;
+  msg.type = RS_GET_ALL_UPDATES;
+
+  Send(reservation_server_tid, (char *)&msg, sizeof(reservation_server_message),
+                               (char *)reply, sizeof(get_all_updates_reply));
+}
