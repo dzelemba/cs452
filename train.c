@@ -535,7 +535,7 @@ void train_controller() {
 
   path_following_info path_info[MAX_TRAINS];
 
-  int i = 0;
+  int i, j;
   for (i = 0; i < MAX_TRAINS; i++) {
     path_info[i].path_size = 0;
     path_info[i].path_index = 0;
@@ -550,35 +550,65 @@ void train_controller() {
   int waiting_tid = 0;
 
   int tid, train, train_idx;
+  bool occupied_location;
   location* cur_loc;
+  track_node* node;
   train_controller_message msg;
 
   while (1) {
     Receive(&tid, (char *)&msg, sizeof(train_controller_message));
     switch (msg.type) {
       case TRACK_TRAIN: {
-        Reply(tid, (void *)0, 0);
+        Reply(tid, NULL, 0);
         train = msg.user_cmd.train;
         train_idx = tr_num_to_idx(msg.user_cmd.train);
-        set_speed(FINDING_LOCATION_SPEED, msg.user_cmd.train);
 
-        // Find location of train.
-        sensor_array s_array;
-        s_array.num_sensors = get_sensor_data(s_array.sensors, MAX_NEW_SENSORS);
-        set_speed(0, msg.user_cmd.train);
         location loc;
         init_location(&loc);
-        for (i = 0; i < s_array.num_sensors; i++) {
-          // TODO(dzelemba): Check for another train stopped on a sensor.
-          sensor* s = &s_array.sensors[i];
-          loc.train = msg.user_cmd.train;
-          loc.node = get_track_node(get_track(), sensor2idx(s->group, s->socket));
-          loc.stopping_distance = 0;
-          loc.stopping_time = 0;
 
-          loc.d = FORWARD;
-          track_train(msg.user_cmd.train, &loc);
+        set_speed(FINDING_LOCATION_SPEED, train);
+
+        // Find the train amongst the sensors
+        sensor_array s_array;
+        while (true) {
+          s_array.num_sensors = get_sensor_data(s_array.sensors, MAX_NEW_SENSORS);
+          node = NULL;
+
+          for (i = 0; i < s_array.num_sensors; i++) {
+            sensor* s = &s_array.sensors[i];
+            node = get_track_node(get_track(), sensor2idx(s->group, s->socket));
+
+            // Check if sensor is coming from another sitting train
+            occupied_location = false;
+            for (j = 0; j < train_locations.size; j++) {
+              cur_loc = &train_locations.locations[j];
+              if (cur_loc->node == node) {
+                occupied_location = true;
+                break;
+              }
+            }
+
+            if (occupied_location) {
+              node = NULL;
+            } else {
+              break;
+            }
+          }
+
+          if (node != NULL) {
+            break;
+          }
         }
+
+        set_speed(0, train);
+
+        loc.train = train;
+        loc.node = node;
+        loc.stopping_distance = 0;
+        loc.stopping_time = 0;
+
+        loc.d = FORWARD;
+        track_train(train, &loc);
         tracked_trains[train_idx] = 1;
 
         // Reserve edges we're on.
