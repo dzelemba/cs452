@@ -64,7 +64,8 @@ int is_edge_free(track_edge* edge, track_edge_array* edge_statuses) {
 }
 
 void reserve_edge(track_edge* edge, track_edge_array* edge_statuses) {
-  ASSERT(is_edge_free(edge, edge_statuses), "reservation_server: reserve_edge");
+  ASSERT(is_edge_free(edge, edge_statuses), "reservation_server: reserve_edge: %s -> %s",
+         edge->src->name, edge->dest->name);
   track_edge* edge_group[MAX_EDGE_GROUP_SIZE];
   int num_edges;
   get_edge_group(edge, edge_group, &num_edges);
@@ -76,7 +77,8 @@ void reserve_edge(track_edge* edge, track_edge_array* edge_statuses) {
 }
 
 void free_edge(track_edge* edge, track_edge_array* edge_statuses) {
-  ASSERT(!is_edge_free(edge, edge_statuses), "reservation_server: reserve_edge");
+  ASSERT(!is_edge_free(edge, edge_statuses), "reservation_server: free_edge: %s -> %s",
+         edge->src->name, edge->dest->name);
   track_edge* edge_group[MAX_EDGE_GROUP_SIZE];
   int num_edges;
   get_edge_group(edge, edge_group, &num_edges);
@@ -175,7 +177,7 @@ void reservation_server() {
  */
 
 void init_reservation_server() {
-  reservation_server_tid = Create(MED_PRI, &reservation_server);
+  reservation_server_tid = Create(MED_PRI_1, &reservation_server);
 }
 
 rs_reply rs_reserve(int train, track_edge* edge) {

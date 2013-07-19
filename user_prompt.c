@@ -14,6 +14,7 @@
 #include "switch_server.h"
 #include "demo.h"
 #include "reservation_server.h"
+#include "debug.h"
 
 #define MAX_LINE_LENGTH 64
 #define MAX_TOKENS 4
@@ -483,7 +484,22 @@ void display_train_locations() {
  * Drawing Reservation State
  */
 
+static int display_reservation_status_tid;
+
+void display_reservation_status_notifier() {
+  get_all_updates_reply edge_update;
+  while (1) {
+    rs_get_all_updates(&edge_update);
+    Send(display_reservation_status_tid, (char *)&edge_update, sizeof(get_all_updates_reply),
+         (char *)0, 0);
+  }
+
+  Exit();
+}
+
 void display_reservation_status() {
+  Create(MED_PRI_1, &display_reservation_status_notifier);
+
   track_edge_array edge_statuses;
   clear_track_edge_array(&edge_statuses);
 
@@ -494,12 +510,13 @@ void display_reservation_status() {
   track_edge_array edge_at_edge;
   clear_track_edge_array(&edge_at_edge);
 
-  int i, count47, count50;
+  int i, count47, count50, tid;
   get_all_updates_reply edge_update;
   while (1) {
     count47 = 0;
     count50 = 0;
-    rs_get_all_updates(&edge_update);
+    Receive(&tid, (char *)&edge_update, sizeof(get_all_updates_reply));
+    Reply(tid, (char *)0, 0);
     if (edge_update.status == FREE) {
       free_edge(edge_update.edge, &edge_statuses);
       free_edge(edge_update.edge, &train_at_edge);
@@ -574,5 +591,5 @@ void start_user_prompt() {
   Create(MED_PRI, &user_prompt_task);
   Create(MED_PRI, &display_sensor_data);
   Create(MED_PRI, &display_train_locations);
-  Create(MED_PRI_1, &display_reservation_status);
+  display_reservation_status_tid = Create(MED_PRI_1, &display_reservation_status);
 }
