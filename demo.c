@@ -25,26 +25,66 @@ static const int const ignored_nodes[NUM_IGNORED_NODES] =
   };
 
 static int train1, train2;
+static track_node* destinations[NUM_TRAINS];
 
-void get_random_destination(location* loc) {
-  init_location(loc);
+bool check_nodes_equal(track_node* d1, track_node* d2) {
+  return d1 == d2 || d1->reverse == d2;
+}
 
-  int rand_dest, i;
-  while(1) {
-    int done = 1;
-    rand_dest = rand() % TRACK_MAX;
-    for (i = 0; i < NUM_IGNORED_NODES; i++) {
-      if (rand_dest == ignored_nodes[i]) {
-        done = 0;
-        break;
+bool check_conflicting_nodes(track_node* d1, track_node* d2) {
+  return check_nodes_equal(d1, d2) ||
+         check_nodes_equal(d1->edge[DIR_AHEAD].dest, d2) ||
+         check_nodes_equal(d2->edge[DIR_AHEAD].dest,d1) ||
+         (d1->type == NODE_SENSOR && check_nodes_equal(d1->edge[DIR_CURVED].dest, d2)) ||
+         (d2->type == NODE_SENSOR && check_nodes_equal(d2->edge[DIR_CURVED].dest, d1));
+}
+
+bool check_conflicting_destinations(int train, track_node* dest, track_node** cur_destinations) {
+  (void)train; // Silence compiler warnings.
+
+  int i;
+  for (i = 0; i < NUM_TRAINS; i++) {
+    // TODO(dzelemba): Ignore own location. This is handy for now
+    // as it avoids really short hops that we're bad at.
+    track_node* other_dest = cur_destinations[i];
+    if (other_dest != 0) {
+      if (check_conflicting_nodes(dest, other_dest)) {
+        return true;
       }
-    }
-    if (done) {
-      break;
     }
   }
 
-  loc->node = get_track_node(get_track(), rand_dest);
+  return false;
+}
+
+bool check_ignored_nodes(int dest) {
+  int i;
+  for (i = 0; i < NUM_IGNORED_NODES; i++) {
+    if (dest == ignored_nodes[i]) {
+      return true;
+    }
+  }
+  return false;
+}
+
+void get_random_destination(int train, location* loc, track_node** cur_destinations) {
+  init_location(loc);
+
+  track_node* dest = NULL;
+  int rand_dest;
+  while(1) {
+    rand_dest = rand() % TRACK_MAX;
+
+    dest = get_track_node(get_track(), rand_dest);
+    if (check_ignored_nodes(rand_dest) ||
+        check_conflicting_destinations(train, dest, cur_destinations)) {
+      continue;
+    }
+    break;
+  }
+
+  loc->node = dest;
+  cur_destinations[train] = dest;
 }
 
 void demo() {
@@ -55,7 +95,7 @@ void demo() {
     tr_get_done_trains(&done_trains);
     for (i = 0; i < done_trains.size; i++) {
       train = done_trains.trains[i];
-      get_random_destination(&next_dest);
+      get_random_destination(train, &next_dest, destinations);
       tr_set_route(train, DEFAULT_TRAIN_SPEED, &next_dest);
       update_demo_location(train == train1 ? 0 : 1, &next_dest);
     }
@@ -68,13 +108,14 @@ void demo() {
  * Public Methods
  */
 
+
 void demo_continue() {
   location next_dest;
-  get_random_destination(&next_dest);
+  get_random_destination(train1, &next_dest, destinations);
   tr_set_route(train1, DEFAULT_TRAIN_SPEED, &next_dest);
   update_demo_location(0, &next_dest);
 
-  get_random_destination(&next_dest);
+  get_random_destination(train2, &next_dest, destinations);
   tr_set_route(train2, DEFAULT_TRAIN_SPEED, &next_dest);
   update_demo_location(1, &next_dest);
 }
@@ -87,6 +128,11 @@ void start_demo(int t1, int t2) {
   train1 = t1;
   train2 = t2;
   init_demo_output(train1, train2);
+
+  int i;
+  for (i = 0; i < NUM_TRAINS; i++) {
+    destinations[i] = NULL;
+  }
 
   // To avoid going into the bays.
   tr_sw(18, 'C');
