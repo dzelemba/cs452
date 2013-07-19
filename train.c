@@ -203,6 +203,7 @@ typedef struct path_following_info {
   int is_stopping;
   int saved_speed;
   path_following_state state;
+  track_node* dest;
 } path_following_info;
 
 void perform_switch_action(sequence* path_node) {
@@ -405,6 +406,7 @@ void perform_path_actions(location* cur_loc, path_following_info* p_info) {
     if (!p_info->is_stopping && action == REVERSE) {
       if (dist <= reverse_lookahead) {
         p_info->is_stopping = 1;
+      INFO(TRAIN_CONTROLLER, "Train %d sent reverse command at %d past %s", train, cur_loc->um_past_node / 1000, cur_loc->node->name);
         perform_reverse_action(&path_base[i], train, MAX_STOPPING_TIME);
 
         // Acquire reverse edge.
@@ -496,9 +498,11 @@ void handle_path(location* cur_loc, path_following_info* p_info) {
     if (*path_index > p_index) {
       if (*path_index > 0 && path[*path_index - 1].action == REVERSE) {
         *path_index -= 1;
-      } else  {
+      } else if (p_info->state != DONE) {
         tc_free_previous_edges(train, cur_loc, p_info, 2 /* Spots Behind */);
-        INFO(TRAIN_CONTROLLER, "Train %d Advanced to %s", train, cur_loc->node->name);
+        if (train == 50) {
+          INFO(TRAIN_CONTROLLER, "Train %d Advanced to %s", train, cur_loc->node->name);
+        }
       }
     }
   }
@@ -535,6 +539,70 @@ void check_done_trains(int* waiting_tid, location_array* train_locations,
   }
 }
 
+void start_route(location* loc, path_following_info* p_info, track_edge_array* blocked_edges) {
+  p_info->path_index = 0;
+  p_info->state = ON_ROUTE;
+
+  // If first node is a branch, then get directions from the next node
+  // so we don't have to worry about backing up to clear the switch.
+  if (loc->node->type == NODE_BRANCH) {
+    get_path(get_track(), get_next_edge(loc->node)->dest, p_info->dest,
+             blocked_edges, p_info->path, &p_info->path_size);
+  } else {
+    get_path(get_track(), loc->node, p_info->dest,
+             blocked_edges, p_info->path, &p_info->path_size);
+  }
+
+  p_info->is_stopping = 0;
+  if (p_info->blocked_edge == 0) {
+    set_speed(p_info->saved_speed, loc->train);
+  }
+  perform_initial_path_actions(loc, p_info);
+  handle_path(loc, p_info);
+}
+
+void reroute_train(location* loc, path_following_info* p_info) {
+  INFO(TRAIN_CONTROLLER, "Train %d being rerouted", loc->train);
+
+  track_edge_array blocked_edges;
+  clear_track_edge_array(&blocked_edges);
+
+  set_edge(&blocked_edges, p_info->blocked_edge);
+  p_info->blocked_edge = 0;
+
+  start_route(loc, p_info, &blocked_edges);
+}
+
+void check_deadlock(location_array* loc_array, path_following_info* path_info) {
+  // Only checks for two trains for now.
+  if (loc_array->size != 2) {
+    return;
+  }
+
+  location* train1 = &loc_array->locations[0];
+  location* train2 = &loc_array->locations[1];
+  path_following_info* t1_p_info = &path_info[tr_num_to_idx(train1->train)];
+  path_following_info* t2_p_info = &path_info[tr_num_to_idx(train2->train)];
+
+  // First make sure that both are stopped.
+  if (train1->stopping_distance != 0 || train2->stopping_distance != 0) {
+    return;
+  }
+
+  /*
+   * Reroute if either
+   *  1) Both are blocked
+   *  2) One is blocked and the other is stopped
+   */
+  if (t1_p_info->blocked_edge != 0 &&
+      (t2_p_info->blocked_edge != 0 || t2_p_info->state != ON_ROUTE)) {
+    reroute_train(train1, t1_p_info);
+  } else if (t2_p_info->blocked_edge != 0 &&
+             (t1_p_info->blocked_edge != 0 || t1_p_info->state != ON_ROUTE)) {
+    reroute_train(train2, t2_p_info);
+  }
+}
+
 void train_controller() {
   RegisterAs("Train Controller");
   location_array train_locations;
@@ -550,6 +618,7 @@ void train_controller() {
     path_info[i].is_stopping = 0;
     path_info[i].saved_speed = 0;
     path_info[i].state = NOT_STARTED;
+    path_info[i].dest = 0;
     clear_track_edge_array(&path_info[i].reserved_edges);
   }
 
@@ -629,28 +698,10 @@ void train_controller() {
         Reply(tid, (void *)0, 0);
 
         cur_loc = get_train_location(&train_locations, train);
+        path_info[train_idx].dest = msg.set_route_data.dest.node;
+        path_info[train_idx].saved_speed = msg.set_route_data.speed;
 
-        path_info[train_idx].path_index = 0;
-        path_info[train_idx].state = ON_ROUTE;
-
-        // If first node is a branch, then get directions from the next node
-        // so we don't have to worry about backing up to clear the switch.
-        if (cur_loc->node->type == NODE_BRANCH) {
-          get_path(get_track(), get_next_edge(cur_loc->node)->dest, msg.set_route_data.dest.node,
-                   NULL, path_info[train_idx].path, &path_info[train_idx].path_size);
-        } else {
-          get_path(get_track(), cur_loc->node, msg.set_route_data.dest.node,
-                   NULL, path_info[train_idx].path, &path_info[train_idx].path_size);
-        }
-
-        path_info[train_idx].is_stopping = 0;
-        if (path_info[train_idx].blocked_edge == 0) {
-          set_speed(msg.set_route_data.speed, train);
-        } else {
-          path_info[train_idx].saved_speed = msg.set_route_data.speed;
-        }
-        perform_initial_path_actions(cur_loc, &path_info[train_idx]);
-        handle_path(cur_loc, &path_info[train_idx]);
+        start_route(cur_loc, &path_info[train_idx], NULL);
         break;
       case CHANGE_SPEED:
         Reply(tid, (void *)0, 0);
@@ -672,6 +723,8 @@ void train_controller() {
             handle_path(cur_loc, &path_info[train_idx]);
           }
         }
+
+        check_deadlock(&train_locations, path_info);
 
         check_done_trains(&waiting_tid, &train_locations, path_info);
         break;
