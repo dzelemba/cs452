@@ -139,7 +139,7 @@ void increment_location_to_sensor(tracking_data* t_data, track_node* sensor) {
 
 // If our model says we're this many mm past a sensor that we haven't hit,
 // assume that it is broken.
-#define BROKEN_SENSOR_ERROR 100
+#define BROKEN_SENSOR_ERROR 200
 
 bool update_tracking_data_for_distance(tracking_data* t_data) {
   track_edge* edge = t_data->loc->cur_edge;
@@ -147,11 +147,8 @@ bool update_tracking_data_for_distance(tracking_data* t_data) {
     return false;
   }
 
-  int train_id = tr_num_to_idx(t_data->loc->train);
-  bool is_stopping = acceleration_start_time[train_id] != NOT_ACCELERATING && current_speeds[train_id] == 0;
-
   if (t_data->loc->um_past_node / 1000 > edge->dist) {
-    if (is_stopping || edge->dest->type != NODE_SENSOR) {
+    if (edge->dest->type != NODE_SENSOR) {
       t_data->loc->um_past_node -= edge->dist * 1000;
       increment_location(t_data);
       return true;
@@ -159,7 +156,7 @@ bool update_tracking_data_for_distance(tracking_data* t_data) {
   }
 
   // Check for broken sensor
-  if (!is_stopping && edge->dest->type == NODE_SENSOR) {
+  if (edge->dest->type == NODE_SENSOR) {
     int mm_past_sensor = t_data->loc->um_past_node / 1000 - edge->dist;
     if (mm_past_sensor > BROKEN_SENSOR_ERROR) {
       /*
@@ -200,16 +197,16 @@ bool update_tracking_data_for_sensor(tracking_data* t_data, sensor* s) {
   track_node* sensor_node = get_track_node(get_track(), sensor2idx(s->group, s->socket));
 
   int train_id = tr_num_to_idx(t_data->loc->train);
-  bool is_stopping = acceleration_start_time[train_id] != NOT_ACCELERATING && current_speeds[train_id] == 0;
-  if (is_stopping) {
-    return false;
-  }
+  bool is_stopping = acceleration_start_time[train_id] != NOT_ACCELERATING
+                     && current_speeds[train_id] == 0;
 
   if (edge != NULL) {
+    int prev_edge_distance = t_data->loc->cur_edge->dist * UM_PER_MM;
     if (t_data->next_sensor == sensor_node) {
       INFO(LOCATION_SERVER, "Updated to Next Sensor: %s", sensor_node->name);
       int expected_distance_to_sensor = get_next_sensor_distance(t_data->loc->node);
-      t_data->loc->prev_sensor_error = t_data->loc->um_past_node / UM_PER_MM - expected_distance_to_sensor;
+      t_data->loc->prev_sensor_error =
+        t_data->loc->um_past_node / UM_PER_MM - expected_distance_to_sensor;
       increment_location_to_sensor(t_data, sensor_node);
     } else if (t_data->missed_sensor == sensor_node) {
       // Case where we updated our location prematurely
@@ -224,7 +221,15 @@ bool update_tracking_data_for_sensor(tracking_data* t_data, sensor* s) {
       INFO(LOCATION_SERVER,"Found Train: %d at %s", t_data->loc->train, sensor_node->name);
       t_data->lost_train = false;
     }
-    t_data->loc->um_past_node = 0;
+
+    // If we're stopping then don't reset distance so we get the final
+    // stopping distance correct.
+    if (is_stopping) {
+      t_data->loc->um_past_node -= prev_edge_distance;
+    } else {
+      t_data->loc->um_past_node = 0;
+
+    }
     t_data->missed_sensor = 0;
     return true;
   }
