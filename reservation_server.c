@@ -25,7 +25,7 @@ typedef struct reservation_server_message {
   track_edge* edge;
 } reservation_server_message;
 
-#define MAX_EDGE_GROUP_SIZE 4
+#define MAX_EDGE_GROUP_SIZE 6
 
 void get_edge_group(track_edge* edge, track_edge** edge_group, int* size) {
   int i = 0;
@@ -35,11 +35,15 @@ void get_edge_group(track_edge* edge, track_edge** edge_group, int* size) {
   track_edge* edges = 0;
   if (edge->src->type == NODE_BRANCH) {
     edges = edge->src->edge;
-  } else if (edge->dest->type == NODE_MERGE) {
+
+    track_edge* other_edge = (&edges[0] == edge ? &edges[1] : &edges[0]);
+    edge_group[i++] = other_edge;
+    edge_group[i++] = other_edge->reverse;
+  }
+  if (edge->dest->type == NODE_MERGE) {
     edges = edge->dest->reverse->edge;
     edge = edge->reverse;
-  }
-  if (edges != 0) {
+
     track_edge* other_edge = (&edges[0] == edge ? &edges[1] : &edges[0]);
     edge_group[i++] = other_edge;
     edge_group[i++] = other_edge->reverse;
@@ -64,8 +68,8 @@ int is_edge_free(track_edge* edge, track_edge_array* edge_statuses) {
 }
 
 void reserve_edge(track_edge* edge, track_edge_array* edge_statuses) {
-  ASSERT(is_edge_free(edge, edge_statuses), "reservation_server: reserve_edge: %s -> %s",
-         edge->src->name, edge->dest->name);
+  ASSERT(is_edge_free(edge, edge_statuses), "reservation_server: reserve_edge: %s -> %s in %s",
+         edge->src->name, edge->dest->name, edge_statuses->name);
   track_edge* edge_group[MAX_EDGE_GROUP_SIZE];
   int num_edges;
   get_edge_group(edge, edge_group, &num_edges);
@@ -77,8 +81,8 @@ void reserve_edge(track_edge* edge, track_edge_array* edge_statuses) {
 }
 
 void free_edge(track_edge* edge, track_edge_array* edge_statuses) {
-  ASSERT(!is_edge_free(edge, edge_statuses), "reservation_server: free_edge: %s -> %s",
-         edge->src->name, edge->dest->name);
+  ASSERT(!is_edge_free(edge, edge_statuses), "reservation_server: free_edge: %s -> %s in %s",
+         edge->src->name, edge->dest->name, edge_statuses->name);
   track_edge* edge_group[MAX_EDGE_GROUP_SIZE];
   int num_edges;
   get_edge_group(edge, edge_group, &num_edges);
@@ -104,6 +108,7 @@ void reply_to_all_updates(int* tid, track_edge* edge, edge_status status, int tr
 
 void reservation_server() {
   track_edge_array edge_statuses;
+  tea_set_name(&edge_statuses, "Reservation Server Array");
   clear_track_edge_array(&edge_statuses);
 
   // Trains that have failed to reserve a node.

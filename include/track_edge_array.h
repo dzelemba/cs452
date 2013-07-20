@@ -8,7 +8,10 @@
 
 typedef struct track_edge_array {
   int map[TRACK_MAX * 2];
+  char* name;
 } track_edge_array;
+
+void tea_set_name(track_edge_array* t, char* name);
 
 void clear_track_edge_array(track_edge_array* t);
 

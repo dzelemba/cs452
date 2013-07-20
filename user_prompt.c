@@ -501,13 +501,16 @@ void display_reservation_status() {
   Create(MED_PRI_1, &display_reservation_status_notifier);
 
   track_edge_array edge_statuses;
+  tea_set_name(&edge_statuses, "output: edge_statuses");
   clear_track_edge_array(&edge_statuses);
 
   track_edge_array train_at_edge;
+  tea_set_name(&train_at_edge, "output: train_at_edge");
   clear_track_edge_array(&train_at_edge);
 
   // Store the actual edge as well for simplicity.
   track_edge_array edge_at_edge;
+  tea_set_name(&edge_at_edge, "output: edge_at_edge");
   clear_track_edge_array(&edge_at_edge);
 
   int i, count47, count50, tid;

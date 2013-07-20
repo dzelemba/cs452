@@ -629,6 +629,7 @@ void train_controller() {
     path_info[i].state = NOT_STARTED;
     path_info[i].dest = 0;
     clear_track_edge_array(&path_info[i].reserved_edges);
+    tea_set_name(&path_info[i].reserved_edges, "Some train array");
   }
 
   // Task waiting on GET_DONE_TRAINS.
