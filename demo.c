@@ -137,6 +137,7 @@ void start_demo(int t1, int t2) {
   // To avoid going into the bays.
   tr_sw(18, 'C');
   tr_sw(5, 'C');
+  tr_sw(11, 'C');
 
   tr_track(train1);
   Delay(500);

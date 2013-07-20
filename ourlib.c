@@ -34,11 +34,12 @@ int atoi(char* src) {
   return num;
 }
 
+#ifndef UNIT
+
 int rand() {
   return edges();
 }
 
-#ifndef UNIT
 
 int memcpy_aligned(int* dest, const int* src, int len) {
   int i;

@@ -255,6 +255,10 @@ track_edge* get_next_edge_in_path(sequence* path_node) {
 // Maximum error in our distance measurements in mm.
 #define MAX_DISTANCE_ERROR 150
 
+// Use a different value for the reverse error as
+// overshooting can be just as bad as undershooting.
+#define REVERSE_BUFFER 50
+
 int get_distance_to_forwardwheel(direction d) {
   switch (d) {
     case FORWARD:
@@ -280,7 +284,7 @@ int get_distance_to_backwardwheel(direction d) {
 // TODO(dzelemba): Fix this to incorporate SWITCH_OFFSET.
 // once we have reverses at branch nodes.
 int get_reverse_lookahead(int stopping_distance, direction d) {
-  return max(stopping_distance - get_distance_to_backwardwheel(d) - MAX_DISTANCE_ERROR, 0);
+  return max(stopping_distance - get_distance_to_backwardwheel(d) - REVERSE_BUFFER, 0);
 }
 
 int get_switch_lookahead(direction d) {
@@ -320,7 +324,7 @@ void stop_train(int train, path_following_info* p_info) {
 void tc_reserve_edge(int train, track_edge* edge, location* cur_loc,
                   path_following_info* p_info) {
   track_edge_array* reserved_edges = &p_info->reserved_edges;
-  if (is_edge_free(edge, reserved_edges)) {
+  if (p_info->blocked_edge != edge && is_edge_free(edge, reserved_edges)) {
     rs_reply reply = rs_reserve(train, edge);
     if (reply == FAIL) {
       stop_train(train, p_info);
@@ -452,7 +456,7 @@ int perform_initial_path_actions(location* cur_loc, path_following_info* p_info)
     p_info->is_stopping = 1;
     perform_reverse_action(path, train, MAX_STOPPING_TIME);
   } else if (action == TAKE_STRAIGHT || action == TAKE_CURVE) {
-    ERROR("train.c: First node in path is a branch, should never happen");
+    perform_switch_action(path);
   }
 
   // TODO(dzelemba): Check for trivial paths.
@@ -543,10 +547,15 @@ void start_route(location* loc, path_following_info* p_info, track_edge_array* b
   p_info->path_index = 0;
   p_info->state = ON_ROUTE;
 
-  // If first node is a branch, then get directions from the next node
-  // so we don't have to worry about backing up to clear the switch.
+  // If first node is a branch, or if a branch is close enough then get
+  // directions from the next node so we don't have to worry about backing
+  // up to clear the switch.
   if (loc->node->type == NODE_BRANCH) {
     get_path(get_track(), get_next_edge(loc->node)->dest, p_info->dest,
+             blocked_edges, p_info->path, &p_info->path_size);
+  } else if (loc->cur_edge != 0 && loc->cur_edge->dest->type == NODE_BRANCH &&
+             loc->cur_edge->dist - loc->um_past_node / UM_PER_MM <= MAX_DISTANCE_ERROR) {
+    get_path(get_track(), get_next_edge(loc->cur_edge->dest)->dest, p_info->dest,
              blocked_edges, p_info->path, &p_info->path_size);
   } else {
     get_path(get_track(), loc->node, p_info->dest,
