@@ -52,7 +52,7 @@ void get_edge_group(track_edge* edge, track_edge** edge_group, int* size) {
   *size = i;
 }
 
-int is_edge_free(track_edge* edge, track_edge_array* edge_statuses) {
+bool is_edge_free(track_edge* edge, track_edge_array* edge_statuses) {
   track_edge* edge_group[MAX_EDGE_GROUP_SIZE];
   int num_edges;
   get_edge_group(edge, edge_group, &num_edges);
@@ -60,11 +60,11 @@ int is_edge_free(track_edge* edge, track_edge_array* edge_statuses) {
   int i = 0;
   for (i = 0; i < num_edges; i++) {
     if (isset_edge(edge_statuses, edge_group[i])) {
-      return 0;
+      return false;
     }
   }
 
-  return 1;
+  return true;
 }
 
 void reserve_edge(track_edge* edge, track_edge_array* edge_statuses) {

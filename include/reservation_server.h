@@ -1,9 +1,10 @@
 #ifndef __RESERVATION_SERVER_H__
 #define __RESERVATION_SERVER_H__
 
-#include "train.h"
-#include "track_node.h"
+#include "ourlib.h"
 #include "track_edge_array.h"
+#include "track_node.h"
+#include "train.h"
 
 typedef enum rs_reply {
   SUCCESS,
@@ -37,7 +38,7 @@ void rs_get_all_updates(get_all_updates_reply *reply);
 
 void get_edge_group(track_edge* edge, track_edge** edge_group, int* size);
 
-int is_edge_free(track_edge* edge, track_edge_array* edge_statuses);
+bool is_edge_free(track_edge* edge, track_edge_array* edge_statuses);
 
 void reserve_edge(track_edge* edge, track_edge_array* edge_statuses);
 
