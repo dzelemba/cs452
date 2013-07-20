@@ -1,3 +1,4 @@
+#include "debug.h"
 #include "track_data.h"
 #include "track_edge_array.h"
 #include "track_node.h"
@@ -18,7 +19,13 @@ int edge2idx(track_edge* edge) {
 }
 
 track_edge* idx2edge(int idx) {
+  track_node* track = get_track();
+  int source_id = idx / 2;
+  int direction = idx % 2;
 
+  track_node* src = get_track_node(source_id);
+  ASSERT(get_num_neighbours(src->type) > direction, "track_edge_array.c: idx2edge: Invalid index %d", idx);
+  return &src->edge[direction];
 }
 
 void tea_set_name(track_edge_array* t, char* name) {
