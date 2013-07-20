@@ -32,7 +32,7 @@ static int _train_idx_to_num[MAX_TRAINS];
 static int train_speeds[MAX_TRAINS];
 static int tracked_trains[MAX_TRAINS];
 
-static int reverse_server_tid;
+static int reversing_tasks[MAX_TRAINS];
 
 void assign_train_to_idx(int train, int idx) {
   _train_num_to_idx[train] = idx;
@@ -83,37 +83,44 @@ void set_speed(int speed, int train) {
   }
 }
 
-typedef struct reverse_command {
-  int train;
+typedef struct reverse_msg {
   int speed;
   int delay;
-} reverse_command;
+} reverse_msg;
 
 void tr_reverse_task() {
-  int tid;
-  reverse_command msg;
-  while (1) {
-    Receive(&tid, (char *)&msg, sizeof(reverse_command));
-    Reply(tid, (void *)0, 0);
+  int train, tid;
+  Receive(&tid, (char *)&train, sizeof(int));
+  Reply(tid, (char *)0, 0);
 
-    set_speed(0, msg.train);
+  reverse_msg msg;
+  while (1) {
+    Receive(&tid, (char *)&msg, sizeof(reverse_msg));
+    Reply(tid, (char *)0, 0);
 
     Delay(msg.delay);
-    send_reverse_command(msg.train);
-    set_speed(msg.speed, msg.train);
+    send_reverse_command(train);
+    set_speed(msg.speed, train);
   }
+
   Exit();
 }
 
 void reverse(int train, int delay) {
   ASSERT(train > 0 && train <= NUM_TRAINS, "train.c: tr_reverse: Invalid train number");
 
-  reverse_command msg;
-  msg.train = train;
+  reverse_msg msg;
   msg.speed = train_speeds[tr_num_to_idx(train)];
   msg.delay = delay;
 
-  Send(reverse_server_tid, (char *)&msg, sizeof(reverse_command), (void *)0, 0);
+  set_speed(0, train);
+
+  int train_idx = tr_num_to_idx(train);
+  if (reversing_tasks[train_idx] == 0) {
+    reversing_tasks[train_idx] = Create(MED_PRI, &tr_reverse_task);
+    Send(reversing_tasks[train_idx], (char *)&train, sizeof(int), (char *)0, 0);
+  }
+  Send(reversing_tasks[train_idx], (char *)&msg, sizeof(reverse_msg), (void *)0, 0);
 }
 
 /*
@@ -713,10 +720,10 @@ void init_trains() {
   for (i = 0; i < MAX_TRAINS; i++) {
     train_speeds[i] = 0;
     tracked_trains[i] = 0;
+    reversing_tasks[i] = 0;
   }
 
   init_reservation_server();
-  reverse_server_tid = Create(MED_PRI_K, &tr_reverse_task);
   train_controller_tid = Create(MED_PRI, &train_controller);
   Create(MED_PRI, &location_notifier);
   Create(MED_PRI, &rs_notifier);

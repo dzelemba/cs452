@@ -98,7 +98,7 @@ void reply_to_all_updates(int* tid, track_edge* edge, edge_status status, int tr
     Reply(*tid, (char *)&reply, sizeof(get_all_updates_reply));
     *tid = 0;
   } else {
-    INFO(RESERVATION_SERVER, "No one waiting for all updates");
+    ERROR("No one waiting for all updates");
   }
 }
 
