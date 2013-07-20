@@ -21,7 +21,7 @@ void dfs(track_node* curr, long long int* v, int last, int depth) {
 
 int main() {
   track_node* track = get_track();
-  init_tracka(track);
+  init_tracka();
 
   long long int v[TRACK_MAX];
   int begin[TRACK_MAX];

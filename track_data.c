@@ -30,7 +30,8 @@ track_edge_array* get_broken_edges() {
   return &_broken_edges;
 }
 
-void init_tracka(track_node *track) {
+void init_tracka() {
+  track_node* track = get_track();
   track_number = 0;
 
   memset(track, 0, TRACK_MAX*sizeof(track_node));
@@ -1221,9 +1222,9 @@ void init_tracka(track_node *track) {
   set_edge(&_broken_edges, te);
 }
 
-void init_trackb(track_node *track) {
+void init_trackb() {
+  track_node* track = get_track();
   track_number = 1;
-  clear_track_edge_array(&_broken_edges);
 
   memset(track, 0, TRACK_MAX*sizeof(track_node));
   track[0].name = "A1";
@@ -2386,4 +2387,6 @@ void init_trackb(track_node *track) {
   track[139].name = "EX10";
   track[139].type = NODE_EXIT;
   track[139].reverse = &track[138];
+
+  clear_track_edge_array(&_broken_edges);
 }

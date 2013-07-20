@@ -7,8 +7,8 @@
 track_node* get_track();
 track_edge_array* get_broken_edges();
 
-void init_tracka(track_node *track);
-void init_trackb(track_node *track);
+void init_tracka();
+void init_trackb();
 
 int get_track_number();
 

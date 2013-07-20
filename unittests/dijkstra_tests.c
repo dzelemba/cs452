@@ -11,7 +11,7 @@ void dijkstra_tests() {
   int pathlen;
 
   track_node* track = get_track();
-  init_tracka(track);
+  init_tracka();
 
   get_path_from_idx(track, sensor2idx('D', 12), merge2idx(5), NULL, path, &pathlen);
 
@@ -51,7 +51,7 @@ void dijkstra_tests() {
   printf("\n");
 
   printf("******* TRACK B ********\n\n");
-  init_trackb(track);
+  init_trackb();
 
   // Inner loop
   printf("D4 -> B6: %d\n", get_path_debug(track, 'D', 4, 'B', 6, NULL, path, &pathlen));

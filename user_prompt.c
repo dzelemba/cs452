@@ -186,11 +186,11 @@ int process_line(char* line, bool* is_hold_on) {
     }
 
     if (tokens[1][0] == 'A') {
-      init_tracka(get_track());
+      init_tracka();
       init_switch_server();
       init_physicsa();
     } else if (tokens[1][0] == 'B') {
-      init_trackb(get_track());
+      init_trackb();
       init_switch_server();
       init_physicsb();
     } else {

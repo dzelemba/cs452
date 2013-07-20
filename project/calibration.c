@@ -41,7 +41,7 @@ int variance(int src, int dest, int mean) {
 
 void velocity_a_calibration() {
   track_node* track = get_track();
-  init_tracka(track);
+  init_tracka();
   init_switch_server();
 
   int i, j;
@@ -132,7 +132,7 @@ void velocity_a_calibration() {
 
 void velocity_b_calibration() {
   track_node* track = get_track();
-  init_trackb(track);
+  init_trackb();
   init_switch_server();
 
   int i, j;
@@ -222,8 +222,7 @@ void velocity_b_calibration() {
 }
 
 void acceleration_calibration() {
-  track_node* track = get_track();
-  init_tracka(track);
+  init_tracka();
   init_switch_server();
 
   // Run the train
