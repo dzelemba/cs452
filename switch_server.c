@@ -1,8 +1,11 @@
-#include "switch_server.h"
-#include "ourio.h"
-#include "syscall.h"
-#include "priorities.h"
 #include "debug.h"
+#include "ourio.h"
+#include "priorities.h"
+#include "switch_server.h"
+#include "syscall.h"
+#include "track_data.h"
+#include "track_edge_array.h"
+#include "user_prompt.h"
 
 static int switch_directions[NUM_SWITCHES + 1];
 
@@ -54,6 +57,12 @@ void sw(int switch_number, char switch_direction) {
     return;
   }
 
+  track_node* node = get_track_node(get_track(), branch2idx(switch_number));
+  track_edge* edge = &node->edge[(switch_direction == 'S') ? DIR_STRAIGHT : DIR_CURVED];
+  if (isset_edge(get_broken_edges(), edge)) {
+    return;
+  }
+
   char cmd[3];
   cmd[0] = switch_direction_code;
   cmd[1] = switch_number;
@@ -61,6 +70,7 @@ void sw(int switch_number, char switch_direction) {
   putbytes(COM1, cmd, 3);
 
   switch_directions[convert_switch_number(switch_number)] = switch_direction;
+  draw_switch_state(switch_number, switch_direction);
 }
 
 /*
@@ -106,7 +116,7 @@ void switch_server() {
 
 void init_switch_server() {
   int i;
-  for (i = 1; i < NUM_SWITCHES + 1; i++) {
+  for (i = 1; i <= NUM_SWITCHES; i++) {
     sw(switch_number_from_index(i), 'S');
   }
 

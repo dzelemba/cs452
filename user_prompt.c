@@ -84,7 +84,7 @@ void draw_initial() {
     printf(COM2, "%3d ", sw);
   }
   for (sw = 1; sw <= 18; sw++) {
-    draw_switch_state(sw, 'S');
+    draw_switch_state(sw, '?');
   }
 
   printf(COM2, "\033[6;1H");
@@ -93,7 +93,7 @@ void draw_initial() {
   }
 
   for (sw = 0x99; sw <= 0x9c; sw++) {
-    draw_switch_state(sw, 'S');
+    draw_switch_state(sw, '?');
   }
 
   // Draw train states
@@ -168,7 +168,6 @@ int process_line(char* line, bool* is_hold_on) {
       return 1;
     }
     tr_sw(switch_number, direction);
-    draw_switch_state(switch_number, direction);
   } else if (string_equal(tokens[0], "rv")) {
     if (ret != 2) {
       return 1;
@@ -188,9 +187,11 @@ int process_line(char* line, bool* is_hold_on) {
 
     if (tokens[1][0] == 'A') {
       init_tracka(get_track());
+      init_switch_server();
       init_physicsa();
     } else if (tokens[1][0] == 'B') {
       init_trackb(get_track());
+      init_switch_server();
       init_physicsb();
     } else {
       return 1;

@@ -3,8 +3,8 @@
 
 #define MAX_DEBUG_LENGTH 128
 
-#include "ourio.h"
 #include "location.h"
+#include "ourio.h"
 
 void start_user_prompt();
 
@@ -17,5 +17,7 @@ void return_cursor();
 void init_demo_output(int train1, int train2);
 
 void update_demo_location(int row, location* loc);
+
+void draw_switch_state(int switch_num, char direction);
 
 #endif

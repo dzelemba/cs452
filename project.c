@@ -11,7 +11,6 @@
 // SHELL TASK
 
 void shell_task() {
-  init_switch_server();
   start_sensor_server();
   start_location_server();
   init_trains();

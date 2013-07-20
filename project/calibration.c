@@ -4,11 +4,11 @@
 #include "ourio.h"
 #include "sensor.h"
 #include "sensor_server.h"
+#include "switch_server.h"
 #include "syscall.h"
 #include "track_data.h"
 #include "track_node.h"
 #include "train.h"
-#include "switch_server.h"
 
 // Table of sensor to sensor distances
 #define UNKNOWN_DISTANCE -1
@@ -42,6 +42,7 @@ int variance(int src, int dest, int mean) {
 void velocity_a_calibration() {
   track_node* track = get_track();
   init_tracka(track);
+  init_switch_server();
 
   int i, j;
   for (i = 0; i < 80; i++) {
@@ -132,6 +133,7 @@ void velocity_a_calibration() {
 void velocity_b_calibration() {
   track_node* track = get_track();
   init_trackb(track);
+  init_switch_server();
 
   int i, j;
   for (i = 0; i < 80; i++) {
@@ -222,6 +224,7 @@ void velocity_b_calibration() {
 void acceleration_calibration() {
   track_node* track = get_track();
   init_tracka(track);
+  init_switch_server();
 
   // Run the train
   int our_train = 47;
