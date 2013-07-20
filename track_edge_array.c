@@ -34,7 +34,7 @@ void tea_set_name(track_edge_array* t, char* name) {
 
 void clear_track_edge_array(track_edge_array* t) {
   int i;
-  for (i = 0; i < TRACK_MAX * 2; i++) {
+  for (i = 0; i < EDGE_MAX; i++) {
     t->map[i] = 0;
   }
 }

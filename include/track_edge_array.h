@@ -6,8 +6,10 @@
 #include "ourlib.h"
 #include "track_node.h"
 
+#define EDGE_MAX TRACK_MAX * 2
+
 typedef struct track_edge_array {
-  int map[TRACK_MAX * 2];
+  int map[EDGE_MAX];
   char* name;
 } track_edge_array;
 

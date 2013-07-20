@@ -346,9 +346,14 @@ void tc_free_edge(int train, track_edge* edge, path_following_info* p_info) {
 
 void tc_free_all_edges(int train, path_following_info* p_info) {
   track_node* track = get_track();
-  int i;
+  int i, j;
+
+  track_node* node;
   for (i = 0; i < TRACK_MAX; i++) {
-    tc_free_edge(train, &track[i].edge[DIR_AHEAD], p_info);
+    node = get_track_node(i);
+    for (j = 0; j < get_num_neighbours(node->type); j++) {
+      tc_free_edge(train, &track[i].edge[j], p_info);
+    }
   }
 }
 #define MAX_PREVIOUS_EDGES 8
@@ -582,8 +587,19 @@ void reroute_train(location* loc, path_following_info* p_info) {
 
   track_edge_array blocked_edges;
   clear_track_edge_array(&blocked_edges);
-
   set_edge(&blocked_edges, p_info->blocked_edge);
+
+  tc_free_all_edges(loc->train, p_info);
+
+  // Usually, we'd just reserve both sides of this location. But since we're rerouting
+  // it's most definitely because we can't reserve one side of this location.
+
+  // TODO(f2fung): Enters. Exits. Being blocked both sides.
+  if (p_info->blocked_edge == &loc->node->edge[DIR_AHEAD]) {
+    tc_reserve_edge(loc->train, &loc->node->reverse->edge[DIR_AHEAD], loc, p_info);
+  } else {
+    tc_reserve_edge(loc->train, &loc->node->edge[DIR_AHEAD], loc, p_info);
+  }
   p_info->blocked_edge = 0;
 
   start_route(loc, p_info, &blocked_edges);
