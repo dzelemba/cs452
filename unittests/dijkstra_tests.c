@@ -13,7 +13,7 @@ void dijkstra_tests() {
   track_node* track = get_track();
   init_tracka();
 
-  get_path_from_idx(track, sensor2idx('D', 12), merge2idx(5), NULL, path, &pathlen);
+  get_path_from_idx(track, sensor2idx('B', 3), sensor2idx('D', 2), NULL, path, &pathlen);
 
   int i;
   for (i = 0; i < pathlen; i++) {
