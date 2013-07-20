@@ -17,6 +17,10 @@ int edge2idx(track_edge* edge) {
   }
 }
 
+track_edge* idx2edge(int idx) {
+
+}
+
 void tea_set_name(track_edge_array* t, char* name) {
   t->name = name;
 }

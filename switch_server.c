@@ -57,7 +57,7 @@ void sw(int switch_number, char switch_direction) {
     return;
   }
 
-  track_node* node = get_track_node(get_track(), branch2idx(switch_number));
+  track_node* node = get_track_node(branch2idx(switch_number));
   track_edge* edge = &node->edge[(switch_direction == 'S') ? DIR_STRAIGHT : DIR_CURVED];
   if (isset_edge(get_broken_edges(), edge)) {
     return;

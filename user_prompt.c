@@ -216,15 +216,15 @@ int process_line(char* line, bool* is_hold_on) {
     location loc;
     init_location(&loc);
     if (tokens[2][0] == 'B') {
-      loc.node = get_track_node(get_track(), branch2idx(atoi(&tokens[2][1])));
+      loc.node = get_track_node(branch2idx(atoi(&tokens[2][1])));
     } else if (tokens[2][0] == 'M') {
-      loc.node = get_track_node(get_track(), merge2idx(atoi(&tokens[2][1])));
+      loc.node = get_track_node(merge2idx(atoi(&tokens[2][1])));
     } else if (tokens[2][0] == 'S') {
-      loc.node = get_track_node(get_track(), sensor2idx(tokens[2][1], atoi(&tokens[2][2])));
+      loc.node = get_track_node(sensor2idx(tokens[2][1], atoi(&tokens[2][2])));
     } else if (tokens[2][0] == 'E' && tokens[2][1] == 'N') {
-      loc.node = get_track_node(get_track(), enter2idx(atoi(&tokens[2][2])));
+      loc.node = get_track_node(enter2idx(atoi(&tokens[2][2])));
     } else if (tokens[2][0] == 'E' && tokens[2][1] == 'X') {
-      loc.node = get_track_node(get_track(), exit2idx(atoi(&tokens[2][2])));
+      loc.node = get_track_node(exit2idx(atoi(&tokens[2][2])));
     } else {
       return 1;
     }

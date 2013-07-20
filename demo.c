@@ -75,7 +75,7 @@ void get_random_destination(int train, location* loc, track_node** cur_destinati
   while(1) {
     rand_dest = rand() % TRACK_MAX;
 
-    dest = get_track_node(get_track(), rand_dest);
+    dest = get_track_node(rand_dest);
     if (check_ignored_nodes(rand_dest) ||
         check_conflicting_destinations(train, dest, cur_destinations)) {
       continue;

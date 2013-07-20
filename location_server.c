@@ -194,7 +194,7 @@ bool update_tracking_data_for_distance(tracking_data* t_data) {
 
 bool update_tracking_data_for_sensor(tracking_data* t_data, sensor* s) {
   track_edge* edge = t_data->loc->cur_edge;
-  track_node* sensor_node = get_track_node(get_track(), sensor2idx(s->group, s->socket));
+  track_node* sensor_node = get_track_node(sensor2idx(s->group, s->socket));
 
   int train_id = tr_num_to_idx(t_data->loc->train);
   bool is_stopping = acceleration_start_time[train_id] != NOT_ACCELERATING

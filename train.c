@@ -209,9 +209,9 @@ typedef struct path_following_info {
 void perform_switch_action(sequence* path_node) {
   if (!path_node->performed_action) {
     if (path_node->action == TAKE_STRAIGHT) {
-      tr_sw(get_track_node(get_track(), path_node->location)->num, 'S');
+      tr_sw(get_track_node(path_node->location)->num, 'S');
     } else if (path_node->action == TAKE_CURVE) {
-      tr_sw(get_track_node(get_track(), path_node->location)->num, 'C');
+      tr_sw(get_track_node(path_node->location)->num, 'C');
     } else {
       ERROR("train.c: perform_switch_action: node doesn't have switch action");
     }
@@ -227,7 +227,7 @@ void perform_reverse_action(sequence* path_node, int train, int stopping_time) {
 }
 
 track_edge* get_next_edge_in_path(sequence* path_node) {
-  track_node* node = get_track_node(get_track(), path_node->location);
+  track_node* node = get_track_node(path_node->location);
   if (node->type == NODE_BRANCH) {
     if (path_node->action == TAKE_STRAIGHT) {
       return &node->edge[DIR_STRAIGHT];
@@ -662,7 +662,7 @@ void train_controller() {
 
           for (i = 0; i < s_array.num_sensors; i++) {
             sensor* s = &s_array.sensors[i];
-            node = get_track_node(get_track(), sensor2idx(s->group, s->socket));
+            node = get_track_node(sensor2idx(s->group, s->socket));
 
             // Check if sensor is coming from another sitting train
             occupied_location = false;

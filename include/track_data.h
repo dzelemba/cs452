@@ -5,6 +5,8 @@
 #include "track_node.h"
 
 track_node* get_track();
+track_node* get_track_node(int idx);
+
 track_edge_array* get_broken_edges();
 
 void init_tracka();

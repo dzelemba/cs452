@@ -26,6 +26,10 @@ track_node* get_track() {
   return _track;
 }
 
+track_node* get_track_node(int idx) {
+  return &_track[idx];
+}
+
 track_edge_array* get_broken_edges() {
   return &_broken_edges;
 }
@@ -1218,7 +1222,7 @@ void init_tracka() {
 
   clear_track_edge_array(&_broken_edges);
 
-  track_edge* te = &(get_track_node(track, branch2idx(156))->edge[DIR_CURVED]);
+  track_edge* te = &(get_track_node(branch2idx(156))->edge[DIR_CURVED]);
   set_edge(&_broken_edges, te);
 }
 
