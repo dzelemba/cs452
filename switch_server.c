@@ -110,6 +110,12 @@ void init_switch_server() {
     sw(switch_number_from_index(i), 'S');
   }
 
+  // Switch middle guys to curved since we'll never go straight there.
+  sw(153, 'C');
+  sw(154, 'C');
+  sw(155, 'C');
+  sw(156, 'C');
+
   switch_server_tid = Create(MED_PRI, &switch_server);
 }
 
