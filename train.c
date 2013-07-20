@@ -344,6 +344,13 @@ void tc_free_edge(int train, track_edge* edge, path_following_info* p_info) {
   }
 }
 
+void tc_free_all_edges(int train, path_following_info* p_info) {
+  track_node* track = get_track();
+  int i;
+  for (i = 0; i < TRACK_MAX; i++) {
+    tc_free_edge(train, &track[i].edge[DIR_AHEAD], p_info);
+  }
+}
 #define MAX_PREVIOUS_EDGES 8
 
 void tc_free_previous_edges(int train, location* cur_loc, path_following_info* p_info,
@@ -698,6 +705,7 @@ void train_controller() {
         tracked_trains[train_idx] = 1;
 
         // Reserve edges we're on.
+        // TODO(dzelemba): We could be sitting on 3 nodes here so check for that.
         tc_reserve_edge(train, &loc.node->edge[DIR_AHEAD], &loc, &path_info[train_idx]);
         tc_reserve_edge(train, &loc.node->reverse->edge[DIR_AHEAD], &loc, &path_info[train_idx]);
         break;
