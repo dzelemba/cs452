@@ -38,8 +38,6 @@ struct track_node {
   track_edge edge[2];
 };
 
-track_node* get_track_node(int idx);
-
 int get_num_neighbours(node_type type);
 
 int enter2idx(int num);

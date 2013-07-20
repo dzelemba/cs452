@@ -6,6 +6,7 @@
 
 track_node* get_track();
 track_node* get_track_node(int idx);
+track_node* get_related_branch(track_node* node);
 
 track_edge_array* get_broken_edges();
 

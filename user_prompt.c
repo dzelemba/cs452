@@ -544,7 +544,7 @@ void display_reservation_status() {
         edge = (track_edge *)edge_at_edge.map[i];
         train = train_at_edge.map[i];
         row = train == 47 ? 1 : 2;
-        col = 11 * (train == 47 ? count47++ : count50++) + 11;
+        col = 12 * (train == 47 ? count47++ : count50++) + 11;
         printf(COM2, "\033[%d;%dH%s->%s", DRAW_RESERVATION_OUTPUT+row, col,
                edge->src->name, edge->dest->name);
       }

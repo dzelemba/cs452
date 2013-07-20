@@ -158,7 +158,7 @@ void rs_get_all_updates(get_all_updates_reply *reply) {
  * Helpers for reserving through track_edge_arrays
  */
 
-#define MAX_EDGE_GROUP_SIZE 6
+#define MAX_EDGE_GROUP_SIZE 8
 
 void get_edge_group(track_edge* edge, track_edge** edge_group, int* size) {
   int i = 0;
@@ -180,6 +180,33 @@ void get_edge_group(track_edge* edge, track_edge** edge_group, int* size) {
     track_edge* other_edge = (&edges[0] == edge ? &edges[1] : &edges[0]);
     edge_group[i++] = other_edge;
     edge_group[i++] = other_edge->reverse;
+  }
+
+  track_node* related_branch;
+  if (edge->src->type == NODE_BRANCH) {
+    related_branch = get_related_branch(edge->src);
+    if (related_branch) {
+      edge = &related_branch->edge[DIR_STRAIGHT];
+      edge_group[i++] = edge;
+      edge_group[i++] = edge->reverse;
+      edge = &related_branch->edge[DIR_CURVED];
+      edge_group[i++] = edge;
+      edge_group[i++] = edge->reverse;
+    }
+  }
+
+  if (edge->dest->type == NODE_MERGE) {
+    related_branch = get_related_branch(edge->dest);
+    if (related_branch) {
+      related_branch = related_branch->reverse;
+
+      edge = &related_branch->edge[DIR_STRAIGHT];
+      edge_group[i++] = edge;
+      edge_group[i++] = edge->reverse;
+      edge = &related_branch->edge[DIR_CURVED];
+      edge_group[i++] = edge;
+      edge_group[i++] = edge->reverse;
+    }
   }
 
   *size = i;

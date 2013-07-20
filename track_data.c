@@ -30,6 +30,35 @@ track_node* get_track_node(int idx) {
   return &_track[idx];
 }
 
+track_node* get_related_branch(track_node* node) {
+  int related_num = 0;
+  switch (node->num) {
+    case 153:
+      related_num = 154;
+      break;
+    case 154:
+      related_num = 153;
+      break;
+    case 155:
+      related_num = 156;
+      break;
+    case 156:
+      related_num = 155;
+      break;
+  }
+
+  if (related_num == 0) {
+    return NULL;
+  }
+
+  if (node->type == NODE_BRANCH) {
+    return get_track_node(branch2idx(related_num));
+  } else if (node->type == NODE_MERGE) {
+    return get_track_node(merge2idx(related_num));
+  }
+  return NULL;
+}
+
 track_edge_array* get_broken_edges() {
   return &_broken_edges;
 }
