@@ -59,6 +59,58 @@ track_node* get_related_branch(track_node* node) {
   return NULL;
 }
 
+int get_edge_group(track_edge* edge, track_edge** edge_group) {
+  int i = 0;
+  edge_group[i++] = edge;
+  edge_group[i++] = edge->reverse;
+
+  track_edge* edges = 0;
+  if (edge->src->type == NODE_BRANCH) {
+    edges = edge->src->edge;
+
+    track_edge* other_edge = (&edges[0] == edge ? &edges[1] : &edges[0]);
+    edge_group[i++] = other_edge;
+    edge_group[i++] = other_edge->reverse;
+  }
+  if (edge->dest->type == NODE_MERGE) {
+    edges = edge->dest->reverse->edge;
+    edge = edge->reverse;
+
+    track_edge* other_edge = (&edges[0] == edge ? &edges[1] : &edges[0]);
+    edge_group[i++] = other_edge;
+    edge_group[i++] = other_edge->reverse;
+  }
+
+  track_node* related_branch;
+  if (edge->src->type == NODE_BRANCH) {
+    related_branch = get_related_branch(edge->src);
+    if (related_branch) {
+      edge = &related_branch->edge[DIR_STRAIGHT];
+      edge_group[i++] = edge;
+      edge_group[i++] = edge->reverse;
+      edge = &related_branch->edge[DIR_CURVED];
+      edge_group[i++] = edge;
+      edge_group[i++] = edge->reverse;
+    }
+  }
+
+  if (edge->dest->type == NODE_MERGE) {
+    related_branch = get_related_branch(edge->dest);
+    if (related_branch) {
+      related_branch = related_branch->reverse;
+
+      edge = &related_branch->edge[DIR_STRAIGHT];
+      edge_group[i++] = edge;
+      edge_group[i++] = edge->reverse;
+      edge = &related_branch->edge[DIR_CURVED];
+      edge_group[i++] = edge;
+      edge_group[i++] = edge->reverse;
+    }
+  }
+
+  return i;
+}
+
 track_edge_array* get_broken_edges() {
   return &_broken_edges;
 }

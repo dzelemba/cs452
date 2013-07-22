@@ -158,64 +158,9 @@ void rs_get_all_updates(get_all_updates_reply *reply) {
  * Helpers for reserving through track_edge_arrays
  */
 
-#define MAX_EDGE_GROUP_SIZE 8
-
-void get_edge_group(track_edge* edge, track_edge** edge_group, int* size) {
-  int i = 0;
-  edge_group[i++] = edge;
-  edge_group[i++] = edge->reverse;
-
-  track_edge* edges = 0;
-  if (edge->src->type == NODE_BRANCH) {
-    edges = edge->src->edge;
-
-    track_edge* other_edge = (&edges[0] == edge ? &edges[1] : &edges[0]);
-    edge_group[i++] = other_edge;
-    edge_group[i++] = other_edge->reverse;
-  }
-  if (edge->dest->type == NODE_MERGE) {
-    edges = edge->dest->reverse->edge;
-    edge = edge->reverse;
-
-    track_edge* other_edge = (&edges[0] == edge ? &edges[1] : &edges[0]);
-    edge_group[i++] = other_edge;
-    edge_group[i++] = other_edge->reverse;
-  }
-
-  track_node* related_branch;
-  if (edge->src->type == NODE_BRANCH) {
-    related_branch = get_related_branch(edge->src);
-    if (related_branch) {
-      edge = &related_branch->edge[DIR_STRAIGHT];
-      edge_group[i++] = edge;
-      edge_group[i++] = edge->reverse;
-      edge = &related_branch->edge[DIR_CURVED];
-      edge_group[i++] = edge;
-      edge_group[i++] = edge->reverse;
-    }
-  }
-
-  if (edge->dest->type == NODE_MERGE) {
-    related_branch = get_related_branch(edge->dest);
-    if (related_branch) {
-      related_branch = related_branch->reverse;
-
-      edge = &related_branch->edge[DIR_STRAIGHT];
-      edge_group[i++] = edge;
-      edge_group[i++] = edge->reverse;
-      edge = &related_branch->edge[DIR_CURVED];
-      edge_group[i++] = edge;
-      edge_group[i++] = edge->reverse;
-    }
-  }
-
-  *size = i;
-}
-
 bool is_edge_free(track_edge* edge, track_edge_array* edge_statuses) {
   track_edge* edge_group[MAX_EDGE_GROUP_SIZE];
-  int num_edges;
-  get_edge_group(edge, edge_group, &num_edges);
+  int num_edges = get_edge_group(edge, edge_group);
 
   int i = 0;
   for (i = 0; i < num_edges; i++) {
@@ -231,8 +176,7 @@ void reserve_edge(track_edge* edge, track_edge_array* edge_statuses) {
   ASSERT(is_edge_free(edge, edge_statuses), "reservation_server: reserve_edge: %s -> %s in %s",
          edge->src->name, edge->dest->name, edge_statuses->name);
   track_edge* edge_group[MAX_EDGE_GROUP_SIZE];
-  int num_edges;
-  get_edge_group(edge, edge_group, &num_edges);
+  int num_edges = get_edge_group(edge, edge_group);
 
   int i = 0;
   for (i = 0; i < num_edges; i++) {
@@ -244,8 +188,7 @@ void free_edge(track_edge* edge, track_edge_array* edge_statuses) {
   ASSERT(!is_edge_free(edge, edge_statuses), "reservation_server: free_edge: %s -> %s in %s",
          edge->src->name, edge->dest->name, edge_statuses->name);
   track_edge* edge_group[MAX_EDGE_GROUP_SIZE];
-  int num_edges;
-  get_edge_group(edge, edge_group, &num_edges);
+  int num_edges = get_edge_group(edge, edge_group);
 
   int i = 0;
   for (i = 0; i < num_edges; i++) {

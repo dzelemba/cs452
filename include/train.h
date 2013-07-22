@@ -15,9 +15,11 @@
  *     pickup is on.
  */
 
+#define PICKUP_TO_FRONTGRILL 30
 #define PICKUP_TO_FRONTWHEEL 0
 #define PICKUP_LENGTH 50
 #define PICKUP_TO_BACKWHEEL 120
+#define TRAIN_LENGTH 215
 
 typedef struct train_array {
   int trains[MAX_TRAINS];

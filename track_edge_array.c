@@ -19,7 +19,6 @@ int edge2idx(track_edge* edge) {
 }
 
 track_edge* idx2edge(int idx) {
-  track_node* track = get_track();
   int source_id = idx / 2;
   int direction = idx % 2;
 

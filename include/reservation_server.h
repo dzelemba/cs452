@@ -36,8 +36,6 @@ void rs_get_all_updates(get_all_updates_reply *reply);
  * Helpers for reserving through track_edge_arrays
  */
 
-void get_edge_group(track_edge* edge, track_edge** edge_group, int* size);
-
 bool is_edge_free(track_edge* edge, track_edge_array* edge_statuses);
 
 void reserve_edge(track_edge* edge, track_edge_array* edge_statuses);

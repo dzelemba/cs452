@@ -356,38 +356,47 @@ void tc_free_all_edges(int train, path_following_info* p_info) {
     }
   }
 }
-#define MAX_PREVIOUS_EDGES 8
 
-void tc_free_previous_edges(int train, location* cur_loc, path_following_info* p_info,
-                            int spots_behind) {
-  int nodes_index = 0;
-  track_node* nodes[MAX_PREVIOUS_EDGES];
-  nodes[nodes_index++] = cur_loc->node->reverse;
+void previous_edges_within_distance(track_edge* curr, int cd, int fd, track_edge_array* seen) {
+  int i;
+  track_node* dest = curr->dest;
 
-  // Do BFS backwards through the graph to get all edges x spots_behind.
-  // TODO(dzelemba): This may be simpler if we store edges instead of nodes..
-  int i,j;
-  track_edge* next_edges[2];
-  for (i = 0; i < spots_behind - 1; i++) {
-    int saved_nodes_index = nodes_index;
-    for (j = 0; j < saved_nodes_index; j++) {
-      int num_next_edges = get_next_edges(get_track(), nodes[j], next_edges);
-      if (num_next_edges != 0) {
-        nodes[j] = next_edges[0]->dest;
-        if (num_next_edges > 1) {
-          nodes[nodes_index++] = next_edges[1]->dest;
-        }
-      }
+  if (cd >= fd) {
+    set_edge(seen, curr);
+    if (cd >= fd + 1000) {
+      return;
     }
   }
 
-  // Now free the edges.
-  for (i = 0; i < nodes_index; i++) {
-    int num_next_edges = get_next_edges(get_track(), nodes[i], next_edges);
-    if (num_next_edges != 0) {
-      tc_free_edge(train, next_edges[0], p_info);
-      if (num_next_edges > 1) {
-        tc_free_edge(train, next_edges[1], p_info);
+  cd += curr->dist;
+  for (i = 0; i < get_num_neighbours(dest->type); i++) {
+    previous_edges_within_distance(&dest->edge[i], cd, fd, seen);
+  }
+}
+
+void tc_free_previous_edges(int train, location* cur_loc, path_following_info* p_info, int distance_behind) {
+  track_edge_array freeable_edges;
+  clear_track_edge_array(&freeable_edges);
+
+  track_node* rev = cur_loc->node->reverse;
+  track_node* node;
+
+  int i, j;
+
+  int cd = cur_loc->um_past_node / UM_PER_MM;
+  // Free edges only _after_ the edge we're on
+  for (i = 0; i < get_num_neighbours(rev->type); i++) {
+    node = rev->edge[i].dest;
+    for (j = 0; j < get_num_neighbours(node->type); j++) {
+      previous_edges_within_distance(&node->edge[j], cd + rev->edge[i].dist, distance_behind, &freeable_edges);
+    }
+  }
+
+  for (i = 0; i < TRACK_MAX; i++) {
+    node = get_track_node(i);
+    for (j = 0; j < get_num_neighbours(node->type); j++) {
+      if (isset_edge(&freeable_edges, &node->edge[j])) {
+        tc_free_edge(train, &node->edge[j], p_info);
       }
     }
   }
@@ -416,7 +425,7 @@ void perform_path_actions(location* cur_loc, path_following_info* p_info) {
                       max(stop_lookahead, reserve_lookahead)));
 
   track_edge* next_edge = 0;
-  int dist = max(cur_loc->cur_edge->dist - cur_loc->um_past_node / 1000, 0), i;
+  int dist = max(cur_loc->cur_edge->dist - cur_loc->um_past_node / UM_PER_MM, 0), i;
   for (i = 0; i < path_size && dist <= max_lookahead; i++) {
     sequence_action action = path_base[i].action;
     if (!p_info->is_stopping && action == REVERSE) {
@@ -504,7 +513,7 @@ void handle_path(location* cur_loc, path_following_info* p_info) {
       // TODO(dzelemba): Look ahead to next_sensor here instead of next node.
       *path_index = p_index + 2;
 
-      tc_free_previous_edges(train, cur_loc, p_info, 3 /* Spots Behind */);
+      tc_free_previous_edges(train, cur_loc, p_info, TRAIN_LENGTH + 150);
     }
 
     // Don't permit advancing at reverse nodes. We must wait until reversing
@@ -515,7 +524,7 @@ void handle_path(location* cur_loc, path_following_info* p_info) {
       if (*path_index > 0 && path[*path_index - 1].action == REVERSE) {
         *path_index -= 1;
       } else if (p_info->state != DONE) {
-        tc_free_previous_edges(train, cur_loc, p_info, 2 /* Spots Behind */);
+        tc_free_previous_edges(train, cur_loc, p_info, TRAIN_LENGTH + 150);
         if (train == 50) {
           INFO(TRAIN_CONTROLLER, "Train %d Advanced to %s", train, cur_loc->node->name);
         }
@@ -530,6 +539,7 @@ void handle_path(location* cur_loc, path_following_info* p_info) {
   if (p_info->is_stopping && *path_index == p_info->path_size - 1 &&
       cur_loc->stopping_distance == 0) {
     p_info->state = DONE;
+    tc_free_previous_edges(train, cur_loc, p_info, TRAIN_LENGTH + 150);
   }
 
   perform_path_actions(cur_loc, p_info);
@@ -746,7 +756,7 @@ void train_controller() {
         reverse(msg.user_cmd.train, MAX_STOPPING_TIME);
         break;
       case UPDATE_LOCATIONS: {
-        Reply(tid, (void *)0, 0);
+        Reply(tid, NULL, 0);
         memcpy((char *)&train_locations, (const char *)&msg.loc_array, sizeof(location_array));
 
         for (i = 0; i < train_locations.size; i++) {
