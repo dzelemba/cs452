@@ -38,7 +38,7 @@ static int ioserver_tid;
 #define TRAIN_PUTC_MEM_SIZE 128
 #define TERM_DATA_MEM_SIZE 128
 #define TERM_GETC_MEM_SIZE 8
-#define TERM_PUTC_MEM_SIZE 1024
+#define TERM_PUTC_MEM_SIZE 4096
 #define FLUSH_MEM_SIZE 128
 
 static queue train_data_queue, train_getc_queue, train_putc_queue, term_data_queue, term_getc_queue, term_putc_queue, flush_queue;
