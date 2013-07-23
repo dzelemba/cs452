@@ -73,7 +73,7 @@ void error(char* format, ...) {
 static const int const enabled_groups [NUM_DEBUG_GROUPS] = {
   0, /* TRAIN_CONTROLLER */
   0, /* LOCATION_SERVER */
-  1, /* RESERVATION_SERVER */
+  0, /* RESERVATION_SERVER */
   0, /* MISC */
   0, /* MISC2 */
 };

@@ -597,7 +597,7 @@ void reroute_train(location* loc, path_following_info* p_info) {
 
   track_edge_array blocked_edges;
   clear_track_edge_array(&blocked_edges);
-  set_edge(&blocked_edges, p_info->blocked_edge);
+  reserve_edge(p_info->blocked_edge, &blocked_edges);
 
   tc_free_all_edges(loc->train, p_info);
 
@@ -605,11 +605,9 @@ void reroute_train(location* loc, path_following_info* p_info) {
   // it's most definitely because we can't reserve one side of this location.
 
   // TODO(f2fung): Enters. Exits. Being blocked both sides.
-  if (p_info->blocked_edge == &loc->node->edge[DIR_AHEAD]) {
-    tc_reserve_edge(loc->train, &loc->node->reverse->edge[DIR_AHEAD], loc, p_info);
-  } else {
-    tc_reserve_edge(loc->train, &loc->node->edge[DIR_AHEAD], loc, p_info);
-  }
+  tc_reserve_edge(loc->train, &loc->node->edge[DIR_AHEAD], loc, p_info);
+  tc_reserve_edge(loc->train, &loc->node->reverse->edge[DIR_AHEAD], loc, p_info);
+
   p_info->blocked_edge = 0;
 
   start_route(loc, p_info, &blocked_edges);

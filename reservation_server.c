@@ -46,6 +46,7 @@ void reservation_server() {
   // Trains that have failed to reserve a node.
   queue blocked_trains;
   Q_CREATE(blocked_trains, MAX_TRAINS);
+  q_set_name(&blocked_trains, "reservation_server queue");
 
   // Task id of the task waiting to hear about trains
   // that were waiting on nodes that have been freed up.

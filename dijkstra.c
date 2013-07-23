@@ -83,7 +83,7 @@ int get_path_from_idx(track_node* track, int src, int dest, track_edge_array* bl
 
 #ifdef ENABLE_REVERSE
     // TODO: Maybe we need to do better than just reverse at sensors
-    if (node->type == NODE_SENSOR) {
+    if (node->type == NODE_SENSOR || node2idx(track, node) == src) {
       int rev = node2idx(track, node->reverse);
       if (visited[rev] == 0 && heapplus_insert(&path_heap, c + REVERSE_COST, rev)) {
         path[rev] = (sequence) { v, REVERSE, 0 };
