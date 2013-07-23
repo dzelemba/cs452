@@ -572,17 +572,21 @@ void start_route(location* loc, path_following_info* p_info, track_edge_array* b
   // If first node is a branch, or if a branch is close enough then get
   // directions from the next node so we don't have to worry about backing
   // up to clear the switch.
+  track_edge* forced_edge = NULL;
   if (loc->node->type == NODE_BRANCH) {
-    get_path(get_track(), get_next_edge(loc->node)->dest, p_info->dest,
-             blocked_edges, p_info->path, &p_info->path_size);
+    forced_edge = loc->cur_edge;
   } else if (loc->cur_edge != 0 && loc->cur_edge->dest->type == NODE_BRANCH &&
              loc->cur_edge->dist - loc->um_past_node / UM_PER_MM <= MAX_DISTANCE_ERROR) {
-    get_path(get_track(), get_next_edge(loc->cur_edge->dest)->dest, p_info->dest,
-             blocked_edges, p_info->path, &p_info->path_size);
-  } else {
-    get_path(get_track(), loc->node, p_info->dest,
-             blocked_edges, p_info->path, &p_info->path_size);
+    forced_edge = get_next_edge(loc->cur_edge->dest);
   }
+  if (forced_edge != NULL) {
+    track_edge* edge_to_block = &loc->node->edge[DIR_AHEAD] == forced_edge ?
+                                  &loc->node->edge[DIR_CURVED] :
+                                  &loc->node->edge[DIR_AHEAD];
+    set_edge(blocked_edges, edge_to_block);
+  }
+
+  get_path(get_track(), loc->node, p_info->dest, blocked_edges, p_info->path, &p_info->path_size);
 
   p_info->is_stopping = 0;
   if (p_info->blocked_edge == 0) {
