@@ -200,8 +200,7 @@ void store_value_at_edge(track_edge* edge, track_edge_array* edge_statuses, int 
   ASSERT(is_edge_free(edge, edge_statuses), "reservation_server: store_at_edge: %s -> %s in %s",
          edge->src->name, edge->dest->name, edge_statuses->name);
   track_edge* edge_group[MAX_EDGE_GROUP_SIZE];
-  int num_edges;
-  get_edge_group(edge, edge_group, &num_edges);
+  int num_edges = get_edge_group(edge, edge_group);
 
   int i = 0;
   for (i = 0; i < num_edges; i++) {
@@ -211,8 +210,7 @@ void store_value_at_edge(track_edge* edge, track_edge_array* edge_statuses, int 
 
 int get_value_at_edge(track_edge* edge, track_edge_array* edge_statuses) {
   track_edge* edge_group[MAX_EDGE_GROUP_SIZE];
-  int num_edges;
-  get_edge_group(edge, edge_group, &num_edges);
+  int num_edges = get_edge_group(edge, edge_group);
 
   return get_edge_value(edge_statuses, edge_group[0]);
 }
