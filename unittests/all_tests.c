@@ -8,6 +8,7 @@
 #include "bitmask_tests.c"
 #include "heap_tests.c"
 #include "dijkstra_tests.c"
+#include "free_tests.c"
 
 int main(int argc, char** argv) {
   init_stdlib();
@@ -17,6 +18,7 @@ int main(int argc, char** argv) {
   bitmask_tests();
   heap_tests();
   dijkstra_tests();
+  free_tests();
 
   printf("******* All Test Passed! ********\n\n");
 
