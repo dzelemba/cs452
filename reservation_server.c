@@ -253,7 +253,23 @@ void free_edge(track_edge* edge, track_edge_array* edge_statuses) {
   }
 }
 
-void free_all_edges(track_edge_array* edge_statuses) {
+void store_value_at_edge(track_edge* edge, track_edge_array* edge_statuses, int val) {
+  ASSERT(is_edge_free(edge, edge_statuses), "reservation_server: store_at_edge: %s -> %s in %s",
+         edge->src->name, edge->dest->name, edge_statuses->name);
+  track_edge* edge_group[MAX_EDGE_GROUP_SIZE];
+  int num_edges;
+  get_edge_group(edge, edge_group, &num_edges);
 
+  int i = 0;
+  for (i = 0; i < num_edges; i++) {
+    set_edge_value(edge_statuses, edge_group[i], val);
+  }
 }
 
+int get_value_at_edge(track_edge* edge, track_edge_array* edge_statuses) {
+  track_edge* edge_group[MAX_EDGE_GROUP_SIZE];
+  int num_edges;
+  get_edge_group(edge, edge_group, &num_edges);
+
+  return get_edge_value(edge_statuses, edge_group[0]);
+}

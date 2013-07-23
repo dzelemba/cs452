@@ -44,4 +44,8 @@ void reserve_edge(track_edge* edge, track_edge_array* edge_statuses);
 
 void free_edge(track_edge* edge, track_edge_array* edge_statuses);
 
+void store_value_at_edge(track_edge* edge, track_edge_array* edge_statuses, int val);
+
+int get_value_at_edge(track_edge* edge, track_edge_array* edge_statuses);
+
 #endif

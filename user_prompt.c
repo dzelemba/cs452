@@ -501,34 +501,26 @@ void display_reservation_status_notifier() {
 void display_reservation_status() {
   Create(MED_PRI_1, &display_reservation_status_notifier);
 
-  track_edge_array edge_statuses;
-  tea_set_name(&edge_statuses, "output: edge_statuses");
-  clear_track_edge_array(&edge_statuses);
-
   track_edge_array train_at_edge;
   tea_set_name(&train_at_edge, "output: train_at_edge");
   clear_track_edge_array(&train_at_edge);
 
-  // Store the actual edge as well for simplicity.
-  track_edge_array edge_at_edge;
-  tea_set_name(&edge_at_edge, "output: edge_at_edge");
-  clear_track_edge_array(&edge_at_edge);
+  track_edge_array copy;
+  tea_set_name(&train_at_edge, "output: copy");
+  clear_track_edge_array(&copy);
 
   int i, count47, count50, tid;
   get_all_updates_reply edge_update;
+  track_node* track = get_track();
   while (1) {
     count47 = 0;
     count50 = 0;
     Receive(&tid, (char *)&edge_update, sizeof(get_all_updates_reply));
     Reply(tid, (char *)0, 0);
     if (edge_update.status == FREE) {
-      free_edge(edge_update.edge, &edge_statuses);
       free_edge(edge_update.edge, &train_at_edge);
-      free_edge(edge_update.edge, &edge_at_edge);
     } else {
-      reserve_edge(edge_update.edge, &edge_statuses);
-      set_edge_value(&train_at_edge, edge_update.edge, edge_update.train);
-      set_edge_value(&edge_at_edge, edge_update.edge, (int)edge_update.edge);
+      store_value_at_edge(edge_update.edge, &train_at_edge, edge_update.train);
     }
 
     // Clear each row
@@ -538,15 +530,20 @@ void display_reservation_status() {
     // TODO(dzelemba): Create an iterator and use that instead here.
     // TODO(dzelemba): The train 47/50 assumption is hideous.
     track_edge* edge;
-    int row, train, col;
-    for (i = 0; i < TRACK_MAX * 2; i++) {
-      if (edge_statuses.map[i] == 1 && train_at_edge.map[i] != 0) {
-        edge = (track_edge *)edge_at_edge.map[i];
-        train = train_at_edge.map[i];
-        row = train == 47 ? 1 : 2;
-        col = 12 * (train == 47 ? count47++ : count50++) + 11;
-        printf(COM2, "\033[%d;%dH%s->%s", DRAW_RESERVATION_OUTPUT+row, col,
-               edge->src->name, edge->dest->name);
+    memcpy((char *)&copy, (const char*)&train_at_edge, sizeof(track_edge_array));
+    int row, train, col, j;
+    for (i = 0; i < TRACK_MAX; i++) {
+      track_node* node = get_track_node(i);
+      for (j = 0; j < get_num_neighbours(node->type); j++) {
+        edge = &track[i].edge[j];
+        if (!is_edge_free(edge, &copy)) {
+          train = get_value_at_edge(edge, &train_at_edge);
+          row = train == 47 ? 1 : 2;
+          col = 12 * (train == 47 ? count47++ : count50++) + 11;
+          printf(COM2, "\033[%d;%dH%s->%s", DRAW_RESERVATION_OUTPUT+row, col,
+                 edge->src->name, edge->dest->name);
+          free_edge(edge, &copy);
+        }
       }
     }
   }

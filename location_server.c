@@ -192,7 +192,7 @@ bool update_tracking_data_for_distance(tracking_data* t_data) {
   return false;
 }
 
-bool update_tracking_data_for_sensor(tracking_data* t_data, sensor* s) {
+void update_tracking_data_for_sensor(tracking_data* t_data, sensor* s, bool* changed, bool* used) {
   track_edge* edge = t_data->loc->cur_edge;
   track_node* sensor_node = get_track_node(sensor2idx(s->group, s->socket));
 
@@ -202,6 +202,10 @@ bool update_tracking_data_for_sensor(tracking_data* t_data, sensor* s) {
 
   if (edge != NULL) {
     int prev_edge_distance = t_data->loc->cur_edge->dist * UM_PER_MM;
+    if (t_data->loc->node == sensor_node) {
+      *used = true;
+    }
+
     if (t_data->next_sensor == sensor_node) {
       INFO(LOCATION_SERVER, "Updated to Next Sensor: %s", sensor_node->name);
       int expected_distance_to_sensor = get_next_sensor_distance(t_data->loc->node);
@@ -214,7 +218,7 @@ bool update_tracking_data_for_sensor(tracking_data* t_data, sensor* s) {
       t_data->loc->node = sensor_node;
       t_data->loc->prev_sensor_error = t_data->loc->um_past_node / UM_PER_MM;
     } else {
-      return false;
+      return;
     }
 
     if (t_data->lost_train) {
@@ -231,10 +235,9 @@ bool update_tracking_data_for_sensor(tracking_data* t_data, sensor* s) {
 
     }
     t_data->missed_sensor = 0;
-    return true;
+    *changed = true;
+    *used = true;
   }
-
-  return false;
 }
 
 void update_tracking_data_for_reverse(tracking_data* t_data, int train) {
@@ -289,7 +292,7 @@ void location_server() {
   tracking_data_array t_data_array;
   t_data_array.size = 0;
 
-  int tid, train, train_id, i, k, locations_changed, dt, dx, target_velocity;
+  int tid, train, train_id, i, k, locations_changed, dt, dx, target_velocity, sensor_used;
   location* loc;
   location_server_message msg;
 
@@ -392,10 +395,14 @@ void location_server() {
         case SENSOR_UPDATE: {
           Reply(tid, (void *)0, 0);
           locations_changed = 0; // Required so we don't send multiple updates for multiple sensor triggers
-          for (k = 0; k < t_data_array.size; k++) {
-            tracking_data* t_data = &t_data_array.t_data[k];
-            for (i = 0; i < msg.sensors.num_sensors; i++) {
-              locations_changed |= update_tracking_data_for_sensor(t_data, &msg.sensors.sensors[i]);
+          sensor_used = 0; // So that we don't attribute one sensor to multiple trains.
+          for (i = 0; i < msg.sensors.num_sensors; i++) {
+            for (k = 0; k < t_data_array.size; k++) {
+              tracking_data* t_data = &t_data_array.t_data[k];
+              update_tracking_data_for_sensor(t_data, &msg.sensors.sensors[i], &locations_changed, &sensor_used);
+              if (sensor_used) {
+                break;
+              }
             }
           }
           if (locations_changed) {
