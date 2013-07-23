@@ -153,6 +153,34 @@ c83a8c9eb4d8bfd8ce93024e85e90615  ./tests/uart1_intr_test.c
 
 \section{Project Description}
 
+\subsection{Reservation Server}
+
+The reservation server is responsible for handing out and managing reservations of track edges. Each edge has an associated "edge group" that encapsulates the idea that some edges must be reserved at the same time. The following edges are in the same edge group:
+
+\begin{itemize}
+  \item A edge and its reverse edge
+  \item Two edges on a branch node
+  \item Edges from BR153 and BR154 or edges from BR155 and BR156
+\end{itemize}
+
+When a train requests to free/reserve an edge, the reservation server frees/reserves all edges in the same edge group. \\
+
+When a train attempts to reserve an edge that is reserved, the reservation server remembers that train and notifies it when the edge becomes free. This allows us to prevent having to poll the reservation server.
+
+\subsubsection{Track Edge Arrays}
+
+To manage reservations of edges, we use a track edge array to map edges to an index into a large array. This is currently implemented using an array of size {\tt TRACK\_MAX * 2} since each node has at most 2 edges. This is very space inefficient as there are many more nodes with 1 edge than there are with 2 edges. However, this was the simplest solution and we're not space constrained.
+
+\subsection{Deadlock Detection/Resolution}
+
+A deadlock occurs when either both trains are blocked on an edge or if one train is blocked on an edge and the other train isn't moving. This is constantly monitored in the train controller whenever it receives a location update. \\
+
+When a deadlock is detected one of the trains is rerouted so that it doesn't use the edge that it is blocked on. This works for now because we only have 2 trains and we avoid the bays.
+
+\subsection{Path Following}
+
+One main change has been made to path following. Trains now reserve edges up to 70cm ahead of them and free edges past 15cm behind them. Reserving is done by just looking 70cm ahead in the path it has, and freeing is done by doing a DFS backwards from its curent location. The DFS was chosen because it is safer and simpler than trying to keep a queue of reserved edges and popping from it. Each train tracks which edges it has reserved, so that it doesn't send unnecessary requests to the reservation server. \\
+
 \subsection{Stopping Distance}
 
 In TC1 it felt good conceptually to do stopping like we did accelerating. That is, we had a deceleration function, and after so and so many ticks, we say we've stopped when current velocity was 0. If we wanted to change the stopping distance, manipulating the deceleration function to produce that stopping distance was notoriously difficult. We dropped the deceleration function and instead focussed entirely on just updating the train by the calibrated stopping distance. As a result, the location server is error-prone while stopping, but when fully stopped it is incredibly accurate. As a result, our path following actions always require a full-stop instead of slowing down.
