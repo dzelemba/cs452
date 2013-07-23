@@ -192,7 +192,7 @@ bool update_tracking_data_for_distance(tracking_data* t_data) {
   return false;
 }
 
-void update_tracking_data_for_sensor(tracking_data* t_data, sensor* s, bool* changed, bool* used) {
+void update_tracking_data_for_sensor(tracking_data* t_data, sensor* s, bool* changed) {
   track_edge* edge = t_data->loc->cur_edge;
   track_node* sensor_node = get_track_node(sensor2idx(s->group, s->socket));
 
@@ -202,9 +202,6 @@ void update_tracking_data_for_sensor(tracking_data* t_data, sensor* s, bool* cha
 
   if (edge != NULL) {
     int prev_edge_distance = t_data->loc->cur_edge->dist * UM_PER_MM;
-    if (t_data->loc->node == sensor_node) {
-      *used = true;
-    }
 
     if (t_data->next_sensor == sensor_node) {
       INFO(LOCATION_SERVER, "Updated to Next Sensor: %s", sensor_node->name);
@@ -236,7 +233,6 @@ void update_tracking_data_for_sensor(tracking_data* t_data, sensor* s, bool* cha
     }
     t_data->missed_sensor = 0;
     *changed = true;
-    *used = true;
   }
 }
 
@@ -279,6 +275,44 @@ tracking_data* get_tracking_data(tracking_data_array* t_data_array, int train) {
   return 0;
 }
 
+int get_distance_to_node(track_node* src, track_node* dest, int max_iters) {
+  track_edge* next_edge = NULL;
+  int i;
+  for (i = 0; i < max_iters && src != dest; i++) {
+    next_edge = get_next_edge(src);
+    if (next_edge == NULL) {
+      return -1;
+    }
+    src = next_edge->dest;
+  }
+
+  if (i == max_iters) {
+    return -1;
+  }
+
+  return i;
+}
+
+#define LOOKAHEAD 3
+
+tracking_data* attribute_sensor_to_train(tracking_data_array* t_array, sensor* s) {
+  track_node* sensor_node = get_track_node(sensor2idx(s->group, s->socket));
+
+  int minDist = LOOKAHEAD;
+  tracking_data* attributed_train = NULL;
+
+  int i;
+  for (i = 0; i < t_array->size; i++) {
+    int dist = get_distance_to_node(t_array->t_data[i].loc->node, sensor_node, LOOKAHEAD);
+    if (dist != -1 && dist < minDist) {
+      attributed_train = &t_array->t_data[i];
+      minDist = dist;
+    }
+  }
+
+  return attributed_train;
+}
+
 void location_server() {
   RegisterAs("Location Server");
 
@@ -292,7 +326,7 @@ void location_server() {
   tracking_data_array t_data_array;
   t_data_array.size = 0;
 
-  int tid, train, train_id, i, k, locations_changed, dt, dx, target_velocity, sensor_used;
+  int tid, train, train_id, i, locations_changed, dt, dx, target_velocity;
   location* loc;
   location_server_message msg;
 
@@ -395,14 +429,12 @@ void location_server() {
         case SENSOR_UPDATE: {
           Reply(tid, (void *)0, 0);
           locations_changed = 0; // Required so we don't send multiple updates for multiple sensor triggers
-          sensor_used = 0; // So that we don't attribute one sensor to multiple trains.
           for (i = 0; i < msg.sensors.num_sensors; i++) {
-            for (k = 0; k < t_data_array.size; k++) {
-              tracking_data* t_data = &t_data_array.t_data[k];
-              update_tracking_data_for_sensor(t_data, &msg.sensors.sensors[i], &locations_changed, &sensor_used);
-              if (sensor_used) {
-                break;
-              }
+            tracking_data* attributed_train =
+              attribute_sensor_to_train(&t_data_array, &msg.sensors.sensors[i]);
+            if (attributed_train != NULL) {
+              update_tracking_data_for_sensor(attributed_train, &msg.sensors.sensors[i],
+                                              &locations_changed);
             }
           }
           if (locations_changed) {
