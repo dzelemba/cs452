@@ -70,8 +70,6 @@ void draw_initial() {
   printf(COM2, "\033[%d;1HTrain Locations:", DRAW_ROW_TRAIN_LOC);
   printf(COM2, "\033[%d;1HDebug Output:", DRAW_DEBUG_OUTPUT);
   printf(COM2, "\033[%d;1HReservations", DRAW_RESERVATION_OUTPUT);
-  printf(COM2, "\033[%d;1HTrain 47: ", DRAW_RESERVATION_OUTPUT + 1);
-  printf(COM2, "\033[%d;1HTrain 50: ", DRAW_RESERVATION_OUTPUT + 2);
 
   // Set scrollable area for debug output.
   printf(COM2, "\033[%d;%dr", DRAW_DEBUG_OUTPUT + 1, DRAW_DEBUG_OUTPUT + DEBUG_OUTPUT_SIZE);
@@ -485,6 +483,9 @@ void display_train_locations() {
  * Drawing Reservation State
  */
 
+#define RESERVATION_WIDTH 12
+#define LABEL_WIDTH 11
+
 static int display_reservation_status_tid;
 
 void display_reservation_status_notifier() {
@@ -498,7 +499,22 @@ void display_reservation_status_notifier() {
   Exit();
 }
 
+void add_train_to_reservation_output(int train, int* next_row, int* train_to_row) {
+  printf(COM2, "\033[%d;1HTrain %d: ", DRAW_RESERVATION_OUTPUT + *next_row, train);
+
+  train_to_row[train] = *next_row;
+  *next_row = *next_row + 1;
+}
+
 void display_reservation_status() {
+  int train_to_row[NUM_TRAINS + 1];
+  int num_reservations[NUM_TRAINS + 1];
+  int next_row = 1;
+  int i;
+  for (i = 0; i < NUM_TRAINS + 1; i++) {
+    train_to_row[i] = 0;
+  }
+
   Create(MED_PRI_1, &display_reservation_status_notifier);
 
   track_edge_array train_at_edge;
@@ -509,12 +525,10 @@ void display_reservation_status() {
   tea_set_name(&train_at_edge, "output: copy");
   clear_track_edge_array(&copy);
 
-  int i, count47, count50, tid;
+  int tid;
   get_all_updates_reply edge_update;
   track_node* track = get_track();
   while (1) {
-    count47 = 0;
-    count50 = 0;
     Receive(&tid, (char *)&edge_update, sizeof(get_all_updates_reply));
     Reply(tid, (char *)0, 0);
     if (edge_update.status == FREE) {
@@ -523,12 +537,15 @@ void display_reservation_status() {
       store_value_at_edge(edge_update.edge, &train_at_edge, edge_update.train);
     }
 
+    // Reset counts.
+    for (i = 0; i < NUM_TRAINS + 1; i++) {
+      num_reservations[i] = 0;
+    }
     // Clear each row
-    printf(COM2, "\033[%d;10H\033[K", DRAW_RESERVATION_OUTPUT + 1);
-    printf(COM2, "\033[%d;10H\033[K", DRAW_RESERVATION_OUTPUT + 2);
+    for (i = 1; i < next_row; i++) {
+      printf(COM2, "\033[%d;10H\033[K", DRAW_RESERVATION_OUTPUT + i);
+    }
 
-    // TODO(dzelemba): Create an iterator and use that instead here.
-    // TODO(dzelemba): The train 47/50 assumption is hideous.
     track_edge* edge;
     memcpy((char *)&copy, (const char*)&train_at_edge, sizeof(track_edge_array));
     int row, train, col, j;
@@ -536,13 +553,17 @@ void display_reservation_status() {
       track_node* node = get_track_node(i);
       for (j = 0; j < get_num_neighbours(node->type); j++) {
         edge = &track[i].edge[j];
-        if (!is_edge_free(edge, &copy)) {
-          train = get_value_at_edge(edge, &train_at_edge);
-          row = train == 47 ? 1 : 2;
-          col = 12 * (train == 47 ? count47++ : count50++) + 11;
+        train = get_value_at_edge(edge, &copy);
+        if (train != 0) {
+          if (train_to_row[train] == 0) {
+            add_train_to_reservation_output(train, &next_row, train_to_row);
+          }
+          row = train_to_row[train];
+          col = RESERVATION_WIDTH * num_reservations[train] + LABEL_WIDTH;
           printf(COM2, "\033[%d;%dH%s->%s", DRAW_RESERVATION_OUTPUT+row, col,
                  edge->src->name, edge->dest->name);
           free_edge(edge, &copy);
+          num_reservations[train] = num_reservations[train] + 1;
         }
       }
     }
