@@ -10,8 +10,6 @@
 #include "user_prompt.h"
 #include "switch_server.h"
 
-#define DEFAULT_TRAIN_SPEED 11
-
 #define NUM_IGNORED_NODES 55
 // TODO(dzelemba): Add Track B.
 static const int const ignored_nodes[NUM_IGNORED_NODES] =

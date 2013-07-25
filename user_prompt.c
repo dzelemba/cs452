@@ -15,6 +15,7 @@
 #include "demo.h"
 #include "reservation_server.h"
 #include "debug.h"
+#include "train_sort.h"
 
 #define MAX_LINE_LENGTH 64
 #define MAX_TOKENS 4
@@ -259,6 +260,22 @@ int process_line(char* line, bool* is_hold_on) {
     demo_continue();
   } else if (string_equal(tokens[0], "loop")) {
     demo_loop();
+  } else if (string_equal(tokens[0], "sort")) {
+    switch (ret) {
+      case 5:
+        sort_trains(atoi(tokens[1]), atoi(tokens[2]), atoi(tokens[3]), atoi(tokens[4]));
+        break;
+      case 4:
+        sort_trains(atoi(tokens[1]), atoi(tokens[2]), atoi(tokens[3]), 0);
+        break;
+      case 3:
+        sort_trains(atoi(tokens[1]), atoi(tokens[2]), 0, 0);
+        break;
+      case 2:
+      case 1:
+        return 1;
+        break;
+    }
   } else {
     return 1;
   }

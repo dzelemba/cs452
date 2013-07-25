@@ -3,6 +3,8 @@
 
 #include "location.h"
 
+#define DEFAULT_TRAIN_SPEED 11
+
 #define NUM_TRAINS 80
 #define MAX_TRAINS 8
 #define NUM_SPEEDS 15
