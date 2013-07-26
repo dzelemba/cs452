@@ -147,9 +147,9 @@ bool update_tracking_data_for_distance(tracking_data* t_data) {
     return false;
   }
 
-  if (t_data->loc->um_past_node / 1000 > edge->dist) {
+  if (t_data->loc->um_past_node / UM_PER_MM > edge->dist) {
     if (edge->dest->type != NODE_SENSOR) {
-      t_data->loc->um_past_node -= edge->dist * 1000;
+      t_data->loc->um_past_node -= edge->dist * UM_PER_MM;
       increment_location(t_data);
       return true;
     }
@@ -157,7 +157,7 @@ bool update_tracking_data_for_distance(tracking_data* t_data) {
 
   // Check for broken sensor
   if (edge->dest->type == NODE_SENSOR) {
-    int mm_past_sensor = t_data->loc->um_past_node / 1000 - edge->dist;
+    int mm_past_sensor = t_data->loc->um_past_node / UM_PER_MM - edge->dist;
     if (mm_past_sensor > BROKEN_SENSOR_ERROR) {
       /*
        * If we've missed two sensors in a row, then report lost train
@@ -182,7 +182,7 @@ bool update_tracking_data_for_distance(tracking_data* t_data) {
       }
       INFO(LOCATION_SERVER,"Broken Sensor Found: %s", edge->dest->name);
 
-      t_data->loc->um_past_node -= edge->dist * 1000;
+      t_data->loc->um_past_node -= edge->dist * UM_PER_MM;
       t_data->missed_sensor = edge->dest;
       increment_location(t_data);
       return true;
@@ -240,13 +240,13 @@ void update_tracking_data_for_reverse(tracking_data* t_data, int train) {
   if (t_data->loc->cur_edge != 0) {
     // If the train is stopped on top of a sensor, it won't trigger the reverse sensor
     // so put it at the reverse sensor instead.
-    if (t_data->loc->node->type == NODE_SENSOR && t_data->loc->um_past_node < PICKUP_LENGTH * 1000) {
+    if (t_data->loc->node->type == NODE_SENSOR && t_data->loc->um_past_node < PICKUP_LENGTH * UM_PER_MM) {
       t_data->loc->node = t_data->loc->node->reverse;
-      t_data->loc->um_past_node = PICKUP_LENGTH * 1000 - t_data->loc->um_past_node;
+      t_data->loc->um_past_node = PICKUP_LENGTH * UM_PER_MM - t_data->loc->um_past_node;
       fill_in_tracking_data(t_data);
     } else {
       t_data->loc->node = t_data->loc->cur_edge->dest->reverse;
-      t_data->loc->um_past_node = max(t_data->loc->cur_edge->dist * 1000 - t_data->loc->um_past_node, 0);
+      t_data->loc->um_past_node = max(t_data->loc->cur_edge->dist * UM_PER_MM - t_data->loc->um_past_node, 0);
       t_data->loc->cur_edge = t_data->loc->cur_edge->reverse;
       fill_in_tracking_data_with_edge(t_data);
     }

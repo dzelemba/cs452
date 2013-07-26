@@ -437,7 +437,7 @@ void perform_path_actions(location* cur_loc, path_following_info* p_info) {
     if (!p_info->is_stopping && action == REVERSE) {
       if (dist <= reverse_lookahead) {
         p_info->is_stopping = 1;
-      INFO(TRAIN_CONTROLLER, "Train %d sent reverse command at %d past %s", train, cur_loc->um_past_node / 1000, cur_loc->node->name);
+      INFO(TRAIN_CONTROLLER, "Train %d sent reverse command at %d past %s", train, cur_loc->um_past_node / UM_PER_MM, cur_loc->node->name);
         perform_reverse_action(&path_base[i], train, MAX_STOPPING_TIME);
 
         // Acquire reverse edge.
