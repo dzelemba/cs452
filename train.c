@@ -259,6 +259,9 @@ track_edge* get_next_edge_in_path(sequence* path_node) {
 // overshooting can be just as bad as undershooting.
 #define REVERSE_BUFFER 50
 
+// Distance in cm to keep reserved behind the train.
+#define RESERVATION_BUFFER 50
+
 int get_distance_to_forwardwheel(direction d) {
   switch (d) {
     case FORWARD:
@@ -297,6 +300,10 @@ int get_stop_lookahead(int stopping_distance, direction d) {
 
 int get_reserve_lookahead(int stopping_distance, direction d) {
   return stopping_distance + get_distance_to_forwardwheel(d) + MAX_DISTANCE_ERROR;
+}
+
+int get_reservation_lookbehind(direction d) {
+  return RESERVATION_BUFFER + get_distance_to_backwardwheel(d);
 }
 
 void perform_all_path_actions(int train, sequence* path_base, int path_size) {
@@ -357,13 +364,15 @@ void tc_free_all_edges(int train, path_following_info* p_info) {
   }
 }
 
+#define MAX_LOOKBEHIND 1000
+
 void previous_edges_within_distance(track_edge* curr, int cd, int fd, track_edge_array* seen) {
   int i;
   track_node* dest = curr->dest;
 
   if (cd >= fd) {
     set_edge(seen, curr);
-    if (cd >= fd + 1000) {
+    if (cd >= fd + MAX_LOOKBEHIND) {
       return;
     }
   }
@@ -374,24 +383,21 @@ void previous_edges_within_distance(track_edge* curr, int cd, int fd, track_edge
   }
 }
 
-void tc_free_previous_edges(int train, location* cur_loc, path_following_info* p_info, int distance_behind) {
+void tc_free_previous_edges(int train, location* cur_loc, path_following_info* p_info,
+                            int distance_behind) {
   track_edge_array freeable_edges;
   clear_track_edge_array(&freeable_edges);
 
   track_node* rev = cur_loc->node->reverse;
-  track_node* node;
 
   int i, j;
 
   int cd = cur_loc->um_past_node / UM_PER_MM;
-  // Free edges only _after_ the edge we're on
   for (i = 0; i < get_num_neighbours(rev->type); i++) {
-    node = rev->edge[i].dest;
-    for (j = 0; j < get_num_neighbours(node->type); j++) {
-      previous_edges_within_distance(&node->edge[j], cd + rev->edge[i].dist, distance_behind, &freeable_edges);
-    }
+    previous_edges_within_distance(&rev->edge[i], cd, distance_behind, &freeable_edges);
   }
 
+  track_node* node;
   for (i = 0; i < TRACK_MAX; i++) {
     node = get_track_node(i);
     for (j = 0; j < get_num_neighbours(node->type); j++) {
@@ -512,8 +518,7 @@ void handle_path(location* cur_loc, path_following_info* p_info) {
       INFO(TRAIN_CONTROLLER, "Train %d Skipped to %s", train, cur_loc->node->name);
       // TODO(dzelemba): Look ahead to next_sensor here instead of next node.
       *path_index = p_index + 2;
-
-      tc_free_previous_edges(train, cur_loc, p_info, TRAIN_LENGTH + 150);
+      tc_free_previous_edges(train, cur_loc, p_info, get_reservation_lookbehind(cur_loc->d));
     }
 
     // Don't permit advancing at reverse nodes. We must wait until reversing
@@ -524,13 +529,12 @@ void handle_path(location* cur_loc, path_following_info* p_info) {
       if (*path_index > 0 && path[*path_index - 1].action == REVERSE) {
         *path_index -= 1;
       } else if (p_info->state != DONE) {
-        tc_free_previous_edges(train, cur_loc, p_info, TRAIN_LENGTH + 150);
-        if (train == 50) {
-          INFO(TRAIN_CONTROLLER, "Train %d Advanced to %s", train, cur_loc->node->name);
-        }
+        INFO(TRAIN_CONTROLLER, "Train %d Advanced to %s", train, cur_loc->node->name);
+        tc_free_previous_edges(train, cur_loc, p_info, get_reservation_lookbehind(cur_loc->d));
       }
     }
   }
+
 
   if (*path_index >= p_info->path_size) {
     *path_index = p_info->path_size - 1;
@@ -539,7 +543,7 @@ void handle_path(location* cur_loc, path_following_info* p_info) {
   if (p_info->is_stopping && *path_index == p_info->path_size - 1 &&
       cur_loc->stopping_distance == 0) {
     p_info->state = DONE;
-    tc_free_previous_edges(train, cur_loc, p_info, TRAIN_LENGTH + 150);
+    tc_free_previous_edges(train, cur_loc, p_info, get_reservation_lookbehind(cur_loc->d));
   }
 
   perform_path_actions(cur_loc, p_info);
@@ -638,10 +642,10 @@ void check_deadlock(location_array* loc_array, path_following_info* path_info) {
    *  1) Both are blocked
    *  2) One is blocked and the other is stopped
    */
-  if (t1_p_info->blocked_edge != 0 &&
+  if (t1_p_info->blocked_edge != 0 && t1_p_info->dest != 0 &&
       (t2_p_info->blocked_edge != 0 || t2_p_info->state != ON_ROUTE)) {
     reroute_train(train1, t1_p_info);
-  } else if (t2_p_info->blocked_edge != 0 &&
+  } else if (t2_p_info->blocked_edge != 0 && t2_p_info->dest != 0 &&
              (t1_p_info->blocked_edge != 0 || t1_p_info->state != ON_ROUTE)) {
     reroute_train(train2, t2_p_info);
   }
