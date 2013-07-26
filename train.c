@@ -269,7 +269,7 @@ int get_distance_to_forwardwheel(direction d) {
     case BACKWARD:
       return PICKUP_TO_BACKWHEEL;
   }
-  ERROR("train.c: Invalid distance given: %d\n", d);
+  ERROR("train.c: Invalid direction given: %d\n", d);
   return 0;
 }
 

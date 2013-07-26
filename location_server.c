@@ -415,19 +415,20 @@ void location_server() {
           push(&waiting_tasks, tid);
           break;
         case LS_TRAIN_REVERSE:
-          Reply(tid, (void *)0, 0);
+          Reply(tid, NULL, 0);
           train = msg.train_update.train;
           update_tracking_data_for_reverse(get_tracking_data(&t_data_array, train), train);
           reply_to_tasks(&waiting_tasks, &loc_array);
           break;
         case LS_TRAIN_DIRECTION:
-          Reply(tid, (void *)0, 0);
+          Reply(tid, NULL, 0);
           train = msg.train_update.train;
           get_tracking_data(&t_data_array, train)->loc->d = msg.train_update.dir;
+
           reply_to_tasks(&waiting_tasks, &loc_array);
           break;
         case SENSOR_UPDATE: {
-          Reply(tid, (void *)0, 0);
+          Reply(tid, NULL, 0);
           locations_changed = 0; // Required so we don't send multiple updates for multiple sensor triggers
           for (i = 0; i < msg.sensors.num_sensors; i++) {
             tracking_data* attributed_train =
@@ -499,7 +500,7 @@ void track_train(int train, location* loc) {
   location_server_message msg;
   msg.type = TRACK_TRAIN;
   loc->train = train;
-  loc->um_past_node = 6 * UM_PER_CM;
+  loc->um_past_node = (PICKUP_LENGTH + 10) * UM_PER_MM;
   loc->prev_sensor_error = 0;
   memcpy((char *)&msg.loc, (const char*)loc, sizeof(location));
 
