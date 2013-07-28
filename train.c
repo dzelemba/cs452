@@ -835,7 +835,7 @@ void tr_track(int train) {
   train_controller_message msg;
   msg.type = TRACK_TRAIN;
   msg.user_cmd.train = train;
-  Send(train_controller_tid, (char *)&msg, sizeof(train_controller_message), (void *)0, 0);
+  Send(train_controller_tid, (char *)&msg, sizeof(train_controller_message), NULL, 0);
 }
 
 void tr_set_speed(int speed, int train) {
@@ -843,14 +843,14 @@ void tr_set_speed(int speed, int train) {
   msg.type = CHANGE_SPEED;
   msg.user_cmd.train = train;
   msg.user_cmd.speed = speed;
-  Send(train_controller_tid, (char *)&msg, sizeof(train_controller_message), (void *)0, 0);
+  Send(train_controller_tid, (char *)&msg, sizeof(train_controller_message), NULL, 0);
 }
 
 void tr_reverse(int train) {
   train_controller_message msg;
   msg.type = TR_REVERSE;
   msg.user_cmd.train = train;
-  Send(train_controller_tid, (char *)&msg, sizeof(train_controller_message), (void *)0, 0);
+  Send(train_controller_tid, (char *)&msg, sizeof(train_controller_message), NULL, 0);
 }
 
 void tr_set_route(int train, int speed, location* loc) {
@@ -859,7 +859,7 @@ void tr_set_route(int train, int speed, location* loc) {
   msg.set_route_data.train = train;
   msg.set_route_data.speed = speed;
   memcpy((char *)&msg.set_route_data.dest, (const char *)loc, sizeof(location));
-  Send(train_controller_tid, (char *)&msg, sizeof(train_controller_message), (void *)0, 0);
+  Send(train_controller_tid, (char *)&msg, sizeof(train_controller_message), NULL, 0);
 }
 
 void tr_get_done_trains(train_array* tr_array) {
