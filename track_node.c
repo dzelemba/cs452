@@ -42,6 +42,14 @@ int node2idx(track_node* track, track_node* node) {
   return (node - track);
 }
 
+track_edge* get_other_branch_edge(track_node* branch, track_edge* edge) {
+  ASSERT(branch->type == NODE_BRANCH, "track_node.c: Non-branch node given.");
+
+  return &branch->edge[DIR_AHEAD] == edge ?
+          &branch->edge[DIR_CURVED] :
+          &branch->edge[DIR_AHEAD];
+}
+
 void node2sensor(track_node* track, track_node* node, sensor* s) {
   int idx = node2idx(track, node);
   s->group = (idx / SOCKETS_PER_SENSOR) + 'A';

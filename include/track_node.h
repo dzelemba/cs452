@@ -52,6 +52,8 @@ int sensor2idx(char sensor, int socket);
 
 int node2idx(track_node* track, track_node* node);
 
+track_edge* get_other_branch_edge(track_node* branch, track_edge* edge);
+
 void node2sensor(track_node* track, track_node* node, sensor* s);
 
 void get_next_sensors(track_node* track, track_node* node, sensor* sensors, int* num_sensors);
