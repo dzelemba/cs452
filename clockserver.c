@@ -18,7 +18,7 @@ static int clockserver_tid;
 void notifier_run() {
   while (1) {
     AwaitEvent(EVENT_TIMER);
-    Send(clockserver_tid, (char *)0, 0, (char *)0, 0);
+    Send(clockserver_tid, NULL, 0, NULL, 0);
   }
 
   Exit();

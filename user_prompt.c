@@ -510,7 +510,7 @@ void display_reservation_status_notifier() {
   while (1) {
     rs_get_all_updates(&edge_update);
     Send(display_reservation_status_tid, (char *)&edge_update, sizeof(get_all_updates_reply),
-         (char *)0, 0);
+         NULL, 0);
   }
 
   Exit();
@@ -547,7 +547,7 @@ void display_reservation_status() {
   track_node* track = get_track();
   while (1) {
     Receive(&tid, (char *)&edge_update, sizeof(get_all_updates_reply));
-    Reply(tid, (char *)0, 0);
+    Reply(tid, NULL, 0);
     if (edge_update.status == FREE) {
       free_edge(edge_update.edge, &train_at_edge);
     } else {

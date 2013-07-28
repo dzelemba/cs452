@@ -91,12 +91,12 @@ typedef struct reverse_msg {
 void tr_reverse_task() {
   int train, tid;
   Receive(&tid, (char *)&train, sizeof(int));
-  Reply(tid, (char *)0, 0);
+  Reply(tid, NULL, 0);
 
   reverse_msg msg;
-  while (1) {
+  while (true) {
     Receive(&tid, (char *)&msg, sizeof(reverse_msg));
-    Reply(tid, (char *)0, 0);
+    Reply(tid, NULL, 0);
 
     Delay(msg.delay);
     send_reverse_command(train);
@@ -118,7 +118,7 @@ void reverse(int train, int delay) {
   int train_idx = tr_num_to_idx(train);
   if (reversing_tasks[train_idx] == 0) {
     reversing_tasks[train_idx] = Create(MED_PRI, &tr_reverse_task);
-    Send(reversing_tasks[train_idx], (char *)&train, sizeof(int), (char *)0, 0);
+    Send(reversing_tasks[train_idx], (char *)&train, sizeof(int), NULL, 0);
   }
   Send(reversing_tasks[train_idx], (char *)&msg, sizeof(reverse_msg), NULL, 0);
 }

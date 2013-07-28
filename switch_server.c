@@ -98,7 +98,7 @@ void switch_server() {
     Receive(&tid, (char *)&msg, sizeof(switch_server_message));
     switch (msg.type) {
       case SS_CHANGE_SWITCH:
-        Reply(tid, (char *)0, 0);
+        Reply(tid, NULL, 0);
         sw(msg.switch_number, msg.switch_direction);
         break;
       case SS_GET_SWITCH_STATUS:
@@ -134,7 +134,7 @@ void tr_sw(int switch_number, char switch_direction) {
   msg.type = SS_CHANGE_SWITCH;
   msg.switch_number = switch_number;
   msg.switch_direction = switch_direction;
-  Send(switch_server_tid, (char *)&msg, sizeof(switch_server_message), (char *)0, 0);
+  Send(switch_server_tid, (char *)&msg, sizeof(switch_server_message), NULL, 0);
 }
 
 char get_switch_direction(int switch_number) {

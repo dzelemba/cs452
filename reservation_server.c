@@ -79,7 +79,7 @@ void reservation_server() {
         Reply(tid, (char *)&reply, sizeof(rs_reply));
         break;
       case RS_FREE:
-        Reply(tid, (char *)0, 0);
+        Reply(tid, NULL, 0);
         ASSERT(!is_edge_free(msg.edge, &edge_statuses),
                "Reservation Server: train %d freeing %s -> %s",
                msg.train, msg.edge->src->name, msg.edge->dest->name);
@@ -135,7 +135,7 @@ void rs_free(int train, track_edge* edge) {
   msg.type = RS_FREE;
   msg.train = train;
   msg.edge = edge;
-  Send(reservation_server_tid, (char *)&msg, sizeof(reservation_server_message), (char *)0, 0);
+  Send(reservation_server_tid, (char *)&msg, sizeof(reservation_server_message), NULL, 0);
 }
 
 void rs_get_updates(train_array* tr_array) {
