@@ -13,7 +13,9 @@
 #define DEFAULT_NM_PER_TICK 5311245
 #define DEFAULT_ACCELERATING_TICKS 428
 #define DEFAULT_STOPPING_DISTANCE 700
-#define DEFAULT_STOPPING_TICKS 300
+
+// TODO(f2fung): This does nothing right now for want of a deceleration model
+#define DEFAULT_STOPPING_TICKS 400
 
 // Ticks
 #define MAX_STOPPING_TIME 400

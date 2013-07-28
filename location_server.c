@@ -68,7 +68,7 @@ void distance_notifier() {
     // Use DelayUntil to reduce to constant factor drifting
     DelayUntil(now + 1);
     now++;
-    Send(location_server_tid, (char *)NULL, 0, NULL, 0);
+    Send(location_server_tid, NULL, 0, NULL, 0);
   }
 
   Exit();
@@ -143,7 +143,7 @@ void increment_location_to_sensor(tracking_data* t_data, track_node* sensor) {
 
 bool update_tracking_data_for_distance(tracking_data* t_data) {
   track_edge* edge = t_data->loc->cur_edge;
-  if (t_data->lost_train || edge == 0 || t_data->loc->node->type == NODE_EXIT) {
+  if (t_data->lost_train || edge == NULL || t_data->loc->node->type == NODE_EXIT) {
     return false;
   }
 
@@ -365,7 +365,7 @@ void location_server() {
           if (current_speeds[train_id] > 0) {
             dx = current_velocities[train_id] / NM_PER_UM;
           } else if (stopping_time[train_id] > 0) {
-            dx = (DEFAULT_STOPPING_DISTANCE * UM_PER_MM) / DEFAULT_STOPPING_TICKS;
+            dx = (MAX_STOPPING_TICKS * UM_PER_MM) / DEFAULT_STOPPING_TICKS;
           }
         } else {
           dx = current_velocities[train_id] / NM_PER_UM;
@@ -459,7 +459,7 @@ void location_server() {
           if (current_speeds[train_id] == 0) {
             acceleration_start_time[train_id] = Time();
             // Division by 4 necessary to avoid integer overflow
-            stopping_time[train_id] = (((DEFAULT_STOPPING_TICKS / 4) * current_velocities[train_id]) / DEFAULT_NM_PER_TICK) * 4;
+            stopping_time[train_id] = (((MAX_STOPPING_TICKS / 4) * current_velocities[train_id]) / DEFAULT_NM_PER_TICK) * 4;
             INFO(LOCATION_SERVER, "Stopping time: train %d stops in %d ticks", msg.train_update.train, stopping_time[train_id]);
           } else {
             acceleration_start_time[train_id] = Time();

@@ -418,7 +418,12 @@ void perform_path_actions(location* cur_loc, path_following_info* p_info) {
   // far, so just reverse.
   if (cur_loc->cur_edge == 0) {
     if (path_base->action == REVERSE) {
-      perform_reverse_action(path_base, train, MAX_STOPPING_TIME);
+      // TODO(f2fung): Reverse delay should rely on the physics of the train
+      if (cur_loc->stopping_distance > 0) {
+        perform_reverse_action(path_base, train, MAX_STOPPING_TIME);
+      } else {
+        perform_reverse_action(path_base, train, 0);
+      }
       return;
     }
   }
@@ -437,8 +442,12 @@ void perform_path_actions(location* cur_loc, path_following_info* p_info) {
     if (!p_info->is_stopping && action == REVERSE) {
       if (dist <= reverse_lookahead) {
         p_info->is_stopping = 1;
-      INFO(TRAIN_CONTROLLER, "Train %d sent reverse command at %d past %s", train, cur_loc->um_past_node / UM_PER_MM, cur_loc->node->name);
-        perform_reverse_action(&path_base[i], train, MAX_STOPPING_TIME);
+        INFO(TRAIN_CONTROLLER, "Train %d sent reverse command at %d past %s", train, cur_loc->um_past_node / UM_PER_MM, cur_loc->node->name);
+        if (cur_loc->stopping_distance > 0) {
+          perform_reverse_action(&path_base[i], train, MAX_STOPPING_TIME);
+        } else {
+          perform_reverse_action(&path_base[i], train, 0);
+        }
 
         // Acquire reverse edge.
         next_edge = get_next_edge_in_path(&path_base[i]);
@@ -481,7 +490,11 @@ int perform_initial_path_actions(location* cur_loc, path_following_info* p_info)
   sequence_action action = path->action;
   if (action == REVERSE) {
     p_info->is_stopping = 1;
-    perform_reverse_action(path, train, MAX_STOPPING_TIME);
+    if (cur_loc->stopping_distance > 0) {
+      perform_reverse_action(path, train, MAX_STOPPING_TIME);
+    } else {
+      perform_reverse_action(path, train, 0);
+    }
   } else if (action == TAKE_STRAIGHT || action == TAKE_CURVE) {
     perform_switch_action(path);
   }
