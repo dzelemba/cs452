@@ -56,7 +56,7 @@ void location_sensor_notifier() {
   msg.type = SENSOR_UPDATE;
   while (1) {
     msg.sensors.num_sensors = get_sensor_data(msg.sensors.sensors, MAX_NEW_SENSORS);
-    Send(location_server_tid, (char *)&msg, sizeof(location_server_message), (void *)0, 0);
+    Send(location_server_tid, (char *)&msg, sizeof(location_server_message), NULL, 0);
   }
 
   Exit();
@@ -387,7 +387,7 @@ void location_server() {
     } else {
       switch (msg.type) {
         case TRACK_TRAIN:
-          Reply(tid, (void *)0, 0);
+          Reply(tid, NULL, 0);
           ASSERT(loc_array.size < MAX_TRAINS, "location_server.c: track train request");
 
           // Notify distance server.
@@ -505,7 +505,7 @@ void track_train(int train, location* loc) {
   loc->prev_sensor_error = 0;
   memcpy((char *)&msg.loc, (const char*)loc, sizeof(location));
 
-  Send(location_server_tid, (char *)&msg, sizeof(location_server_message), (void *)0, 0);
+  Send(location_server_tid, (char *)&msg, sizeof(location_server_message), NULL, 0);
 }
 
 void ls_set_direction(int train, direction dir) {
@@ -514,7 +514,7 @@ void ls_set_direction(int train, direction dir) {
   msg.train_update.train = train;
   msg.train_update.dir = dir;
 
-  Send(location_server_tid, (char *)&msg, sizeof(location_server_message), (void *)0, 0);
+  Send(location_server_tid, (char *)&msg, sizeof(location_server_message), NULL, 0);
 }
 
 void get_location_updates(location_array* loc_array) {
@@ -529,7 +529,7 @@ void ls_train_reversed(int train) {
   location_server_message msg;
   msg.type = LS_TRAIN_REVERSE;
   msg.train_update.train = train;
-  Send(location_server_tid, (char *)&msg, sizeof(location_server_message), (void *)0, 0);
+  Send(location_server_tid, (char *)&msg, sizeof(location_server_message), NULL, 0);
 }
 
 void ds_update_speed(int train, int speed) {

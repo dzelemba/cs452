@@ -67,7 +67,7 @@ void sensor_notifier() {
     process_sensor_bytes(sensor_bytes, &msg);
 
     if (msg.num_sensors != 0) {
-      Send(sensor_server_tid, (char *)&msg, sizeof(sensor_server_message), (void *)0, 0);
+      Send(sensor_server_tid, (char *)&msg, sizeof(sensor_server_message), NULL, 0);
     }
   }
 
@@ -92,7 +92,7 @@ void sensor_server() {
         push(&waiting_tasks, tid);
         break;
       case SENSOR_SERVER_DATA_MSG:{
-        Reply(tid, (void *)0, 0);
+        Reply(tid, NULL, 0);
 
         while (!is_queue_empty(&waiting_tasks)) {
           Reply(pop(&waiting_tasks), (char* )msg.data, msg.num_sensors * sizeof(sensor));

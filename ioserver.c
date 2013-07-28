@@ -55,7 +55,7 @@ void uart1_write_notifier_run() {
 
   while (1) {
     AwaitEvent(EVENT_UART1_TX_READY);
-    Send(ioserver_tid, (char *)&req, sizeof(ioserver_request), (void *)0, 0);
+    Send(ioserver_tid, (char *)&req, sizeof(ioserver_request), NULL, 0);
   }
 
   Exit();
@@ -66,7 +66,7 @@ void uart1_read_notifier_run() {
 
   while (1) {
     req.msg = AwaitEvent(EVENT_UART1_RCV_READY);
-    Send(ioserver_tid, (char *)&req, sizeof(ioserver_request), (void *)0, 0);
+    Send(ioserver_tid, (char *)&req, sizeof(ioserver_request), NULL, 0);
   }
 
   Exit();
@@ -77,7 +77,7 @@ void uart2_write_notifier_run() {
 
   while (1) {
     AwaitEvent(EVENT_UART2_TX_READY);
-    Send(ioserver_tid, (char *)&req, sizeof(ioserver_request), (void *)0, 0);
+    Send(ioserver_tid, (char *)&req, sizeof(ioserver_request), NULL, 0);
   }
 
   Exit();
@@ -88,7 +88,7 @@ void uart2_read_notifier_run() {
 
   while (1) {
     req.msg = AwaitEvent(EVENT_UART2_RCV_READY);
-    Send(ioserver_tid, (char *)&req, sizeof(ioserver_request), (void *)0, 0);
+    Send(ioserver_tid, (char *)&req, sizeof(ioserver_request), NULL, 0);
   }
 
   Exit();
@@ -136,7 +136,7 @@ void ioserver_run() {
     Receive(&tid, (char *)&req, sizeof(ioserver_request));
     switch (req.type) {
       case NOTIF_TRAIN_CANPUT:
-        Reply(tid, (void *)0, 0);
+        Reply(tid, NULL, 0);
         if (!is_queue_empty(&train_putc_queue)) {
           ch = pop(&train_putc_queue);
           ua_putc(COM1, ch);
@@ -148,7 +148,7 @@ void ioserver_run() {
         break;
 
       case NOTIF_TRAIN_HASDATA:
-        Reply(tid, (void *)0, 0);
+        Reply(tid, NULL, 0);
         if (receive_data_from_train) {
           if (!is_queue_empty(&train_getc_queue)) {
             qgetc_tid = pop(&train_getc_queue);
@@ -177,7 +177,7 @@ void ioserver_run() {
           push(&train_putc_queue, req.msg);
         }
 
-        Reply(tid, (void *)0, 0);
+        Reply(tid, NULL, 0);
         break;
 
       case REQUEST_TRAIN_PUTSTR:
@@ -193,11 +193,11 @@ void ioserver_run() {
           push(&train_putc_queue, req.str[i]);
         }
 
-        Reply(tid, (void *)0, 0);
+        Reply(tid, NULL, 0);
         break;
 
       case NOTIF_TERM_CANPUT:
-        Reply(tid, (void *)0, 0);
+        Reply(tid, NULL, 0);
         if (!is_queue_empty(&term_putc_queue)) {
           ch = pop(&term_putc_queue);
           ua_putc(COM2, ch);
@@ -208,7 +208,7 @@ void ioserver_run() {
         break;
 
       case NOTIF_TERM_HASDATA:
-        Reply(tid, (void *)0, 0);
+        Reply(tid, NULL, 0);
         if (!is_queue_empty(&term_getc_queue)) {
           qgetc_tid = pop(&term_getc_queue);
           Reply(qgetc_tid, &req.msg, sizeof(char));
@@ -235,11 +235,11 @@ void ioserver_run() {
           push(&term_putc_queue, req.msg);
         }
 
-        Reply(tid, (void *)0, 0);
+        Reply(tid, NULL, 0);
         break;
 
       case REQUEST_TERM_PUTSTR:
-        Reply(tid, (void *)0, 0);
+        Reply(tid, NULL, 0);
         i = 0;
         if (term_can_put) {
           ua_putc(COM2, req.str[0]);
@@ -263,7 +263,7 @@ void ioserver_run() {
         is_queue_empty(&term_putc_queue)) {
       while (!is_queue_empty(&flush_queue)) {
         int tid = pop(&flush_queue);
-        Reply(tid, (void *)0, 0);
+        Reply(tid, NULL, 0);
       }
     }
   }
@@ -297,7 +297,7 @@ int Putc(int channel, char ch) {
   ioserver_request req;
   req.type = (channel == COM1) ? REQUEST_TRAIN_PUTC : REQUEST_TERM_PUTC;
   req.msg = ch;
-  Send(ioserver_tid, (char *)&req, sizeof(ioserver_request), (void *)0, 0);
+  Send(ioserver_tid, (char *)&req, sizeof(ioserver_request), NULL, 0);
   return 0;
 }
 
@@ -308,13 +308,13 @@ int Putstr(int channel, char* s, int size) {
   req.type = (channel == COM1) ? REQUEST_TRAIN_PUTSTR : REQUEST_TERM_PUTSTR;
   req.str = s;
   req.size = size;
-  Send(ioserver_tid, (char *)&req, sizeof(ioserver_request), (void *)0, 0);
+  Send(ioserver_tid, (char *)&req, sizeof(ioserver_request), NULL, 0);
   return 0;
 }
 
 int Flush() {
   ioserver_request req;
   req.type = REQUEST_FLUSH;
-  Send(ioserver_tid, (char *)&req, sizeof(ioserver_request), (void *)0, 0);
+  Send(ioserver_tid, (char *)&req, sizeof(ioserver_request), NULL, 0);
   return 0;
 }

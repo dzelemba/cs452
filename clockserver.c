@@ -1,10 +1,11 @@
 #include "clockserver.h"
+#include "events.h"
 #include "heap.h"
+#include "icu.h"
+#include "ourlib.h"
+#include "priorities.h"
 #include "syscall.h"
 #include "task.h"
-#include "priorities.h"
-#include "icu.h"
-#include "events.h"
 
 // We can make the clockserver faster by never actually implementing the user-task.
 // This is a lot more work, but we can get rid of 2-3 context switches every 10ms.
@@ -38,9 +39,9 @@ void clockserver_run() {
       ticks++;
       while (listeners.size > 0 && heap_min_pri(&listeners) <= ticks) {
         int waking_tid = (int) heap_delete_min(&listeners);
-        Reply(waking_tid, (void *)0, 0);
+        Reply(waking_tid, NULL, 0);
       }
-      Reply(notifier_tid, (void *)0, 0);
+      Reply(notifier_tid, NULL, 0);
     } else {
       heap_insert(&listeners, wakeup_time, (void *) tid);
     }
@@ -60,7 +61,7 @@ int Delay(int t) {
     Pass(); // OPTIONAL
   } else {
     int wakeup_time = ticks + t;
-    Send(clockserver_tid, (char *)&wakeup_time, sizeof(int), (void *)0, 0);
+    Send(clockserver_tid, (char *)&wakeup_time, sizeof(int), NULL, 0);
   }
   return 0;
 }
@@ -74,7 +75,7 @@ int DelayUntil(int t) {
     Pass(); // OPTIONAL
   } else {
     int wakeup_time = t;
-    Send(clockserver_tid, (char *)&wakeup_time, sizeof(int), (void *)0, 0);
+    Send(clockserver_tid, (char *)&wakeup_time, sizeof(int), NULL, 0);
   }
   return 0;
 }

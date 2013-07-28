@@ -120,7 +120,7 @@ void reverse(int train, int delay) {
     reversing_tasks[train_idx] = Create(MED_PRI, &tr_reverse_task);
     Send(reversing_tasks[train_idx], (char *)&train, sizeof(int), (char *)0, 0);
   }
-  Send(reversing_tasks[train_idx], (char *)&msg, sizeof(reverse_msg), (void *)0, 0);
+  Send(reversing_tasks[train_idx], (char *)&msg, sizeof(reverse_msg), NULL, 0);
 }
 
 /*
@@ -742,7 +742,7 @@ void train_controller() {
       case SET_ROUTE:
         train = msg.set_route_data.train;
         train_idx = tr_num_to_idx(train);
-        Reply(tid, (void *)0, 0);
+        Reply(tid, NULL, 0);
 
         cur_loc = get_train_location(&train_locations, train);
         path_info[train_idx].dest = msg.set_route_data.dest.node;
@@ -751,11 +751,11 @@ void train_controller() {
         start_route(cur_loc, &path_info[train_idx], NULL);
         break;
       case CHANGE_SPEED:
-        Reply(tid, (void *)0, 0);
+        Reply(tid, NULL, 0);
         set_speed(msg.user_cmd.speed, msg.user_cmd.train);
         break;
       case TR_REVERSE:
-        Reply(tid, (void *)0, 0);
+        Reply(tid, NULL, 0);
         reverse(msg.user_cmd.train, MAX_STOPPING_TIME);
         break;
       case UPDATE_LOCATIONS: {
@@ -777,7 +777,7 @@ void train_controller() {
         break;
       }
       case RETRY_RESERVATIONS: {
-        Reply(tid, (void *)0, 0);
+        Reply(tid, NULL, 0);
         for (i = 0; i < msg.tr_array.size; i++) {
           train = msg.tr_array.trains[i];
           path_following_info* p_info = &path_info[tr_num_to_idx(train)];
