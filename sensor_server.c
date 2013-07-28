@@ -1,12 +1,13 @@
-#include "sensor_server.h"
-#include "train.h"
-#include "ourio.h"
-#include "priorities.h"
-#include "syscall.h"
 #include "debug.h"
-#include "sensor.h"
+#include "ourio.h"
+#include "ourlib.h"
+#include "priorities.h"
 #include "queue.h"
+#include "sensor.h"
+#include "sensor_server.h"
+#include "syscall.h"
 #include "task.h"
+#include "train.h"
 
 /*
  * Private Methods

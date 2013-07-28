@@ -1,13 +1,14 @@
+#include "debug.h"
 #include "events.h"
 #include "icu.h"
 #include "ioserver.h"
+#include "ourio.h"
+#include "ourlib.h"
 #include "priorities.h"
 #include "queue.h"
 #include "syscall.h"
 #include "task.h"
 #include "uart.h"
-#include "debug.h"
-#include "ourio.h"
 
 #define REQUEST_TRAIN_GETC  0
 #define REQUEST_TRAIN_PUTC  1
