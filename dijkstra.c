@@ -92,6 +92,10 @@ int get_path_from_idx(track_node* track, int src, int dest, track_edge_array* bl
 #endif
   }
 
+  if (visited[dest] == 0) {
+    return -1;
+  }
+
   // Backtrack the path
   out_path[0] = (sequence) { dest, DO_NOTHING, 0 };
 
