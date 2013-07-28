@@ -2,6 +2,7 @@
 #define __TRAIN_H__
 
 #include "location.h"
+#include "physics.h"
 
 #define DEFAULT_TRAIN_SPEED 11
 
@@ -19,9 +20,12 @@
 
 #define PICKUP_TO_FRONTGRILL 30
 #define PICKUP_TO_FRONTWHEEL 0
-#define PICKUP_LENGTH 50
 #define PICKUP_TO_BACKWHEEL 120
 #define TRAIN_LENGTH 215
+
+#define PICKUP_LENGTH_MM 50
+#define PICKUP_LENGTH_UM PICKUP_LENGTH_MM * UM_PER_MM
+#define PICKUP_LENGTH PICKUP_LENGTH_MM // Backwards compatibility
 
 typedef struct train_array {
   int trains[MAX_TRAINS];

@@ -240,13 +240,14 @@ void update_tracking_data_for_reverse(tracking_data* t_data, int train) {
   if (t_data->loc->cur_edge != 0) {
     // If the train is stopped on top of a sensor, it won't trigger the reverse sensor
     // so put it at the reverse sensor instead.
-    if (t_data->loc->node->type == NODE_SENSOR && t_data->loc->um_past_node < PICKUP_LENGTH * UM_PER_MM) {
+    if (t_data->loc->um_past_node <= PICKUP_LENGTH_UM) {
       t_data->loc->node = t_data->loc->node->reverse;
       t_data->loc->um_past_node = PICKUP_LENGTH * UM_PER_MM - t_data->loc->um_past_node;
       fill_in_tracking_data(t_data);
     } else {
       t_data->loc->node = t_data->loc->cur_edge->dest->reverse;
-      t_data->loc->um_past_node = max(t_data->loc->cur_edge->dist * UM_PER_MM - t_data->loc->um_past_node, 0);
+      t_data->loc->um_past_node =
+        max(t_data->loc->cur_edge->dist * UM_PER_MM - t_data->loc->um_past_node + PICKUP_LENGTH_UM, 0);
       t_data->loc->cur_edge = t_data->loc->cur_edge->reverse;
       fill_in_tracking_data_with_edge(t_data);
     }
