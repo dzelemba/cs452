@@ -20,6 +20,9 @@
 #include "track_edge_array.h"
 #include "switch_server.h"
 
+// Uncomment this to enable deadlock detection and resolution.
+// #define ENABLE_DEADLOCK_DETECTION 1
+
 /*
  * Note: Some of this global memory might be problematic as the reverse
  * server is also using it...
@@ -784,7 +787,9 @@ void train_controller() {
           }
         }
 
+#ifdef ENABLE_DEADLOCK_DETECTION
         check_deadlock(&train_locations, path_info);
+#endif
 
         check_done_trains(&waiting_tid, &train_locations, path_info);
         break;
