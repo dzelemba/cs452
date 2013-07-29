@@ -108,9 +108,11 @@ void perform_merge_action(track_edge* edge) {
 }
 
 void check_merge_action(tracking_data* t_data) {
-  track_edge* next_edge = get_next_edge(t_data->loc->cur_edge->dest);
-  if (next_edge != 0 && next_edge->dest->type == NODE_MERGE) {
-    perform_merge_action(next_edge);
+  if (t_data->loc->cur_edge != NULL) {
+    track_edge* next_edge = get_next_edge(t_data->loc->cur_edge->dest);
+    if (next_edge != 0 && next_edge->dest->type == NODE_MERGE) {
+      perform_merge_action(next_edge);
+    }
   }
 }
 

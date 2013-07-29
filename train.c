@@ -564,12 +564,11 @@ void handle_path(location* cur_loc, path_following_info* p_info) {
     }
   }
 
-
   if (*path_index >= p_info->path_size) {
     *path_index = p_info->path_size - 1;
   }
 
-  if (cur_loc->stopping_distance == 0 && !any_reverses_left(p_info)) {
+  if (p_info->is_stopping && cur_loc->stopping_distance == 0 && !any_reverses_left(p_info)) {
     p_info->state = DONE;
     tc_free_previous_edges(train, cur_loc, p_info, get_reservation_lookbehind(cur_loc->d));
   }
