@@ -18,7 +18,7 @@
 #define DEFAULT_STOPPING_TICKS 400
 
 // Ticks
-#define MAX_STOPPING_TIME 400
+#define MAX_STOPPING_TICKS 400
 
 unsigned int accelerate(int train, unsigned int v0, unsigned int v1, int t);
 unsigned int piecewise_velocity(int train, int speed, location* loc);

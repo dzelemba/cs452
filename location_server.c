@@ -365,7 +365,7 @@ void location_server() {
           if (current_speeds[train_id] > 0) {
             dx = current_velocities[train_id] / NM_PER_UM;
           } else if (stopping_time[train_id] > 0) {
-            dx = (MAX_STOPPING_TICKS * UM_PER_MM) / DEFAULT_STOPPING_TICKS;
+            dx = (DEFAULT_STOPPING_DISTANCE * UM_PER_MM) / DEFAULT_STOPPING_TICKS;
           }
         } else {
           dx = current_velocities[train_id] / NM_PER_UM;

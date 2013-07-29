@@ -420,7 +420,7 @@ void perform_path_actions(location* cur_loc, path_following_info* p_info) {
     if (path_base->action == REVERSE) {
       // TODO(f2fung): Reverse delay should rely on the physics of the train
       if (cur_loc->stopping_distance > 0) {
-        perform_reverse_action(path_base, train, MAX_STOPPING_TIME);
+        perform_reverse_action(path_base, train, MAX_STOPPING_TICKS);
       } else {
         perform_reverse_action(path_base, train, 0);
       }
@@ -444,7 +444,7 @@ void perform_path_actions(location* cur_loc, path_following_info* p_info) {
         p_info->is_stopping = 1;
         INFO(TRAIN_CONTROLLER, "Train %d sent reverse command at %d past %s", train, cur_loc->um_past_node / UM_PER_MM, cur_loc->node->name);
         if (cur_loc->stopping_distance > 0) {
-          perform_reverse_action(&path_base[i], train, MAX_STOPPING_TIME);
+          perform_reverse_action(&path_base[i], train, MAX_STOPPING_TICKS);
         } else {
           perform_reverse_action(&path_base[i], train, 0);
         }
@@ -491,7 +491,7 @@ int perform_initial_path_actions(location* cur_loc, path_following_info* p_info)
   if (action == REVERSE) {
     p_info->is_stopping = 1;
     if (cur_loc->stopping_distance > 0) {
-      perform_reverse_action(path, train, MAX_STOPPING_TIME);
+      perform_reverse_action(path, train, MAX_STOPPING_TICKS);
     } else {
       perform_reverse_action(path, train, 0);
     }
@@ -769,7 +769,7 @@ void train_controller() {
         break;
       case TR_REVERSE:
         Reply(tid, NULL, 0);
-        reverse(msg.user_cmd.train, MAX_STOPPING_TIME);
+        reverse(msg.user_cmd.train, MAX_STOPPING_TICKS);
         break;
       case UPDATE_LOCATIONS: {
         Reply(tid, NULL, 0);
