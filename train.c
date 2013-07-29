@@ -143,6 +143,7 @@ typedef enum train_controller_message_type {
   RETRY_RESERVATIONS,
   TC_GET_DONE_TRAINS,
   TC_NOTIFY_WHEN_ALL_TRAINS_STOPPED,
+  TC_DISABLE_EDGE,
 } train_controller_message_type;
 
 typedef struct user_command_data {
@@ -163,6 +164,7 @@ typedef struct train_controller_message {
     location_array loc_array;
     set_route_command_data set_route_data;
     train_array tr_array;
+    track_edge* edge;
   };
 } train_controller_message;
 
@@ -721,6 +723,9 @@ void train_controller() {
   // Task waiting on NOTIFY_WHEN_TRAINS_STOPPED
   int notify_when_trains_stopped_tid = 0;
 
+  track_edge_array disabled_edges;
+  clear_track_edge_array(&disabled_edges);
+
   int tid, train, train_idx;
   bool occupied_location;
   location* cur_loc;
@@ -798,7 +803,7 @@ void train_controller() {
         path_info[train_idx].dest = msg.set_route_data.dest.node;
         path_info[train_idx].saved_speed = msg.set_route_data.speed;
 
-        start_route(cur_loc, &path_info[train_idx], NULL);
+        start_route(cur_loc, &path_info[train_idx], &disabled_edges);
         break;
       case CHANGE_SPEED:
         Reply(tid, NULL, 0);
@@ -852,6 +857,10 @@ void train_controller() {
       case TC_NOTIFY_WHEN_ALL_TRAINS_STOPPED:
         notify_when_trains_stopped_tid = tid;
         check_all_trains_stopped(&notify_when_trains_stopped_tid, &train_locations, path_info);
+        break;
+      case TC_DISABLE_EDGE:
+        Reply(tid, NULL, 0);
+        set_edge(&disabled_edges, msg.edge);
         break;
     }
   }
@@ -931,4 +940,11 @@ void tr_notify_when_all_trains_stopped(location_array* loc_array) {
   msg.type = TC_NOTIFY_WHEN_ALL_TRAINS_STOPPED;
   Send(train_controller_tid, (char *)&msg, sizeof(train_controller_message),
                              (char *)loc_array, sizeof(location_array));
+}
+
+void tr_disable_edge(track_edge* edge) {
+  train_controller_message msg;
+  msg.type = TC_DISABLE_EDGE;
+  msg.edge = edge;
+  Send(train_controller_tid, (char *)&msg, sizeof(train_controller_message), NULL, 0);
 }

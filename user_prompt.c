@@ -214,20 +214,27 @@ int process_line(char* line, bool* is_hold_on) {
 
     location loc;
     init_location(&loc);
-    if (tokens[2][0] == 'B') {
-      loc.node = get_track_node(branch2idx(atoi(&tokens[2][1])));
-    } else if (tokens[2][0] == 'M') {
-      loc.node = get_track_node(merge2idx(atoi(&tokens[2][1])));
-    } else if (tokens[2][0] == 'S') {
-      loc.node = get_track_node(sensor2idx(tokens[2][1], atoi(&tokens[2][2])));
-    } else if (tokens[2][0] == 'E' && tokens[2][1] == 'N') {
-      loc.node = get_track_node(enter2idx(atoi(&tokens[2][2])));
-    } else if (tokens[2][0] == 'E' && tokens[2][1] == 'X') {
-      loc.node = get_track_node(exit2idx(atoi(&tokens[2][2])));
-    } else {
+    loc.node = string_to_node(tokens[2]);
+    if (loc.node == NULL) {
       return 1;
     }
+
     tr_set_route(train, speed, &loc);
+  } else if (string_equal(tokens[0], "disable")) {
+    track_node* src = string_to_node(tokens[1]);
+    track_node* dest = string_to_node(tokens[2]);
+    if (src == NULL || dest == NULL) {
+      return 1;
+    }
+
+    int i;
+    for (i = 0; i < get_num_neighbours(src->type); i++) {
+      if (src->edge[i].dest == dest) {
+        tr_disable_edge(&src->edge[i]);
+        return 0;
+      }
+    }
+    return 1;
   } else if (string_equal(tokens[0], "set_dir")) {
     if (ret != 3) {
       return 1;

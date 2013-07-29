@@ -11,6 +11,8 @@ track_node* get_track_node(int idx);
 track_node* get_related_branch(track_node* node);
 int get_edge_group(track_edge* edge, track_edge** edge_group);
 
+track_node* string_to_node(char* str);
+
 track_edge_array* get_broken_edges();
 
 void init_tracka();

@@ -115,6 +115,22 @@ track_edge_array* get_broken_edges() {
   return &_broken_edges;
 }
 
+track_node* string_to_node(char* str) {
+  if (str[0] == 'B') {
+    return get_track_node(branch2idx(atoi(&str[1])));
+  } else if (str[0] == 'M') {
+    return get_track_node(merge2idx(atoi(&str[1])));
+  } else if (str[0] == 'S') {
+    return get_track_node(sensor2idx(str[1], atoi(&str[2])));
+  } else if (str[0] == 'E' && str[1] == 'N') {
+    return get_track_node(enter2idx(atoi(&str[2])));
+  } else if (str[0] == 'E' && str[1] == 'X') {
+    return get_track_node(exit2idx(atoi(&str[2])));
+  } else {
+    return NULL;
+  }
+}
+
 void init_tracka() {
   track_node* track = get_track();
   track_number = 0;
