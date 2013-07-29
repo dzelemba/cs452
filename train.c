@@ -141,7 +141,8 @@ typedef enum train_controller_message_type {
   TR_REVERSE,
   UPDATE_LOCATIONS,
   RETRY_RESERVATIONS,
-  TC_GET_DONE_TRAINS
+  TC_GET_DONE_TRAINS,
+  TC_NOTIFY_WHEN_ALL_TRAINS_STOPPED,
 } train_controller_message_type;
 
 typedef struct user_command_data {
@@ -506,6 +507,16 @@ int perform_initial_path_actions(location* cur_loc, path_following_info* p_info)
   return 0;
 }
 
+bool any_reverses_left(path_following_info* p_info) {
+  int i;
+  for (i = p_info->path_index; i < p_info->path_size; i++) {
+    if (p_info->path[i].action == REVERSE) {
+      return true;
+    }
+  }
+  return false;
+}
+
 void handle_path(location* cur_loc, path_following_info* p_info) {
   int train = cur_loc->train;
   int p_index = p_info->path_index;
@@ -556,13 +567,33 @@ void handle_path(location* cur_loc, path_following_info* p_info) {
     *path_index = p_info->path_size - 1;
   }
 
-  if (p_info->is_stopping && *path_index == p_info->path_size - 1 &&
-      cur_loc->stopping_distance == 0) {
+  if (cur_loc->stopping_distance == 0 && !any_reverses_left(p_info)) {
     p_info->state = DONE;
     tc_free_previous_edges(train, cur_loc, p_info, get_reservation_lookbehind(cur_loc->d));
   }
 
   perform_path_actions(cur_loc, p_info);
+}
+
+
+void check_all_trains_stopped(int* waiting_tid, location_array* train_locations,
+                              path_following_info* path_info) {
+  if (*waiting_tid == 0) {
+    return;
+  }
+
+  int i;
+  for (i = 0; i < train_locations->size; i++) {
+    location *cur_loc = &train_locations->locations[i];
+    int train = cur_loc->train;
+    int train_idx = tr_num_to_idx(train);
+    if (path_info[train_idx].state == ON_ROUTE) {
+      return;
+    }
+  }
+
+  Reply(*waiting_tid, (char *)train_locations, sizeof(location_array));
+  *waiting_tid = 0;
 }
 
 void check_done_trains(int* waiting_tid, location_array* train_locations,
@@ -687,6 +718,9 @@ void train_controller() {
   // Task waiting on GET_DONE_TRAINS.
   int waiting_tid = 0;
 
+  // Task waiting on NOTIFY_WHEN_TRAINS_STOPPED
+  int notify_when_trains_stopped_tid = 0;
+
   int tid, train, train_idx;
   bool occupied_location;
   location* cur_loc;
@@ -792,6 +826,7 @@ void train_controller() {
 #endif
 
         check_done_trains(&waiting_tid, &train_locations, path_info);
+        check_all_trains_stopped(&notify_when_trains_stopped_tid, &train_locations, path_info);
         break;
       }
       case RETRY_RESERVATIONS: {
@@ -813,6 +848,10 @@ void train_controller() {
       case TC_GET_DONE_TRAINS:
         waiting_tid = tid;
         check_done_trains(&waiting_tid, &train_locations, path_info);
+        break;
+      case TC_NOTIFY_WHEN_ALL_TRAINS_STOPPED:
+        notify_when_trains_stopped_tid = tid;
+        check_all_trains_stopped(&notify_when_trains_stopped_tid, &train_locations, path_info);
         break;
     }
   }
@@ -885,4 +924,11 @@ void tr_get_done_trains(train_array* tr_array) {
   msg.type = TC_GET_DONE_TRAINS;
   Send(train_controller_tid, (char *)&msg, sizeof(train_controller_message),
                              (char *)tr_array, sizeof(train_array));
+}
+
+void tr_notify_when_all_trains_stopped(location_array* loc_array) {
+  train_controller_message msg;
+  msg.type = TC_NOTIFY_WHEN_ALL_TRAINS_STOPPED;
+  Send(train_controller_tid, (char *)&msg, sizeof(train_controller_message),
+                             (char *)loc_array, sizeof(location_array));
 }

@@ -9,6 +9,8 @@
 #include "ourlib.h"
 #include "user_prompt.h"
 #include "switch_server.h"
+#include "location_server.h"
+#include "debug.h"
 
 #define NUM_IGNORED_NODES 55
 // TODO(dzelemba): Add Track B.
@@ -87,12 +89,17 @@ void get_random_destination(int train, location* loc, track_node** cur_destinati
 
 void demo() {
   int i, train;
-  train_array done_trains;
+  location_array trains;
   location next_dest;
   while (1) {
-    tr_get_done_trains(&done_trains);
-    for (i = 0; i < done_trains.size; i++) {
-      train = done_trains.trains[i];
+    tr_notify_when_all_trains_stopped(&trains);
+    INFO(DEMO, "All trains stopped.");
+    if (trains.size < 2) {
+      continue;
+    }
+
+    for (i = 0; i < trains.size; i++) {
+      train = trains.locations[i].train;
       get_random_destination(train, &next_dest, destinations);
       tr_set_route(train, DEFAULT_TRAIN_SPEED, &next_dest);
       update_demo_location(train == train1 ? 0 : 1, &next_dest);
