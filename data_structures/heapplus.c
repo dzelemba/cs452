@@ -1,5 +1,6 @@
 #include "heap.h"
 #include "heapplus.h"
+#include "ourlib.h"
 
 #define NOT_USED -1
 
@@ -20,6 +21,16 @@ int heapplus_min_pri(heapplus* hp) {
   return heap_min_pri(&hp->h);
 }
 
+int heapplus_priority(heapplus* hp, int value) {
+  int cp = hp->dict[value];
+  if (cp == NOT_USED) {
+    return -1;
+  }
+
+  heap* hp_simple = &(hp->h);
+  return hp_simple->buf[cp].priority;
+}
+
 int heapplus_delete_min(heapplus* hp) {
   heap* hp_simple = &(hp->h);
   int mn = (int) heap_min_value(hp_simple);
@@ -28,7 +39,7 @@ int heapplus_delete_min(heapplus* hp) {
 
   heap_node* buf = hp_simple->buf;
 
-  unsigned char it = 0;
+  unsigned int it = 0;
   if (hp_simple->size > 0) {
     buf[0] = buf[hp_simple->size];
     hp->dict[(int) buf[0].value] = 0;
@@ -36,8 +47,8 @@ int heapplus_delete_min(heapplus* hp) {
 
   // bubble-down
   while (1) {
-    unsigned char left_child = 2 * it + 1;
-    unsigned char right_child = left_child + 1;
+    unsigned int left_child = 2 * it + 1;
+    unsigned int right_child = left_child + 1;
 
     if (left_child >= hp_simple->size) {
       return mn;
@@ -72,15 +83,16 @@ int heapplus_insert(heapplus* hp, int priority, int value) {
   heap* hp_simple = &(hp->h);
   heap_node* buf = hp_simple->buf;
 
-  unsigned char it;
-  if (hp->dict[(int) value] == NOT_USED) {
+  unsigned int it;
+  if (hp->dict[value] == NOT_USED) {
     it = hp_simple->size;
     buf[it].priority = priority;
     buf[it].value = (void *)value;
-    hp->dict[(int)value] = it;
+    hp->dict[value] = it;
     hp_simple->size = hp_simple->size + 1;
-  } else if (buf[hp->dict[(int) value]].priority > priority) {
-    it = hp->dict[(int) value];
+  } else if (buf[hp->dict[value]].priority > priority) {
+    it = hp->dict[value];
+    buf[it].priority = priority;
   } else {
     return 0;
   }
@@ -90,7 +102,7 @@ int heapplus_insert(heapplus* hp, int priority, int value) {
       return 1;
     }
 
-    unsigned char parent = (it - 1) / 2;
+    unsigned int parent = (it - 1) / 2;
     if (buf[it].priority < buf[parent].priority) {
       heap_node swap = buf[it];
       buf[it] = buf[parent];

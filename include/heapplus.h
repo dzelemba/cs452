@@ -16,6 +16,8 @@ int heapplus_min_value(heapplus* hp);
 
 int heapplus_min_pri(heapplus* hp);
 
+int heapplus_priority(heapplus* hp, int value);
+
 int heapplus_delete_min(heapplus* hp);
 
 // This is insert or decreasekey

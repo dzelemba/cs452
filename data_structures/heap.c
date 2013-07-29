@@ -20,13 +20,13 @@ void* heap_delete_min(heap* hp) {
 
   heap_node* buf = hp->buf;
 
-  unsigned char it = 0;
+  unsigned int it = 0;
   buf[0] = buf[hp->size];
 
   // bubble-down
   while (1) {
-    unsigned char left_child = 2 * it + 1;
-    unsigned char right_child = left_child + 1;
+    unsigned int left_child = 2 * it + 1;
+    unsigned int right_child = left_child + 1;
 
     if (left_child >= hp->size) {
       return mn;
@@ -54,7 +54,7 @@ void* heap_delete_min(heap* hp) {
 
 void heap_insert(heap* hp, int priority, void* value) {
   heap_node* buf = hp->buf;
-  unsigned char it = hp->size;
+  unsigned int it = hp->size;
 
   buf[it].priority = priority;
   buf[it].value = value;
@@ -65,7 +65,7 @@ void heap_insert(heap* hp, int priority, void* value) {
       return;
     }
 
-    unsigned char parent = (it - 1) / 2;
+    unsigned int parent = (it - 1) / 2;
     if (buf[it].priority < buf[parent].priority) {
       heap_node swap = buf[it];
       buf[it] = buf[parent];
