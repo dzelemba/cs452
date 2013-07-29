@@ -483,11 +483,13 @@ void start_location_server() {
   Create(MED_PRI, &location_sensor_notifier);
 }
 
+#define TRACKING_INERTIA_MM 10
+
 void track_train(int train, location* loc) {
   location_server_message msg;
   msg.type = TRACK_TRAIN;
   loc->train = train;
-  loc->um_past_node = (PICKUP_LENGTH + 10) * UM_PER_MM;
+  loc->um_past_node = TRACKING_INERTIA_MM * UM_PER_MM;
   loc->prev_sensor_error = 0;
   memcpy((char *)&msg.loc, (const char*)loc, sizeof(location));
 

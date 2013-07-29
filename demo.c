@@ -91,7 +91,7 @@ void demo() {
   int i, train;
   location_array trains;
   location next_dest;
-  while (1) {
+  while (true) {
     tr_notify_when_all_trains_stopped(&trains);
     INFO(DEMO, "All trains stopped.");
     if (trains.size < 2) {

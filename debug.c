@@ -77,6 +77,7 @@ static const int const enabled_groups [NUM_DEBUG_GROUPS] = {
   0, /* DEMO */
   0, /* MISC */
   0, /* MISC2 */
+  1, /* SORT */
 };
 
 void info(debug_group group, char* format, ...) {

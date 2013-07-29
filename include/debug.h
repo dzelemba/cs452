@@ -51,6 +51,7 @@ typedef enum debug_group {
   DEMO,
   MISC,
   MISC2,
+  SORT,
   NUM_DEBUG_GROUPS
 } debug_group;
 

@@ -130,7 +130,7 @@ void reverse(int train, int delay) {
  * Train Controller
  */
 
-#define FINDING_LOCATION_SPEED 2
+#define FINDING_LOCATION_SPEED 1
 
 static int train_controller_tid;
 
