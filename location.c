@@ -8,6 +8,6 @@ void init_location(location* loc) {
   loc->um_past_node = 0;
   loc->d = FORWARD;
   loc->stopping_distance = DEFAULT_STOPPING_DISTANCE;
-  loc->stopping_time = MAX_STOPPING_TIME;
+  loc->stopping_time = MAX_STOPPING_TICKS;
   loc->prev_sensor_error = 0;
 }
