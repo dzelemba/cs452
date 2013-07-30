@@ -212,6 +212,25 @@ typedef struct path_following_info {
   track_node* dest;
 } path_following_info;
 
+/*
+ * Here we switch merge switches to be in the direction we're coming from.
+ * This is so that if we reverse on top of a merge, we don't derail.
+ * It also helps the location_server get the proper direction on reverses.
+ */
+void perform_merge_action(track_edge* edge, sequence* path_node) {
+  if (!path_node->performed_action) {
+    track_node* br_node = edge->dest->reverse;
+    if (&br_node->edge[DIR_STRAIGHT] == edge->reverse) {
+      tr_sw(br_node->num, 'S');
+    } else if (&br_node->edge[DIR_CURVED] == edge->reverse) {
+      tr_sw(br_node->num, 'C');
+    } else {
+      ERROR("train.c: perform_merge_action given invalid (edge, node) pair");
+    }
+    path_node->performed_action = 1;
+  }
+}
+
 void perform_switch_action(sequence* path_node) {
   if (!path_node->performed_action) {
     if (path_node->action == TAKE_STRAIGHT) {
@@ -441,7 +460,7 @@ void perform_path_actions(location* cur_loc, path_following_info* p_info) {
   int max_lookahead = max(reverse_lookahead, max(switch_lookahead,
                       max(stop_lookahead, reserve_lookahead)));
 
-  track_edge* next_edge = 0;
+  track_edge* next_edge = cur_loc->cur_edge;
   int dist = max(cur_loc->cur_edge->dist - cur_loc->um_past_node / UM_PER_MM, 0), i;
   for (i = 0; i < path_size && dist <= max_lookahead; i++) {
     sequence_action action = path_base[i].action;
@@ -464,6 +483,8 @@ void perform_path_actions(location* cur_loc, path_following_info* p_info) {
       break;
     } else if ((action == TAKE_STRAIGHT || action == TAKE_CURVE) && dist <= switch_lookahead) {
       perform_switch_action(&path_base[i]);
+    } else if (next_edge->dest->type == NODE_MERGE && dist <= switch_lookahead) {
+      perform_merge_action(next_edge, &path_base[i]);
     }
 
     next_edge = get_next_edge_in_path(&path_base[i]);

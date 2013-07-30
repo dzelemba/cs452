@@ -90,32 +90,6 @@ void flip_direction(direction* d) {
   *d = (*d == FORWARD ? BACKWARD : FORWARD);
 }
 
-/*
- * Here we switch merge switches to be in the direction we're coming from.
- * This is so that if we reverse on top of a merge, we don't derail.
- * It also helps the location_server get the proper direction on reverses.
- */
-void perform_merge_action(track_edge* edge) {
-  INFO(MISC, "Switched %s", edge->dest->name);
-  track_node* br_node = edge->dest->reverse;
-  if (&br_node->edge[DIR_STRAIGHT] == edge->reverse) {
-    tr_sw(br_node->num, 'S');
-  } else if (&br_node->edge[DIR_CURVED] == edge->reverse) {
-    tr_sw(br_node->num, 'C');
-  } else {
-    INFO(MISC, "FAiled");
-  }
-}
-
-void check_merge_action(tracking_data* t_data) {
-  if (t_data->loc->cur_edge != NULL) {
-    track_edge* next_edge = get_next_edge(t_data->loc->cur_edge->dest);
-    if (next_edge != 0 && next_edge->dest->type == NODE_MERGE) {
-      perform_merge_action(next_edge);
-    }
-  }
-}
-
 void fill_in_tracking_data_with_edge(tracking_data* t_data) {
   t_data->next_sensor = get_next_sensor(t_data->loc->cur_edge);
 }
@@ -130,13 +104,11 @@ void increment_location(tracking_data* t_data) {
 
   t_data->loc->node = t_data->loc->cur_edge->dest;
   fill_in_tracking_data(t_data);
-  check_merge_action(t_data);
 }
 
 void increment_location_to_sensor(tracking_data* t_data, track_node* sensor) {
   t_data->loc->node = sensor;
   fill_in_tracking_data(t_data);
-  check_merge_action(t_data);
 }
 
 // If our model says we're this many mm past a sensor that we haven't hit,
