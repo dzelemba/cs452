@@ -221,20 +221,11 @@ int process_line(char* line, bool* is_hold_on) {
 
     tr_set_route(train, speed, &loc);
   } else if (string_equal(tokens[0], "disable")) {
-    track_node* src = string_to_node(tokens[1]);
-    track_node* dest = string_to_node(tokens[2]);
-    if (src == NULL || dest == NULL) {
+    track_edge* edge = string_to_edge(tokens[1], tokens[2]);
+    if (edge == NULL) {
       return 1;
     }
-
-    int i;
-    for (i = 0; i < get_num_neighbours(src->type); i++) {
-      if (src->edge[i].dest == dest) {
-        tr_disable_edge(&src->edge[i]);
-        return 0;
-      }
-    }
-    return 1;
+    tr_disable_edge(edge);
   } else if (string_equal(tokens[0], "set_dir")) {
     if (ret != 3) {
       return 1;

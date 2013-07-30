@@ -131,6 +131,23 @@ track_node* string_to_node(char* str) {
   }
 }
 
+track_edge* string_to_edge(char* str1, char* str2) {
+  track_node* src = string_to_node(str1);
+  track_node* dest = string_to_node(str2);
+  if (src == NULL || dest == NULL) {
+    return NULL;
+  }
+
+  int i;
+  for (i = 0; i < get_num_neighbours(src->type); i++) {
+    if (src->edge[i].dest == dest) {
+      return &src->edge[i];
+    }
+  }
+
+  return NULL;
+}
+
 void init_tracka() {
   track_node* track = get_track();
   track_number = 0;
