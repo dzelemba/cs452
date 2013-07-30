@@ -418,6 +418,14 @@ void tc_free_previous_edges(int train, location* cur_loc, path_following_info* p
   int i, j;
 
   int cd = cur_loc->um_past_node / UM_PER_MM;
+
+  // The only time when um_past_node < 0 and we're on a sensor is when
+  // we're stopping at which point um_past_node isn't reliable anymore.
+  // TODO(dzelemba): Move this idea into the location server.
+  if (cd < 0 && cur_loc->node->type == NODE_SENSOR) {
+    cd = 0;
+  }
+
   for (i = 0; i < get_num_neighbours(rev->type); i++) {
     previous_edges_within_distance(&rev->edge[i], cd, distance_behind, &freeable_edges);
   }
