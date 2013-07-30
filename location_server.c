@@ -8,13 +8,13 @@
 #include "queue.h"
 #include "sensor.h"
 #include "sensor_server.h"
+#include "switch_server.h"
 #include "syscall.h"
 #include "task.h"
 #include "track_data.h"
 #include "track_node.h"
 #include "track_node.h"
 #include "train.h"
-#include "switch_server.h"
 
 #define NOT_ACCELERATING -1
 
@@ -231,7 +231,6 @@ void update_tracking_data_for_sensor(tracking_data* t_data, sensor* s, bool* cha
       t_data->loc->um_past_node -= prev_edge_distance;
     } else {
       t_data->loc->um_past_node = 0;
-
     }
     t_data->missed_sensor = 0;
     *changed = true;
@@ -301,15 +300,28 @@ int get_distance_to_node(track_node* src, track_node* dest, int max_iters) {
 tracking_data* attribute_sensor_to_train(tracking_data_array* t_array, sensor* s) {
   track_node* sensor_node = get_track_node(sensor2idx(s->group, s->socket));
 
-  int minDist = LOOKAHEAD;
+  int min_dist = LOOKAHEAD;
   tracking_data* attributed_train = NULL;
 
   int i;
+  location* tracked_loc;
   for (i = 0; i < t_array->size; i++) {
-    int dist = get_distance_to_node(t_array->t_data[i].loc->node, sensor_node, LOOKAHEAD);
-    if (dist != -1 && dist < minDist) {
-      attributed_train = &t_array->t_data[i];
-      minDist = dist;
+    tracked_loc = t_array->t_data[i].loc;
+    if (tracked_loc->node == sensor_node && tracked_loc->um_past_node / UM_PER_MM < TRAIN_LENGTH) {
+      return NULL;
+    }
+  }
+
+  for (i = 0; i < t_array->size; i++) {
+    tracked_loc = t_array->t_data[i].loc;
+
+    // Attributing sensors to end-to-end trains is hard.
+    if (tracked_loc->stopping_distance > 0) {
+      int dist = get_distance_to_node(tracked_loc->node, sensor_node, LOOKAHEAD);
+      if (dist != -1 && dist < min_dist) {
+        attributed_train = &t_array->t_data[i];
+        min_dist = dist;
+      }
     }
   }
 

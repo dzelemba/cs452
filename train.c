@@ -735,7 +735,6 @@ void train_controller() {
     Receive(&tid, (char *)&msg, sizeof(train_controller_message));
     switch (msg.type) {
       case TRACK_TRAIN: {
-        Reply(tid, NULL, 0);
         train = msg.user_cmd.train;
         train_idx = tr_num_to_idx(msg.user_cmd.train);
 
@@ -791,6 +790,7 @@ void train_controller() {
         // TODO(dzelemba): We could be sitting on 3 nodes here so check for that.
         tc_reserve_edge(train, &loc.node->edge[DIR_AHEAD], &loc, &path_info[train_idx]);
         tc_reserve_edge(train, &loc.node->reverse->edge[DIR_AHEAD], &loc, &path_info[train_idx]);
+        Reply(tid, NULL, 0);
         break;
       }
       case SET_ROUTE:
