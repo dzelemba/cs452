@@ -38,6 +38,8 @@ void init_mean_velocities() {
     _stopping_distance[i] = DEFAULT_STOPPING_DISTANCE;
   }
 
+  _mean_velocities[11][tr_num_to_idx(45)] = 5009000; // Avi's data
+
   _mean_velocities[11][tr_num_to_idx(47)] = 5311245;
 
   _mean_velocities[11][tr_num_to_idx(48)] = 5000000; // Unscience
