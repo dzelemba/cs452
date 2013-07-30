@@ -210,6 +210,10 @@ typedef struct path_following_info {
   int saved_speed;
   path_following_state state;
   track_node* dest;
+
+  // Used when the train receives a restart message, but hasn't
+  // stopped moving yet.
+  bool restart_when_stopped;
 } path_following_info;
 
 /*
@@ -341,9 +345,13 @@ void perform_all_path_actions(int train, sequence* path_base, int path_size) {
   }
 }
 
-void restart_train(int train, path_following_info* p_info) {
-  set_speed(p_info->saved_speed, train);
-  p_info->is_stopping = 0;
+void restart_train(location* loc, path_following_info* p_info) {
+  if (loc->stopping_distance == 0) {
+    set_speed(p_info->saved_speed, loc->train);
+    p_info->is_stopping = 0;
+  } else {
+    p_info->restart_when_stopped = true;
+  }
 }
 
 void stop_train(int train, path_following_info* p_info) {
@@ -725,6 +733,20 @@ void check_deadlock(location_array* loc_array, path_following_info* path_info) {
   }
 }
 
+void restart_stopped_trains(location_array* train_locations, path_following_info* path_info) {
+  int i;
+  for (i = 0; i < train_locations->size; i++) {
+    location* cur_loc = &train_locations->locations[i];
+    int train = cur_loc->train;
+    int train_idx = tr_num_to_idx(train);
+    path_following_info* p_info = &path_info[train_idx];
+    if (cur_loc->stopping_distance == 0 && p_info->restart_when_stopped) {
+      restart_train(cur_loc, p_info);
+      p_info->restart_when_stopped = false;
+    }
+  }
+}
+
 void train_controller() {
   RegisterAs("Train Controller");
   location_array train_locations;
@@ -741,6 +763,7 @@ void train_controller() {
     path_info[i].saved_speed = 0;
     path_info[i].state = NOT_STARTED;
     path_info[i].dest = 0;
+    path_info[i].restart_when_stopped = false;
     clear_track_edge_array(&path_info[i].reserved_edges);
     tea_set_name(&path_info[i].reserved_edges, "Some train array");
   }
@@ -860,6 +883,8 @@ void train_controller() {
 
         check_done_trains(&waiting_tid, &train_locations, path_info);
         check_all_trains_stopped(&notify_when_trains_stopped_tid, &train_locations, path_info);
+
+        restart_stopped_trains(&train_locations, path_info);
         break;
       }
       case RETRY_RESERVATIONS: {
@@ -872,7 +897,7 @@ void train_controller() {
             if (reply == SUCCESS) {
               reserve_edge(p_info->blocked_edge, &p_info->reserved_edges);
               p_info->blocked_edge = 0;
-              restart_train(train, p_info);
+              restart_train(get_train_location(&train_locations, train), p_info);
             }
           }
         }
