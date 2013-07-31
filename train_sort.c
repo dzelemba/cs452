@@ -120,7 +120,7 @@ void sort_trains(int t1, int t2, int t3, int t4) {
   INFO(SORT, "Begin sorting.");
 
   int num_finished_sorting = 0;
-  for (i = num_trains - 1; i >= 0; i++) {
+  for (i = num_trains - 1; i >= 0; i--) {
     if (current_order[i] == desired_order[i]) {
       num_finished_sorting++;
     } else {
@@ -173,22 +173,22 @@ void sort_trains(int t1, int t2, int t3, int t4) {
     tr_free_edges_for_train(next_train_to_place);
 
     // Return the suffix.
-    j = 0;
+    j = MAX_SORTABLE - 1 - (num_finished_sorting + 1);
     for (i = num_remaining_sorting - 1; i >= current_train_spot + 1; i--) {
-      loc.node = unsorted_spots[MAX_SORTABLE - j - 1];
+      loc.node = final_spots[j];
       INFO(SORT, "Train %d to %s", current_order[i], loc.node->name);
       tr_set_route(current_order[i], 11, &loc);
-      j++;
+      j--;
     }
 
     tr_notify_when_all_trains_stopped(&trains);
 
     // Return the prefix.
     for (i = current_train_spot - 1; i >= 0; i--) {
-      loc.node = unsorted_spots[MAX_SORTABLE - j - 1];
+      loc.node = final_spots[j];
       INFO(SORT, "Train %d to %s", current_order[i], loc.node->name);
       tr_set_route(current_order[i], 11, &loc);
-      j++;
+      j--;
     }
 
     tr_notify_when_all_trains_stopped(&trains);
@@ -201,5 +201,13 @@ void sort_trains(int t1, int t2, int t3, int t4) {
       current_order[i] = -1;
     }
     num_finished_sorting++;
+
+    for (i = num_trains - num_finished_sorting - 1; i >= 0; i--) {
+      if (current_order[i] == desired_order[i]) {
+        num_finished_sorting++;
+      } else {
+        break;
+      }
+    }
   }
 }
