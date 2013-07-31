@@ -93,10 +93,10 @@ void sort_trains(int t1, int t2, int t3, int t4) {
   prefix_spots[3] = get_track_node(sensor2idx('D', 7));
 
   track_node* suffix_spots[MAX_SORTABLE]; // Inner-loop top
-  suffix_spots[0] = NULL;
-  suffix_spots[1] = get_track_node(sensor2idx('B', 5));
-  suffix_spots[2] = get_track_node(sensor2idx('D', 3));
-  suffix_spots[3] = get_track_node(sensor2idx('E', 5));
+  suffix_spots[0] = get_track_node(sensor2idx('B', 5));
+  suffix_spots[1] = get_track_node(sensor2idx('D', 3));
+  suffix_spots[2] = get_track_node(sensor2idx('E', 5));
+  suffix_spots[3] = get_track_node(sensor2idx('D', 6));
 
   int current_order[MAX_SORTABLE];
   int i, j;
