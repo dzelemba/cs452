@@ -50,6 +50,10 @@ int get_path_from_idx(track_node* track, int src, int dest, track_edge_array* bl
   path[src] = (sequence) { src, DO_NOTHING, 0 };
   heapplus_insert(&path_heap, 0, src);
 
+  int first_rev = node2idx(get_track(), get_track_node(src)->reverse);
+  path[first_rev] = (sequence) { src, REVERSE, 0 };
+  heapplus_insert(&path_heap, 0, first_rev);
+
   int ret = 0;
   while (heapplus_size(&path_heap) > 0) {
     int c = heapplus_min_pri(&path_heap);
