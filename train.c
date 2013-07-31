@@ -605,14 +605,14 @@ void handle_path(location* cur_loc, path_following_info* p_info) {
     *path_index = p_info->path_size - 1;
   }
 
-  if (p_info->is_stopping && cur_loc->stopping_distance == 0 && !any_reverses_left(p_info)) {
+  if (p_info->blocked_edge == NULL && p_info->is_stopping &&
+      cur_loc->stopping_distance == 0 && !any_reverses_left(p_info)) {
     p_info->state = DONE;
     tc_free_previous_edges(train, cur_loc, p_info, get_reservation_lookbehind(cur_loc->d));
   }
 
   perform_path_actions(cur_loc, p_info);
 }
-
 
 void check_all_trains_stopped(int* waiting_tid, location_array* train_locations,
                               path_following_info* path_info) {
