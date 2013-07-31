@@ -663,13 +663,24 @@ void start_route(location* loc, path_following_info* p_info, track_edge_array* b
   // up to clear the switch.
   if (loc->node->type == NODE_BRANCH) {
     set_edge(blocked_edges, get_other_branch_edge(loc->node, loc->cur_edge));
-  } else if (loc->cur_edge != 0 && loc->cur_edge->dest->type == NODE_BRANCH &&
-             loc->cur_edge->dist - loc->um_past_node / UM_PER_MM <= MAX_DISTANCE_ERROR) {
-    set_edge(blocked_edges,
-             get_other_branch_edge(loc->cur_edge->dest, get_next_edge(loc->cur_edge->dest)));
-  } else if (loc->node->type == NODE_MERGE) {
-    set_edge(blocked_edges,
-             get_other_branch_edge(loc->node->reverse, get_next_edge(loc->node->reverse)));
+  }
+  if (loc->cur_edge != NULL && loc->cur_edge->dest->type == NODE_BRANCH &&
+      loc->cur_edge->dist - loc->um_past_node / UM_PER_MM <= MAX_DISTANCE_ERROR) {
+    set_edge(blocked_edges, get_other_branch_edge(loc->cur_edge->dest,
+             get_next_edge(loc->cur_edge->dest)));
+  }
+  if (loc->node->type == NODE_MERGE) {
+    set_edge(blocked_edges, get_other_branch_edge(loc->node->reverse,
+             get_next_edge(loc->node->reverse)));
+  }
+
+  if (loc->cur_edge != NULL) {
+    track_edge* prev_edge = get_next_edge(loc->node->reverse);
+    if (prev_edge != NULL && prev_edge->dest->type == NODE_BRANCH &&
+        (loc->um_past_node / UM_PER_MM - get_distance_to_backwardwheel(loc->d) +
+           prev_edge->dist < MAX_DISTANCE_ERROR)) {
+      set_edge(blocked_edges, get_other_branch_edge(prev_edge->dest, get_next_edge(prev_edge->dest)));
+    }
   }
 
   get_path(get_track(), loc->node, p_info->dest, blocked_edges, p_info->path, &p_info->path_size);
