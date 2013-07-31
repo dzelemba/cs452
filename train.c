@@ -349,6 +349,7 @@ void restart_train(location* loc, path_following_info* p_info) {
   if (loc->stopping_distance == 0) {
     set_speed(p_info->saved_speed, loc->train);
     p_info->is_stopping = 0;
+    p_info->blocked_edge = 0;
   } else {
     p_info->restart_when_stopped = true;
   }
@@ -625,7 +626,7 @@ void check_all_trains_stopped(int* waiting_tid, location_array* train_locations,
     location *cur_loc = &train_locations->locations[i];
     int train = cur_loc->train;
     int train_idx = tr_num_to_idx(train);
-    if (path_info[train_idx].state == ON_ROUTE) {
+    if (path_info[train_idx].state == ON_ROUTE && path_info[train_idx].blocked_edge == NULL) {
       return;
     }
   }
@@ -923,7 +924,6 @@ void train_controller() {
             rs_reply reply = rs_reserve(train, p_info->blocked_edge);
             if (reply == SUCCESS) {
               reserve_edge(p_info->blocked_edge, &p_info->reserved_edges);
-              p_info->blocked_edge = 0;
               restart_train(get_train_location(&train_locations, train), p_info);
             }
           }
