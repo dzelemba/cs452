@@ -69,6 +69,7 @@ void init_mean_velocities() {
   _mean_velocities[13][tr_num_to_idx(50)] = 5740000; // Avi's data
   _mean_velocities[14][tr_num_to_idx(50)] = 5867000; // Avi's data
 
+  _stopping_distance[tr_num_to_idx(43)] = 710;
   _stopping_distance[tr_num_to_idx(48)] = 740;
   _stopping_distance[tr_num_to_idx(50)] = 650;
 }

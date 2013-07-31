@@ -352,7 +352,8 @@ void location_server() {
           if (current_speeds[train_id] > 0) {
             dx = current_velocities[train_id] / NM_PER_UM;
           } else if (stopping_time[train_id] > 0) {
-            int stopping_dx = (((DEFAULT_STOPPING_DISTANCE / 5) * current_velocities[train_id]) / DEFAULT_NM_PER_TICK) * 5;
+            int stopping_dist = stopping_distance(train, current_velocities[train_id]);
+            int stopping_dx = (((stopping_dist / 5) * current_velocities[train_id]) / DEFAULT_NM_PER_TICK) * 5;
             dx = stopping_dx * UM_PER_MM / DEFAULT_STOPPING_TICKS;
           }
         } else {
