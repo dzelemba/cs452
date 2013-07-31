@@ -685,8 +685,17 @@ void start_route(location* loc, path_following_info* p_info, track_edge_array* b
 
   get_path(get_track(), loc->node, p_info->dest, blocked_edges, p_info->path, &p_info->path_size);
 
+  // Check if the edge we're blocked in is in the other direction.
+  if (p_info->blocked_edge != NULL) {
+    track_node* first_path_node = get_track_node(p_info->path[0].location);
+    if (p_info->blocked_edge->src == first_path_node ||
+        p_info->blocked_edge->src == first_path_node->reverse) {
+      p_info->blocked_edge = NULL;
+    }
+  }
+
   p_info->is_stopping = 0;
-  if (p_info->blocked_edge == 0) {
+  if (p_info->blocked_edge == NULL) {
     set_speed(p_info->saved_speed, loc->train);
   }
   perform_initial_path_actions(loc, p_info);
