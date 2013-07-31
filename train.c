@@ -626,7 +626,8 @@ void check_all_trains_stopped(int* waiting_tid, location_array* train_locations,
     location *cur_loc = &train_locations->locations[i];
     int train = cur_loc->train;
     int train_idx = tr_num_to_idx(train);
-    if (path_info[train_idx].state == ON_ROUTE && path_info[train_idx].blocked_edge == NULL) {
+    if ((path_info[train_idx].state == ON_ROUTE && path_info[train_idx].blocked_edge == NULL) ||
+        (cur_loc->stopping_distance != 0)) {
       return;
     }
   }
