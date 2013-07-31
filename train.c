@@ -898,6 +898,8 @@ void train_controller() {
         Reply(tid, NULL, 0);
         memcpy((char *)&train_locations, (const char *)&msg.loc_array, sizeof(location_array));
 
+        restart_stopped_trains(&train_locations, path_info);
+
         for (i = 0; i < train_locations.size; i++) {
           cur_loc = &train_locations.locations[i];
           train = cur_loc->train;
@@ -913,8 +915,6 @@ void train_controller() {
 
         check_done_trains(&waiting_tid, &train_locations, path_info);
         check_all_trains_stopped(&notify_when_trains_stopped_tid, &train_locations, path_info);
-
-        restart_stopped_trains(&train_locations, path_info);
         break;
       }
       case RETRY_RESERVATIONS: {
