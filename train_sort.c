@@ -104,10 +104,12 @@ void sort_trains(int t1, int t2, int t3, int t4) {
     current_order[i] = -1;
   }
 
+  int leftmost_start = MAX_SORTABLE - num_trains;
   for (i = 0; i < num_trains; i++) {
     for (j = 0; j < num_trains; j++) {
-      if (trains.locations[j].node == initial_spots[MAX_SORTABLE - j - 1]) {
-        current_order[num_trains - j - 1] = trains.locations[j].train;
+      if (trains.locations[i].node == initial_spots[leftmost_start + j]) {
+        current_order[j] = trains.locations[i].train;
+        break;
       }
     }
   }
