@@ -29,7 +29,8 @@ unsigned int stopping_distance(int train, unsigned int v) {
     return 0;
   }
   int train_id = tr_num_to_idx(train);
-  return max(((_stopping_distance[train_id] / 5) * v) / _mean_velocities[11][train_id] * 5, 1);
+  /*return max(((_stopping_distance[train_id] / 5) * v) / _mean_velocities[11][train_id] * 5, 1);*/
+  return max(((_stopping_distance[train_id] / 5) * v) / DEFAULT_NM_PER_TICK * 5, 1);
 }
 
 void init_mean_velocities() {
@@ -69,7 +70,7 @@ void init_mean_velocities() {
   _mean_velocities[13][tr_num_to_idx(50)] = 5740000; // Avi's data
   _mean_velocities[14][tr_num_to_idx(50)] = 5867000; // Avi's data
 
-  _stopping_distance[tr_num_to_idx(43)] = 710;
+  _stopping_distance[tr_num_to_idx(43)] = 800;
   _stopping_distance[tr_num_to_idx(48)] = 740;
   _stopping_distance[tr_num_to_idx(50)] = 650;
 }
