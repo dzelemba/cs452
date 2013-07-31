@@ -687,9 +687,16 @@ void start_route(location* loc, path_following_info* p_info, track_edge_array* b
 
   // Check if the edge we're blocked in is in the other direction.
   if (p_info->blocked_edge != NULL) {
-    track_node* first_path_node = get_track_node(p_info->path[0].location);
-    if (p_info->blocked_edge->src == first_path_node ||
-        p_info->blocked_edge->src == first_path_node->reverse) {
+    int i;
+    bool blocked_edge_in_path = false;
+    // Only look 3 steps ahead for now.
+    for (i = 0; i < 3; i++) {
+      track_edge* next_edge = get_next_edge_in_path(&p_info->path[i]);
+      if (next_edge == p_info->blocked_edge || next_edge == p_info->blocked_edge->reverse) {
+        blocked_edge_in_path = true;
+      }
+    }
+    if (!blocked_edge_in_path) {
       p_info->blocked_edge = NULL;
     }
   }
