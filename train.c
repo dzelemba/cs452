@@ -279,7 +279,7 @@ track_edge* get_next_edge_in_path(sequence* path_node) {
 // 4mm lookahead distance. Considering each train might send
 // another command with the switch we get 2 * 4mm * MAX_TRAINS.
 // Round up 8mm to 1cm.
-#define SWITCH_LOOKAHEAD_DISTANCE (10 * MAX_TRAINS)
+#define SWITCH_LOOKAHEAD_DISTANCE (10 * MAX_TRAINS + 100)
 
 // Maximum error in our distance measurements in mm.
 #define MAX_DISTANCE_ERROR 150
