@@ -22,29 +22,35 @@ void sort_trains(int t1, int t2, int t3, int t4) {
 
   tr_disable_edge(string_to_edge("M8", "B9"));
   tr_disable_edge(string_to_edge("M9", "B8"));
+  tr_disable_edge(string_to_edge("M156", "B154"));
+  tr_disable_edge(string_to_edge("M154", "B156"));
 
   int desired_order[MAX_SORTABLE];
 
   int num_trains = 0;
   if (t1 != 0) {
+    tr_deactivate_lights(t1);
     tr_track(t1);
     desired_order[0] = t1;
     num_trains++;
   }
   if (t2 != 0) {
     Delay(200);
+    tr_deactivate_lights(t2);
     tr_track(t2);
     desired_order[1] = t2;
     num_trains++;
   }
   if (t3 != 0) {
     Delay(200);
+    tr_deactivate_lights(t3);
     tr_track(t3);
     desired_order[2] = t3;
     num_trains++;
   }
   if (t4 != 0) {
     Delay(200);
+    tr_deactivate_lights(t4);
     tr_track(t4);
     desired_order[3] = t4;
     num_trains++;
@@ -77,6 +83,12 @@ void sort_trains(int t1, int t2, int t3, int t4) {
   final_spots[1] = get_track_node(sensor2idx('B', 2))->reverse;
   final_spots[2] = get_track_node(sensor2idx('D', 13))->reverse;
   final_spots[3] = get_track_node(sensor2idx('E', 13))->reverse;
+  if (num_trains == 4) {
+    final_spots[0] = get_track_node(sensor2idx('B', 2))->reverse;
+    final_spots[1] = get_track_node(sensor2idx('D', 13))->reverse;
+    final_spots[2] = get_track_node(sensor2idx('E', 13))->reverse;
+    final_spots[3] = get_track_node(sensor2idx('E', 9));
+  }
 
   // When we have (n - k) remaining unsorted trains, we join them together on
   // the outer-loop bottom.
@@ -91,12 +103,22 @@ void sort_trains(int t1, int t2, int t3, int t4) {
   prefix_spots[1] = get_track_node(sensor2idx('C', 13));
   prefix_spots[2] = get_track_node(sensor2idx('E', 7));
   prefix_spots[3] = get_track_node(sensor2idx('D', 7));
+  if (num_trains == 4) {
+    prefix_spots[3] = get_track_node(sensor2idx('E', 7));
+  }
+
 
   track_node* suffix_spots[MAX_SORTABLE]; // Inner-loop top
   suffix_spots[0] = get_track_node(sensor2idx('B', 5));
   suffix_spots[1] = get_track_node(sensor2idx('D', 3));
   suffix_spots[2] = get_track_node(sensor2idx('E', 5));
   suffix_spots[3] = get_track_node(sensor2idx('D', 6));
+  if (num_trains == 4) {
+    suffix_spots[0] = get_track_node(sensor2idx('D', 3));
+    suffix_spots[1] = get_track_node(sensor2idx('E', 5));
+    suffix_spots[2] = get_track_node(sensor2idx('D', 6));
+    suffix_spots[3] = get_track_node(merge2idx(9));
+  }
 
   int current_order[MAX_SORTABLE];
   int i, j;
@@ -171,6 +193,7 @@ void sort_trains(int t1, int t2, int t3, int t4) {
 
     tr_notify_when_all_trains_stopped(&trains);
     tr_free_edges_for_train(next_train_to_place);
+    tr_activate_lights(next_train_to_place);
 
     // Return the suffix.
     j = MAX_SORTABLE - 1 - (num_finished_sorting + 1);

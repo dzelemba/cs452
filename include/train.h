@@ -63,4 +63,8 @@ void tr_disable_edge(track_edge* edge);
 
 void tr_free_edges_for_train(int train);
 
+void tr_activate_lights(int train);
+
+void tr_deactivate_lights(int train);
+
 #endif

@@ -86,6 +86,18 @@ void set_speed(int speed, int train) {
   }
 }
 
+void activate_lights(int train) {
+  char cmd[2];
+  fill_set_speed(cmd, 16, train);
+  putbytes(COM1, cmd, 2);
+}
+
+void deactivate_lights(int train) {
+  char cmd[2];
+  fill_set_speed(cmd, 0, train);
+  putbytes(COM1, cmd, 2);
+}
+
 typedef struct reverse_msg {
   int speed;
   int delay;
@@ -145,6 +157,8 @@ typedef enum train_controller_message_type {
   TC_NOTIFY_WHEN_ALL_TRAINS_STOPPED,
   TC_DISABLE_EDGE,
   TC_FREE_EDGES_FOR_TRAIN,
+  TC_ACTIVATE_LIGHTS,
+  TC_DEACTIVATE_LIGHTS
 } train_controller_message_type;
 
 typedef struct user_command_data {
@@ -329,7 +343,7 @@ int get_stop_lookahead(int stopping_distance, direction d) {
 }
 
 int get_reserve_lookahead(int stopping_distance, direction d) {
-  return stopping_distance + get_distance_to_forwardwheel(d) + MAX_DISTANCE_ERROR;
+  return stopping_distance + get_distance_to_forwardwheel(d) + 50; // Felix error
 }
 
 int get_reservation_lookbehind(direction d) {
@@ -949,6 +963,14 @@ void train_controller() {
         Reply(tid, NULL, 0);
         tc_free_all_edges(msg.user_cmd.train, &path_info[tr_num_to_idx(msg.user_cmd.train)]);
         break;
+      case TC_ACTIVATE_LIGHTS:
+        Reply(tid, NULL, 0);
+        activate_lights(msg.user_cmd.train);
+        break;
+      case TC_DEACTIVATE_LIGHTS:
+        Reply(tid, NULL, 0);
+        deactivate_lights(msg.user_cmd.train);
+        break;
     }
   }
 
@@ -1039,6 +1061,20 @@ void tr_disable_edge(track_edge* edge) {
 void tr_free_edges_for_train(int train) {
   train_controller_message msg;
   msg.type = TC_FREE_EDGES_FOR_TRAIN;
+  msg.user_cmd.train = train;
+  Send(train_controller_tid, (char *)&msg, sizeof(train_controller_message), NULL, 0);
+}
+
+void tr_activate_lights(int train) {
+  train_controller_message msg;
+  msg.type = TC_ACTIVATE_LIGHTS;
+  msg.user_cmd.train = train;
+  Send(train_controller_tid, (char *)&msg, sizeof(train_controller_message), NULL, 0);
+}
+
+void tr_deactivate_lights(int train) {
+  train_controller_message msg;
+  msg.type = TC_DEACTIVATE_LIGHTS;
   msg.user_cmd.train = train;
   Send(train_controller_tid, (char *)&msg, sizeof(train_controller_message), NULL, 0);
 }
