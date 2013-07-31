@@ -170,6 +170,7 @@ void sort_trains(int t1, int t2, int t3, int t4) {
     tr_set_route(next_train_to_place, 11, &loc);
 
     tr_notify_when_all_trains_stopped(&trains);
+    tr_free_edges_for_train(next_train_to_place);
 
     // Return the suffix.
     j = 0;

@@ -61,4 +61,6 @@ void tr_notify_when_all_trains_stopped(struct location_array* loc_array);
 
 void tr_disable_edge(track_edge* edge);
 
+void tr_free_edges_for_train(int train);
+
 #endif

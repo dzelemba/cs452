@@ -144,6 +144,7 @@ typedef enum train_controller_message_type {
   TC_GET_DONE_TRAINS,
   TC_NOTIFY_WHEN_ALL_TRAINS_STOPPED,
   TC_DISABLE_EDGE,
+  TC_FREE_EDGES_FOR_TRAIN,
 } train_controller_message_type;
 
 typedef struct user_command_data {
@@ -943,6 +944,10 @@ void train_controller() {
         Reply(tid, NULL, 0);
         set_edge(&disabled_edges, msg.edge);
         break;
+      case TC_FREE_EDGES_FOR_TRAIN:
+        Reply(tid, NULL, 0);
+        tc_free_all_edges(msg.user_cmd.train, &path_info[tr_num_to_idx(msg.user_cmd.train)]);
+        break;
     }
   }
 
@@ -1027,5 +1032,12 @@ void tr_disable_edge(track_edge* edge) {
   train_controller_message msg;
   msg.type = TC_DISABLE_EDGE;
   msg.edge = edge;
+  Send(train_controller_tid, (char *)&msg, sizeof(train_controller_message), NULL, 0);
+}
+
+void tr_free_edges_for_train(int train) {
+  train_controller_message msg;
+  msg.type = TC_FREE_EDGES_FOR_TRAIN;
+  msg.user_cmd.train = train;
   Send(train_controller_tid, (char *)&msg, sizeof(train_controller_message), NULL, 0);
 }
