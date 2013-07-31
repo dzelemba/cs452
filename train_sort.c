@@ -131,9 +131,13 @@ void sort_trains(int t1, int t2, int t3, int t4) {
   location loc;
 
   while (num_finished_sorting < num_trains) {
+    INFO(SORT, "Current order: [ %d, %d, %d, %d ]", current_order[0], current_order[1], current_order[2], current_order[3]);
+
     int next_spot_to_place = MAX_SORTABLE - num_finished_sorting - 1;
     int num_remaining_sorting = num_trains - num_finished_sorting;
     int next_train_to_place = desired_order[num_remaining_sorting - 1];
+
+    INFO(SORT, "Next train to place: %d", next_train_to_place);
 
     int current_train_spot = -1;
     for (i = 0; i < num_remaining_sorting; i++) {
@@ -192,7 +196,7 @@ void sort_trains(int t1, int t2, int t3, int t4) {
     for (i = current_train_spot; i < num_remaining_sorting - 1; i++) {
       current_order[i] = current_order[i + 1];
     }
-    for (i = num_remaining_sorting; i < MAX_SORTABLE; i++) {
+    for (i = num_remaining_sorting - 1; i < MAX_SORTABLE; i++) {
       current_order[i] = -1;
     }
     num_finished_sorting++;

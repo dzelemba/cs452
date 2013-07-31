@@ -279,7 +279,7 @@ tracking_data* attribute_sensor_to_train(tracking_data_array* t_array, sensor* s
   location* tracked_loc;
   for (i = 0; i < t_array->size; i++) {
     tracked_loc = t_array->t_data[i].loc;
-    if (tracked_loc->node == sensor_node && tracked_loc->um_past_node / UM_PER_MM < TRAIN_LENGTH) {
+    if (tracked_loc->node == sensor_node && tracked_loc->um_past_node / UM_PER_MM <= PICKUP_LENGTH) {
       return NULL;
     }
   }
