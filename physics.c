@@ -25,8 +25,11 @@ unsigned int mean_velocity(int train, int speed) {
 }
 
 unsigned int stopping_distance(int train, unsigned int v) {
+  if (v == 0) {
+    return 0;
+  }
   int train_id = tr_num_to_idx(train);
-  return ((_stopping_distance[train_id] / 5) * v) / _mean_velocities[11][train_id] * 5;
+  return max(((_stopping_distance[train_id] / 5) * v) / _mean_velocities[11][train_id] * 5, 1);
 }
 
 void init_mean_velocities() {

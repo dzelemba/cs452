@@ -351,7 +351,8 @@ void location_server() {
           if (current_speeds[train_id] > 0) {
             dx = current_velocities[train_id] / NM_PER_UM;
           } else if (stopping_time[train_id] > 0) {
-            dx = (DEFAULT_STOPPING_DISTANCE * UM_PER_MM) / DEFAULT_STOPPING_TICKS;
+            int stopping_dx = (((DEFAULT_STOPPING_DISTANCE / 5) * current_velocities[train_id]) / DEFAULT_NM_PER_TICK) * 5;
+            dx = stopping_dx * UM_PER_MM / DEFAULT_STOPPING_TICKS;
           }
         } else {
           dx = current_velocities[train_id] / NM_PER_UM;
@@ -445,7 +446,8 @@ void location_server() {
           if (current_speeds[train_id] == 0) {
             acceleration_start_time[train_id] = Time();
             // Division by 4 necessary to avoid integer overflow
-            stopping_time[train_id] = (((MAX_STOPPING_TICKS / 4) * current_velocities[train_id]) / DEFAULT_NM_PER_TICK) * 4;
+            /*stopping_time[train_id] = (((MAX_STOPPING_TICKS / 4) * current_velocities[train_id]) / DEFAULT_NM_PER_TICK) * 4;*/
+            stopping_time[train_id] = MAX_STOPPING_TICKS;
             INFO(LOCATION_SERVER, "Stopping time: train %d stops in %d ticks", msg.train_update.train, stopping_time[train_id]);
           } else {
             acceleration_start_time[train_id] = Time();
