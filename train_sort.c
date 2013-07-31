@@ -150,7 +150,7 @@ void sort_trains(int t1, int t2, int t3, int t4) {
 
     // This is the suffix.
     for (i = current_train_spot + 1; i < num_remaining_sorting; i++) {
-      j = i - current_train_spot;
+      j = i - (current_train_spot + 1);
       loc.node = suffix_spots[MAX_SORTABLE - j - 1];
       INFO(SORT, "Train %d to %s", current_order[i], loc.node->name);
       tr_set_route(current_order[i], 11, &loc);
