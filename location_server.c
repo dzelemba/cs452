@@ -229,6 +229,7 @@ void update_tracking_data_for_reverse(tracking_data* t_data, int train) {
     t_data->loc->um_past_node = 0;
     fill_in_tracking_data(t_data);
   }
+  t_data->missed_sensor = 0;
   flip_direction(&t_data->loc->d);
 }
 
