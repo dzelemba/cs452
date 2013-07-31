@@ -18,7 +18,7 @@
 #include "train_sort.h"
 
 #define MAX_LINE_LENGTH 64
-#define MAX_TOKENS 4
+#define MAX_TOKENS 8
 #define MAX_TOKEN_SIZE 8
 
 #define DRAW_ROW_RECENT_HIT 9
