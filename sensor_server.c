@@ -38,7 +38,7 @@ void get_sensor_bytes(char* bytes) {
   }
 }
 
-void process_sensor_bytes(char* bytes, sensor_server_message* msg) {
+void process_sensor_bytes(char* bytes, char* prev_sensor_bytes, sensor_server_message* msg) {
   int i,j;
   int next_sensor = 0;
   for (i = 0; i< NUM_SENSOR_BYTES; i++) {
@@ -47,7 +47,7 @@ void process_sensor_bytes(char* bytes, sensor_server_message* msg) {
     int max = 8 + offset;
     int group = i / 2;
     for (j = max - 1; j >= offset; j--) {
-      if (bytes[i] & mask) {
+      if ((bytes[i] & mask) && !(prev_sensor_bytes[i] & mask) ) {
         ASSERT(next_sensor < MAX_NEW_SENSORS, "sensor_server.c : process_sensor_bytes" );
         msg->data[next_sensor++] = (sensor) { group + 'A', j + 1 };
       }
@@ -61,11 +61,13 @@ void sensor_notifier() {
   RegisterAs("Sensor Notifier");
   sensor_server_message msg;
   msg.type = SENSOR_SERVER_DATA_MSG;
+  char prev_sensor_bytes[NUM_SENSOR_BYTES] = {0, 0};
   char sensor_bytes[NUM_SENSOR_BYTES];
   while (1) {
     prepare_sensors_for_read();
     get_sensor_bytes(sensor_bytes);
-    process_sensor_bytes(sensor_bytes, &msg);
+    process_sensor_bytes(sensor_bytes, prev_sensor_bytes, &msg);
+    memcpy(prev_sensor_bytes, (const char *)sensor_bytes, NUM_SENSOR_BYTES * sizeof(char));
 
     if (msg.num_sensors != 0) {
       Send(sensor_server_tid, (char *)&msg, sizeof(sensor_server_message), NULL, 0);
